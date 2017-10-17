@@ -7,9 +7,9 @@ Functional Wolfenstein 3D engine implementation in Haskell.
 
 ## Requirements
 
- - (Stack)[https://www.haskellstack.org] (Tested with 1.4)
- - (SDL2)[https://www.libsdl.org/]
- - (SDL2 Image)[https://www.libsdl.org/projects/SDL_image/]
+ - [Stack](https://www.haskellstack.org) (Tested with 1.4)
+ - [SDL2](https://www.libsdl.org/)
+ - [SDL2 Image](https://www.libsdl.org/projects/SDL_image/)
 
 
 ## Setting up Development Environment
