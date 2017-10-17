@@ -11,7 +11,7 @@ addons:
   apt:
     packages:
       - libsdl2-dev
-      - libsdl2-dev
+      - libsdl2-image-dev
 
 before_install:
   - mkdir -p ~/.local/bin
