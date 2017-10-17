@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Lib (main) where
+module Wolf3D (main) where
 
 import qualified SDL
 import qualified SDL.Image

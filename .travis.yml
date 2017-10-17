@@ -10,7 +10,8 @@ cache:
 addons:
   apt:
     packages:
-      - libgmp-dev
+      - libsdl2-dev
+      - libsdl2-dev
 
 before_install:
   - mkdir -p ~/.local/bin
