@@ -7,8 +7,8 @@ module Wolf3D.World (
 
 import Wolf3D.Player
 
-type Rotation = Int
-data PositionWorld = PositionWorld (Int, Int) PlayerActionsState Rotation
+type WorldTimeMillis = Int
+data PositionWorld = PositionWorld (Int, Int) PlayerActionsState WorldTimeMillis
 
 initWorld :: PositionWorld
 initWorld = PositionWorld (0,0) staticPlayerActionsState 0
