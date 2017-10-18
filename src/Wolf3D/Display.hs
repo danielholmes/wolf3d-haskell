@@ -7,6 +7,7 @@ import Data.StateVar
 import Data.List
 import Data.Vector
 import Data.Foldable
+import Debug.Trace
 import Foreign.C.Types
 
 
@@ -30,18 +31,27 @@ render t r w = do
 renderLines :: SDL.Renderer -> [(PosZInt, Maybe WallHit)] -> IO ()
 renderLines r hits = forM_ hits (renderLine r)
 
-
 renderLine :: SDL.Renderer -> (PosZInt, Maybe WallHit) -> IO ()
 renderLine _ (_, Nothing) = return ()
 renderLine r (x, Just (distance, _, _)) = do
   let xInt = CInt (fromIntegral (fromPosZInt x))
-  let distanceSeed = round (fromPosZDouble distance / 1000) :: Int
-  let distanceWord = fromIntegral distanceSeed
+  let maxScaler = 2000.0
+  let distanceRatio = min 1.0 (fromPosZDouble distance / maxScaler)
+  let colour = round (255.0 - 255.0 * distanceRatio) :: Int
+  let distanceWord = traceShow (distance, distanceRatio, colour) (fromIntegral colour)
   SDL.rendererDrawColor r $= SDL.V4 distanceWord 0 0 255
-  SDL.drawLine r (SDL.P (SDL.V2 xInt 100)) (SDL.P (SDL.V2 xInt 300))
+  SDL.drawLine r (SDL.P (SDL.V2 xInt 0)) (SDL.P (SDL.V2 xInt 480))
 
 visibleLines :: World -> PosInt -> [(PosZInt, Maybe WallHit)]
-visibleLines _ width = map (\i -> (posZInt i, Nothing)) [1..(fromPosInt width)]
+visibleLines w width = map (\i -> (posZInt i, castRayToClosestWall w (rayForX i))) [1..(fromPosInt width)]
+  where
+    widthI = fromIntegral (fromPosInt width)
+    halfWidth = widthI / 2.0
+    rayForX :: Int -> Ray
+    rayForX i = (Vector2 (-rayX) (-30), Vector2 rayX 30)
+      where
+        ratio = fromIntegral i / widthI
+        rayX = 0.1 * (ratio * widthI - halfWidth)
 
 wallToLine :: Wall -> Line
 wallToLine (Wall (x, y) (dx, dy)) = (Vector2 (fromIntegral x) (fromIntegral y), Vector2 (fromIntegral dx) (fromIntegral dy))

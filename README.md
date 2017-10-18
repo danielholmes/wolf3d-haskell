@@ -44,9 +44,8 @@ stack test --pedantic
 ## TODO
 
  - 2d ray casted static scene (2d ray casting then choose column of image based on what hits)
-   - 1 dimensional solid colour
    - 2d solid colour (roof and floor)
-   - 2d with image texture
+   - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
  - fix travis build
  - constantly rotating ray casted scene
  - keyboard movement within world
@@ -63,4 +62,5 @@ stack test --pedantic
 ## Nice to haves
 
  - Find better PosInt and PosZInt implementation
+ - Try reading original data file?
  
