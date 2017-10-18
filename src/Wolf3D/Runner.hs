@@ -7,6 +7,7 @@ import Data.Maybe
 import Wolf3D.World
 import Wolf3D.Input
 import Wolf3D.Sim
+import Wolf3D.Player
 
 type FixedStepMillis = Int
 
@@ -35,11 +36,11 @@ timerTick render run@(SimRun world fixedStep previousTime _) = do
   let millisAvailable = diffUTCTimeMillis previousTime now
   let numSteps = min maxStepsPerTick (millisAvailable `div` fixedStep)
 
-  wWithInput <- processInput world
-  let runWithInput = applyInput run wWithInput
+  currentInput <- processInput (worldPlayerActionsState world)
+  let runWithInput = applyInput run currentInput
   let preTickWorld = simRunWorld runWithInput
 
-  let ranWorld = runNTicks preTickWorld fixedStep numSteps
+  let ranWorld = tickWorldNTimes preTickWorld fixedStep numSteps
 
   case ranWorld of
     Just newWorld -> render newWorld
@@ -53,18 +54,10 @@ timerTick render run@(SimRun world fixedStep previousTime _) = do
   let runWithNewTimes = updateSimRunTimes runWithNewWorld updatedTime
   traceShow (previousTime, now, millisAvailable, fixedStep, numSteps, updatedTime) (return runWithNewTimes)
 
-runNTicks :: PositionWorld -> FixedStepMillis -> Int -> Maybe PositionWorld
-runNTicks _ _ 0 = Nothing
-runNTicks w f n = Just (foldr foldStep w [1..n])
-  where
-    foldStep :: Int -> PositionWorld -> PositionWorld
-    foldStep _ = tickWorld f
-
-applyInput :: SimRun -> Maybe PositionWorld -> SimRun
-applyInput run wWithInput =
-  case wWithInput of
-    (Just newWorld) -> updateSimRunWorld run newWorld
-    Nothing -> finishRun run
+applyInput :: SimRun -> InputState -> SimRun
+applyInput run input
+  | inputQuit input = finishRun run
+  | otherwise       = updateSimRunPlayerActionsState run (inputPlayerActionsState input)
 
 diffUTCTimeMillis :: UTCTime -> UTCTime -> Int
 diffUTCTimeMillis previous now = diffMillis
@@ -77,3 +70,6 @@ updateSimRunWorld (SimRun _ s p f) newWorld = SimRun newWorld s p f
 
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun
 updateSimRunTimes (SimRun w s _ f) newTime = SimRun w s newTime f
+
+updateSimRunPlayerActionsState :: SimRun -> PlayerActionsState -> SimRun
+updateSimRunPlayerActionsState (SimRun w s t f) pas = SimRun (updateWorldPlayerActionsState w pas) s t f
