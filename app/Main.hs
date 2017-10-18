@@ -1,6 +1,6 @@
 module Main where
 
-import qualified Lib
+import qualified Wolf3D
 
 main :: IO ()
-main = Lib.main
+main = Wolf3D.main

@@ -15,8 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Wolf3D
   other-modules:       Wolf3D.World
+                     , Wolf3D.Sim
+                     , Wolf3D.Runner
                      , Wolf3D.Display
                      , Wolf3D.Input
                      , Wolf3D.UI
