@@ -19,9 +19,9 @@ import Wolf3D.Types
 
 type FixedStepMillis = PosInt
 
-data SimRun = SimRun PositionWorld FixedStepMillis UTCTime Bool
+data SimRun = SimRun World FixedStepMillis UTCTime Bool
 
-startSimRun :: PositionWorld -> FixedStepMillis -> IO SimRun
+startSimRun :: World -> FixedStepMillis -> IO SimRun
 startSimRun w s = do
   startTime <- getCurrentTime
   return (SimRun w s startTime False)
@@ -29,7 +29,7 @@ startSimRun w s = do
 simRunIsFinished :: SimRun -> Bool
 simRunIsFinished (SimRun _ _ _ f) = f
 
-simRunWorld :: SimRun -> PositionWorld
+simRunWorld :: SimRun -> World
 simRunWorld (SimRun w _ _ _) = w
 
 finishRun :: SimRun -> SimRun
@@ -55,7 +55,7 @@ calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps upda
       | fromPosZInt numSteps < fromPosInt maxSteps = addUTCTime usedTime prev
       | otherwise                                  = now
 
-timerTick :: (PositionWorld -> IO ()) -> SimRun -> IO SimRun
+timerTick :: (World -> IO ()) -> SimRun -> IO SimRun
 timerTick render run@(SimRun world fixedStep previousTime _) = do
   now <- getCurrentTime
   -- TODO: Lift to SimRun
@@ -90,7 +90,7 @@ diffUTCTimeMillis previous now = posZInt diffMillis
     diff = toRational (diffUTCTime now previous)
     diffMillis = floor (diff * 1000) :: Int
 
-updateSimRunWorld :: SimRun -> PositionWorld -> SimRun
+updateSimRunWorld :: SimRun -> World -> SimRun
 updateSimRunWorld (SimRun _ s p f) newWorld = SimRun newWorld s p f
 
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun

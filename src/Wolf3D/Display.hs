@@ -4,8 +4,9 @@ import Wolf3D.World
 import qualified SDL
 import Data.StateVar
 
-render :: SDL.Texture -> SDL.Renderer -> PositionWorld -> IO ()
-render t r (PositionWorld (x,y) _ _) = do
+render :: SDL.Texture -> SDL.Renderer -> World -> IO ()
+render t r w = do
+  let (x,y) = worldPosition w
   SDL.rendererDrawColor r $= SDL.V4 255 255 255 255
   SDL.clear r
 

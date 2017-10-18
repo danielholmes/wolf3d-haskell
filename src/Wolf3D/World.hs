@@ -1,21 +1,36 @@
 module Wolf3D.World (
-  PositionWorld (PositionWorld),
+  World,
   initWorld,
   worldPlayerActionsState,
-  updateWorldPlayerActionsState
+  worldPosition,
+  updateWorldPlayerActionsState,
+  advanceWorldTime,
+  moveWorld
 ) where
 
 import Wolf3D.Player
 import Wolf3D.Types
 
 type WorldTimeMillis = PosZInt
-data PositionWorld = PositionWorld (Int, Int) PlayerActionsState WorldTimeMillis
+data World = World (Int, Int) PlayerActionsState WorldTimeMillis
 
-initWorld :: PositionWorld
-initWorld = PositionWorld (0,0) staticPlayerActionsState posZInt0
+initWorld :: World
+initWorld = World (0,0) staticPlayerActionsState posZInt0
 
-worldPlayerActionsState :: PositionWorld -> PlayerActionsState
-worldPlayerActionsState (PositionWorld _ a _) = a
+worldPlayerActionsState :: World -> PlayerActionsState
+worldPlayerActionsState (World _ a _) = a
 
-updateWorldPlayerActionsState :: PositionWorld -> PlayerActionsState -> PositionWorld
-updateWorldPlayerActionsState (PositionWorld p _ r) s = PositionWorld p s r
+worldPosition :: World -> (Int, Int)
+worldPosition (World p _ _) = p
+
+updateWorldPlayerActionsState :: World -> PlayerActionsState -> World
+updateWorldPlayerActionsState (World p _ r) s = World p s r
+
+advanceWorldTime :: World -> PosInt -> World
+advanceWorldTime (World p pas time) step = World p pas newTime
+  where
+    newTime = posZInt (fromPosZInt time + fromPosInt step)
+
+-- TODO: Remove
+moveWorld :: World -> (Int,Int) -> World
+moveWorld (World (x,y) pas time) (dx,dy) = World (x + dx, y + dy) pas time

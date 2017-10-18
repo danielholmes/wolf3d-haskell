@@ -4,11 +4,12 @@ import Wolf3D.World
 import Wolf3D.Player
 import Wolf3D.Types
 
-tickWorld :: PosInt -> PositionWorld -> PositionWorld
-tickWorld timeStep (PositionWorld (x,y) pas time) = PositionWorld (x+dx,y+dy) pas newTime
+tickWorld :: PosInt -> World -> World
+tickWorld timeStep world = advanceWorldTime movedWorld timeStep
   where
+    pas = worldPlayerActionsState world
     (dx,dy) = playerActionsStateToMovement pas
-    newTime = posZInt (fromPosZInt time + fromPosInt timeStep)
+    movedWorld = moveWorld world (dx * fromPosInt timeStep, dy * fromPosInt timeStep)
 
 playerActionsStateToMovement :: PlayerActionsState -> (Int,Int)
 playerActionsStateToMovement s = withDown
@@ -22,10 +23,10 @@ playerActionsStateToMovement s = withDown
     withUp = conditionalAdd withRight (0,-1) (playerActionsStateUp s)
     withDown = conditionalAdd withUp (0,1) (playerActionsStateDown s)
 
-tickWorldNTimes :: PositionWorld -> PosInt -> PosZInt -> Maybe PositionWorld
+tickWorldNTimes :: World -> PosInt -> PosZInt -> Maybe World
 tickWorldNTimes w f n
   | n == posZInt0 = Nothing
   | otherwise     = Just (foldr foldStep w [1..(fromPosZInt n)])
     where
-      foldStep :: Int -> PositionWorld -> PositionWorld
+      foldStep :: Int -> World -> World
       foldStep _ = tickWorld f
