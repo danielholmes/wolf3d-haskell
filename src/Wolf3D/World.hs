@@ -1,6 +1,7 @@
 module Wolf3D.World (
   World,
   Wall (Wall),
+  WallMaterial (Red, Green, Blue),
   createWorld,
   worldPlayerActionsState,
   worldPosition,
@@ -14,14 +15,26 @@ import Wolf3D.Player
 import Wolf3D.Types
 
 
+data WallMaterial = Red | Green | Blue
 type WallPosition = (Int, Int)
-data Wall = Wall WallPosition WallPosition
+data Wall = Wall WallPosition WallPosition WallMaterial
+
+instance Show WallMaterial where
+  show Red   = "Red"
+  show Green = "Green"
+  show Blue  = "Blue"
+
+instance Eq WallMaterial where
+  (==) Red Red = True
+  (==) Green Green = True
+  (==) Blue Blue = True
+  (==) _ _ = False
 
 instance Show Wall where
-  show (Wall s e) = "Wall " ++ show s ++ " " ++ show e
+  show (Wall s e m) = "Wall " ++ show s ++ " " ++ show e ++ " " ++ show m
 
 instance Eq Wall where
-  (==) (Wall s1 e1) (Wall s2 e2) = s1 == s2 && e1 == e2
+  (==) (Wall s1 e1 m1) (Wall s2 e2 m2) = s1 == s2 && e1 == e2 && m1 == m2
 
 
 type WorldTimeMillis = PosZInt

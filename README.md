@@ -43,19 +43,17 @@ stack test --pedantic
 
 ## TODO
 
- - 2d ray casted static scene (2d ray casting then choose column of image based on what hits)
-   - 2d solid colour (roof and floor)
-   - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
- - fix travis build
- - constantly rotating ray casted scene
+ - keyboard rotate world
  - keyboard movement within world
-   - Update each item to produce events, process those events which generate new events
+ - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
+ - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - provide top down rendering also for debugging (maybe separate exe?)
  - physics engine (2d top down)
  - sprite items that block movement
  - render and shoot gun
  - static sprite targets that can shoot and kill
  - pickup items
+ - fix travis build
  - All events together at the end of game loop passed to audio handler, which plays audio
 
 

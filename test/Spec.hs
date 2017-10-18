@@ -103,14 +103,14 @@ main = hspec $ do
 
     it "should return empty if miss walls" $
       let
-        world = createWorld [Wall (-100, -100) (200, 0)]
+        world = createWorld [Wall (-100, -100) (200, 0) Red]
         result = castRayToClosestWall world (Vector2 0 (-30), Vector2 0 30)
       in
         isNothing result `shouldBe` True
 
     it "should return correct wall and position if hit" $
       let
-        wall = Wall (-100, 100) (200, 0)
+        wall = Wall (-100, 100) (200, 0) Red
         world = createWorld [wall]
         result = castRayToClosestWall world (Vector2 0 (-30), Vector2 0 30)
       in

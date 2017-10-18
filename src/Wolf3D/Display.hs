@@ -7,7 +7,7 @@ import Data.StateVar
 import Data.List
 import Data.Vector
 import Data.Foldable
-import Debug.Trace
+import Data.Word
 import Foreign.C.Types
 
 
@@ -17,33 +17,50 @@ type WallHit = (PosZDouble, Wall, Vector2)
 
 render :: SDL.Texture -> SDL.Renderer -> World -> IO ()
 render t r w = do
+  renderCeilingAndFloor r
+  renderWalls r w
+
+  -- Dummy character rendering
   let (x,y) = worldPosition w
-  SDL.rendererDrawColor r $= SDL.V4 255 255 255 255
-  SDL.clear r
-
-  let seenLines = visibleLines w (posInt 640)
-  renderLines r seenLines
-
   SDL.copy r t (Just (mkRect 0 0 48 48)) (Just (mkRect (fromIntegral x) (fromIntegral y) 48 48))
 
   SDL.present r
 
-renderLines :: SDL.Renderer -> [(PosZInt, Maybe WallHit)] -> IO ()
-renderLines r hits = forM_ hits (renderLine r)
+renderCeilingAndFloor :: SDL.Renderer -> IO ()
+renderCeilingAndFloor r = do
+  SDL.rendererDrawColor r $= SDL.V4 1 84 88 255
+  SDL.fillRect r (Just (mkRect 0 0 640 240))
+  SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
+  SDL.fillRect r (Just (mkRect 0 240 640 240))
 
-renderLine :: SDL.Renderer -> (PosZInt, Maybe WallHit) -> IO ()
-renderLine _ (_, Nothing) = return ()
-renderLine r (x, Just (distance, _, _)) = do
+renderWalls :: SDL.Renderer -> World -> IO ()
+renderWalls r w = forM_ hits (renderWallLine r)
+  where hits = visibleWallLines w (posInt 640)
+
+renderWallLine :: SDL.Renderer -> (PosZInt, Maybe WallHit) -> IO ()
+renderWallLine _ (_, Nothing) = return ()
+renderWallLine r (x, Just hit@(distance, _, _)) = do
   let xInt = CInt (fromIntegral (fromPosZInt x))
   let maxScaler = 2000.0
-  let distanceRatio = min 1.0 (fromPosZDouble distance / maxScaler)
-  let colour = round (255.0 - 255.0 * distanceRatio) :: Int
-  let distanceWord = traceShow (distance, distanceRatio, colour) (fromIntegral colour)
-  SDL.rendererDrawColor r $= SDL.V4 distanceWord 0 0 255
-  SDL.drawLine r (SDL.P (SDL.V2 xInt 0)) (SDL.P (SDL.V2 xInt 480))
+  let distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
+  let height = round (200 * distanceRatio)
+  let halfHeight = height `div` 2
+  SDL.rendererDrawColor r $= wallHitColour hit
+  SDL.drawLine r (SDL.P (SDL.V2 xInt (480 `div` 2 - halfHeight))) (SDL.P (SDL.V2 xInt (480 `div` 2 + halfHeight)))
 
-visibleLines :: World -> PosInt -> [(PosZInt, Maybe WallHit)]
-visibleLines w width = map (\i -> (posZInt i, castRayToClosestWall w (rayForX i))) [1..(fromPosInt width)]
+wallHitColour :: WallHit -> SDL.V4 Word8
+wallHitColour (distance, Wall _ _ material, _) = SDL.V4 red green blue 255
+  where
+    maxScaler = 2000.0
+    distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
+    colour = fromIntegral (round (255.0 * distanceRatio) :: Int)
+    (red, green, blue) = case material of
+      Red -> (colour, 0, 0)
+      Green -> (0, colour, 0)
+      Blue -> (0, 0, colour)
+
+visibleWallLines :: World -> PosInt -> [(PosZInt, Maybe WallHit)]
+visibleWallLines w width = map (\i -> (posZInt i, castRayToClosestWall w (rayForX i))) [0..((fromPosInt width) - 1)]
   where
     widthI = fromIntegral (fromPosInt width)
     halfWidth = widthI / 2.0
@@ -54,7 +71,7 @@ visibleLines w width = map (\i -> (posZInt i, castRayToClosestWall w (rayForX i)
         rayX = 0.1 * (ratio * widthI - halfWidth)
 
 wallToLine :: Wall -> Line
-wallToLine (Wall (x, y) (dx, dy)) = (Vector2 (fromIntegral x) (fromIntegral y), Vector2 (fromIntegral dx) (fromIntegral dy))
+wallToLine (Wall (x, y) (dx, dy) _) = (Vector2 (fromIntegral x) (fromIntegral y), Vector2 (fromIntegral dx) (fromIntegral dy))
 
 castRayToClosestWall :: World -> Ray -> Maybe WallHit
 castRayToClosestWall w ray
