@@ -15,7 +15,11 @@ main :: IO ()
 main = createUI $
   \r -> do
     texture <- SDL.Image.loadTexture r "./assets/walk.png"
-    simRun <- startSimRun initWorld (posInt 16)
+    let walls = [ Wall (-1000, 1000) (950, 0)
+                , Wall (50, 1000) (950, 0)
+                , Wall (-50, 1000) (0, 1000)
+                , Wall (50, 1000) (0, 1000)]
+    simRun <- startSimRun (createWorld walls) (posInt 16)
     _ <- iterateUntilM simRunIsFinished (timerTick (render texture r)) simRun
     SDL.destroyTexture texture
 
