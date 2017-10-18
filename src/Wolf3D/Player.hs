@@ -2,21 +2,21 @@ module Wolf3D.Player (
   PlayerActionsState,
   staticPlayerActionsState,
   modifyPlayerActionState,
-  PlayerAction (MoveUp, MoveDown, MoveLeft, MoveRight),
+  PlayerAction (MoveUp, MoveDown, TurnLeft, TurnRight),
   playerActionsStateUp,
   playerActionsStateDown,
-  playerActionsStateLeft,
-  playerActionsStateRight
+  playerActionsStateTurnLeft,
+  playerActionsStateTurnRight
 ) where
 
 data PlayerActionsState = PlayerActionsState
   { playerActionsStateUp    :: Bool
   , playerActionsStateDown  :: Bool
-  , playerActionsStateLeft  :: Bool
-  , playerActionsStateRight :: Bool
+  , playerActionsStateTurnLeft  :: Bool
+  , playerActionsStateTurnRight :: Bool
   }
 
-data PlayerAction = MoveUp | MoveDown | MoveLeft | MoveRight
+data PlayerAction = MoveUp | MoveDown | TurnLeft | TurnRight
 
 staticPlayerActionsState :: PlayerActionsState
 staticPlayerActionsState = PlayerActionsState False False False False
@@ -24,5 +24,5 @@ staticPlayerActionsState = PlayerActionsState False False False False
 modifyPlayerActionState :: PlayerActionsState -> PlayerAction -> Bool -> PlayerActionsState
 modifyPlayerActionState (PlayerActionsState _ d l r) MoveUp a = PlayerActionsState a d l r
 modifyPlayerActionState (PlayerActionsState u _ l r) MoveDown a = PlayerActionsState u a l r
-modifyPlayerActionState (PlayerActionsState u d _ r) MoveLeft a = PlayerActionsState u d a r
-modifyPlayerActionState (PlayerActionsState u d l _) MoveRight a = PlayerActionsState u d l a
+modifyPlayerActionState (PlayerActionsState u d _ r) TurnLeft a = PlayerActionsState u d a r
+modifyPlayerActionState (PlayerActionsState u d l _) TurnRight a = PlayerActionsState u d l a

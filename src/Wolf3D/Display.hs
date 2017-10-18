@@ -21,8 +21,8 @@ render t r w = do
   renderWalls r w
 
   -- Dummy character rendering
-  let (x,y) = worldPosition w
-  SDL.copy r t (Just (mkRect 0 0 48 48)) (Just (mkRect (fromIntegral x) (fromIntegral y) 48 48))
+  let pos = worldHeroPosition w
+  SDL.copy r t (Just (mkRect 0 0 48 48)) (Just (mkRect (round (v2x pos)) (round (v2y pos)) 48 48))
 
   SDL.present r
 

@@ -4,15 +4,18 @@ module Wolf3D.World (
   WallMaterial (Red, Green, Blue),
   createWorld,
   worldPlayerActionsState,
-  worldPosition,
+  worldHeroPosition,
   worldWalls,
+  worldHero,
   updateWorldPlayerActionsState,
   advanceWorldTime,
-  moveWorld
+  updateWorldHero
 ) where
 
+import Wolf3D.Hero
 import Wolf3D.Player
 import Wolf3D.Types
+import Data.Vector
 
 
 data WallMaterial = Red | Green | Blue
@@ -38,19 +41,24 @@ instance Eq Wall where
 
 
 type WorldTimeMillis = PosZInt
-data World = World (Int, Int) [Wall] PlayerActionsState WorldTimeMillis
+data World = World Hero [Wall] PlayerActionsState WorldTimeMillis
 
 createWorld :: [Wall] -> World
-createWorld walls = World (0,0) walls staticPlayerActionsState posZInt0
+createWorld walls = World hero walls staticPlayerActionsState posZInt0
+  where
+    hero = createHero (Vector2 0 0)
 
 worldPlayerActionsState :: World -> PlayerActionsState
 worldPlayerActionsState (World _ _ a _) = a
 
-worldPosition :: World -> (Int, Int)
-worldPosition (World p _ _ _) = p
+worldHeroPosition :: World -> Vector2
+worldHeroPosition (World h _ _ _) = heroPosition h
 
 worldWalls :: World -> [Wall]
 worldWalls (World _ walls _ _) = walls
+
+worldHero :: World -> Hero
+worldHero (World h _ _ _) = h
 
 updateWorldPlayerActionsState :: World -> PlayerActionsState -> World
 updateWorldPlayerActionsState (World p w _ r) s = World p w s r
@@ -60,6 +68,5 @@ advanceWorldTime (World p ws pas time) step = World p ws pas newTime
   where
     newTime = posZInt (fromPosZInt time + fromPosInt step)
 
--- TODO: Remove
-moveWorld :: World -> (Int,Int) -> World
-moveWorld (World (x,y) ws pas time) (dx,dy) = World (x + dx, y + dy) ws pas time
+updateWorldHero :: World -> Hero -> World
+updateWorldHero (World _ ws pas time) h = World h ws pas time

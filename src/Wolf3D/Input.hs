@@ -32,7 +32,7 @@ processKeyAction :: Bool -> PlayerActionsState -> Keysym -> PlayerActionsState
 processKeyAction active p keySym = case keysymKeycode keySym of
   KeycodeUp     -> modifyPlayerActionState p MoveUp active
   KeycodeDown   -> modifyPlayerActionState p MoveDown active
-  KeycodeLeft   -> modifyPlayerActionState p MoveLeft active
-  KeycodeRight  -> modifyPlayerActionState p MoveRight active
+  KeycodeLeft   -> modifyPlayerActionState p TurnLeft active
+  KeycodeRight  -> modifyPlayerActionState p TurnRight active
   _             -> p
 

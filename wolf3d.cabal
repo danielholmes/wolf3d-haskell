@@ -21,6 +21,7 @@ library
                      , Wolf3D.Types
                      , Wolf3D.Display
   other-modules:       Wolf3D.Sim
+                     , Wolf3D.Hero
                      , Wolf3D.Player
                      , Wolf3D.Input
                      , Wolf3D.UI
