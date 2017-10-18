@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Wolf3D
                      , Wolf3D.Runner
+                     , Wolf3D.Types
   other-modules:       Wolf3D.World
                      , Wolf3D.Sim
                      , Wolf3D.Player

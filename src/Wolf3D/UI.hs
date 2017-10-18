@@ -8,17 +8,19 @@ import Control.Monad          (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text              (Text)
 
+import Wolf3D.Types
+
 createUI :: (MonadIO m) => (SDL.Renderer -> m a) -> m ()
 createUI op = do
   SDL.initialize []
   SDL.Image.initialize []
   void $
-    withWindow "Wolfenstein 3D" (640, 480) $ \w ->
+    withWindow "Wolfenstein 3D" (posInt 640, posInt 480) $ \w ->
       withRenderer w op
   SDL.Image.quit
   SDL.quit
 
-withWindow :: (MonadIO m) => Text -> (Int, Int) -> (SDL.Window -> m a) -> m ()
+withWindow :: (MonadIO m) => Text -> (PosInt, PosInt) -> (SDL.Window -> m a) -> m ()
 withWindow title (x, y) op = do
   w <- SDL.createWindow title p
   SDL.showWindow w
@@ -26,8 +28,7 @@ withWindow title (x, y) op = do
   SDL.destroyWindow w
     where
       p = SDL.defaultWindow { SDL.windowInitialSize = z }
-      z = SDL.V2 (fromIntegral x) (fromIntegral y)
-
+      z = SDL.V2 (fromIntegral (fromPosInt x)) (fromIntegral (fromPosInt y))
 
 withRenderer :: (MonadIO m) => SDL.Window -> (SDL.Renderer -> m a) -> m ()
 withRenderer w op = do

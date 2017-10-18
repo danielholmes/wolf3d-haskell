@@ -6,12 +6,13 @@ module Wolf3D.World (
 ) where
 
 import Wolf3D.Player
+import Wolf3D.Types
 
-type WorldTimeMillis = Int
+type WorldTimeMillis = PosZInt
 data PositionWorld = PositionWorld (Int, Int) PlayerActionsState WorldTimeMillis
 
 initWorld :: PositionWorld
-initWorld = PositionWorld (0,0) staticPlayerActionsState 0
+initWorld = PositionWorld (0,0) staticPlayerActionsState posZInt0
 
 worldPlayerActionsState :: PositionWorld -> PlayerActionsState
 worldPlayerActionsState (PositionWorld _ a _) = a

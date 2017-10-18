@@ -43,11 +43,11 @@ stack test --pedantic
 
 ## TODO
 
- - Use PositiveInt etc types
  - 2d ray casted static scene (2d ray casting then choose column of image based on what hits)
    - 1 dimensional solid colour
    - 2d solid colour (roof and floor)
    - 2d with image texture
+ - fix travis build
  - constantly rotating ray casted scene
  - keyboard movement within world
    - Update each item to produce events, process those events which generate new events
@@ -58,4 +58,9 @@ stack test --pedantic
  - static sprite targets that can shoot and kill
  - pickup items
  - All events together at the end of game loop passed to audio handler, which plays audio
+
+
+## Nice to haves
+
+ - Find better PosInt and PosZInt implementation
  

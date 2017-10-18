@@ -2,10 +2,13 @@ module Wolf3D.Sim (tickWorld, tickWorldNTimes) where
 
 import Wolf3D.World
 import Wolf3D.Player
+import Wolf3D.Types
 
-tickWorld :: Int -> PositionWorld -> PositionWorld
-tickWorld timeTick (PositionWorld (x,y) pas time) = PositionWorld (x+dx,y+dy) pas (time + timeTick)
-  where (dx,dy) = playerActionsStateToMovement pas
+tickWorld :: PosInt -> PositionWorld -> PositionWorld
+tickWorld timeStep (PositionWorld (x,y) pas time) = PositionWorld (x+dx,y+dy) pas newTime
+  where
+    (dx,dy) = playerActionsStateToMovement pas
+    newTime = posZInt (fromPosZInt time + fromPosInt timeStep)
 
 playerActionsStateToMovement :: PlayerActionsState -> (Int,Int)
 playerActionsStateToMovement s = withDown
@@ -19,9 +22,10 @@ playerActionsStateToMovement s = withDown
     withUp = conditionalAdd withRight (0,-1) (playerActionsStateUp s)
     withDown = conditionalAdd withUp (0,1) (playerActionsStateDown s)
 
-tickWorldNTimes :: PositionWorld -> Int -> Int -> Maybe PositionWorld
-tickWorldNTimes _ _ 0 = Nothing
-tickWorldNTimes w f n = Just (foldr foldStep w [1..n])
-  where
-    foldStep :: Int -> PositionWorld -> PositionWorld
-    foldStep _ = tickWorld f
+tickWorldNTimes :: PositionWorld -> PosInt -> PosZInt -> Maybe PositionWorld
+tickWorldNTimes w f n
+  | n == posZInt0 = Nothing
+  | otherwise     = Just (foldr foldStep w [1..(fromPosZInt n)])
+    where
+      foldStep :: Int -> PositionWorld -> PositionWorld
+      foldStep _ = tickWorld f

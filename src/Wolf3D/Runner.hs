@@ -10,18 +10,16 @@ module Wolf3D.Runner (
 
 import Data.Time.Clock
 import Data.Maybe
-
 import Wolf3D.World
 import Wolf3D.Input
 import Wolf3D.Sim
 import Wolf3D.Player
+import Wolf3D.Types
 
-type FixedStepMillis = Int
+
+type FixedStepMillis = PosInt
 
 data SimRun = SimRun PositionWorld FixedStepMillis UTCTime Bool
-
-maxStepsPerTick :: Int
-maxStepsPerTick = 3
 
 startSimRun :: PositionWorld -> FixedStepMillis -> IO SimRun
 startSimRun w s = do
@@ -37,31 +35,32 @@ simRunWorld (SimRun w _ _ _) = w
 finishRun :: SimRun -> SimRun
 finishRun (SimRun w f t _) = SimRun w f t True
 
-type NumSteps = Int
-type WaitMillis = Int
+type NumSteps = PosZInt
 
-data TimerTickSpec = TimerTickSpec NumSteps WaitMillis UTCTime
+data TimerTickSpec = TimerTickSpec NumSteps UTCTime
 
 instance Show TimerTickSpec where
-  show (TimerTickSpec n w t) = "TimerTickSpec numSteps=" ++ show n ++ " wait=" ++ show w ++ " newTime=" ++ show t
+  show (TimerTickSpec n t) = "TimerTickSpec numSteps=" ++ show n ++ " newTime=" ++ show t
 
 instance Eq TimerTickSpec where
-  (==) (TimerTickSpec n1 w1 t1) (TimerTickSpec n2 w2 t2) = n1 == n2 && w1 == w2 && t1 == t2
+  (==) (TimerTickSpec n1 t1) (TimerTickSpec n2 t2) = n1 == n2 && t1 == t2
 
-calculateTimerTickSpec :: UTCTime -> Int -> Int -> UTCTime -> TimerTickSpec
-calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps 0 updatedTime
+calculateTimerTickSpec :: UTCTime -> FixedStepMillis -> PosInt -> UTCTime -> TimerTickSpec
+calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps updatedTime
   where
     millisAvailable = diffUTCTimeMillis prev now
-    numSteps = min maxSteps (millisAvailable `div` fixedStep)
-    usedTime = realToFrac (numSteps * fixedStep) / 1000.0
+    numSteps = posZInt (min (fromPosInt maxSteps) (fromPosZInt millisAvailable `div` fromPosInt fixedStep))
+    usedTime = realToFrac (fromPosZInt numSteps * fromPosInt fixedStep) / 1000.0
     updatedTime
-      | numSteps < maxSteps = addUTCTime usedTime prev
-      | otherwise           = now
+      | fromPosZInt numSteps < fromPosInt maxSteps = addUTCTime usedTime prev
+      | otherwise                                  = now
 
 timerTick :: (PositionWorld -> IO ()) -> SimRun -> IO SimRun
 timerTick render run@(SimRun world fixedStep previousTime _) = do
   now <- getCurrentTime
-  let (TimerTickSpec numSteps _ updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
+  -- TODO: Lift to SimRun
+  let maxStepsPerTick = posInt 3
+  let (TimerTickSpec numSteps updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
 
   currentInput <- processInput (worldPlayerActionsState world)
   let runWithInput = applyInput run currentInput
@@ -85,8 +84,8 @@ applyInput run input
   | inputQuit input = finishRun run
   | otherwise       = updateSimRunPlayerActionsState run (inputPlayerActionsState input)
 
-diffUTCTimeMillis :: UTCTime -> UTCTime -> Int
-diffUTCTimeMillis previous now = diffMillis
+diffUTCTimeMillis :: UTCTime -> UTCTime -> PosZInt
+diffUTCTimeMillis previous now = posZInt diffMillis
   where
     diff = toRational (diffUTCTime now previous)
     diffMillis = floor (diff * 1000) :: Int
