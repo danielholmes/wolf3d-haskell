@@ -1,4 +1,5 @@
 module Wolf3D.Runner (
+  runLoop,
   timerTick,
   SimRun,
   startSimRun,
@@ -8,6 +9,7 @@ module Wolf3D.Runner (
   calculateTimerTickSpec
 ) where
 
+import Control.Monad.Loops (iterateUntilM)
 import Data.Time.Clock
 import Data.Maybe
 import Wolf3D.World
@@ -20,6 +22,11 @@ import Wolf3D.Types
 type FixedStepMillis = PosInt
 
 data SimRun = SimRun World FixedStepMillis UTCTime Bool
+
+runLoop :: World -> PosInt -> (World -> IO ()) -> IO SimRun
+runLoop w s r = do
+  simRun <- startSimRun w s
+  iterateUntilM simRunIsFinished (timerTick r) simRun
 
 startSimRun :: World -> FixedStepMillis -> IO SimRun
 startSimRun w s = do
