@@ -40,6 +40,12 @@ stack repl
 stack test --pedantic
 ```
 
+Or continuous:
+
+```bash
+stack test --pedantic --file-watch
+```
+
 
 ## TODO
 
