@@ -11,7 +11,7 @@ vec2Unit45 :: Double
 vec2Unit45 = sqrt 0.5
 
 heroSpec :: SpecWith ()
-heroSpec =
+heroSpec = do
   describe "Wolf3D.Hero.heroLookRay" $ do
     it "should return correct length 1 for straight" $
       let
@@ -36,3 +36,17 @@ heroSpec =
         hero = rotateHero (createHero (Vector2 0 0)) (-pi / 4)
       in
         heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 (-vec2Unit45) vec2Unit45))
+
+  describe "Wolf3D.Hero.moveHero" $ do
+    it "should move correctly if facing forward" $
+      let
+        hero = createHero (Vector2 0 0)
+      in
+        heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
+
+    it "should move correctly if facing backward" $
+      let
+        hero = rotateHero (createHero (Vector2 0 0)) pi
+      in
+        heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
+

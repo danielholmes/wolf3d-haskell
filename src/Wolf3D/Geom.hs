@@ -46,4 +46,4 @@ rotateVector2 (Vector2 x y) r = Vector2 newX newY
     newY = (s * x) + (c * y)
 
 angleToVector2 :: Double -> Vector2
-angleToVector2 a = Vector2 (cos a) (sin a)
+angleToVector2 a = Vector2 (sin a) (cos a)

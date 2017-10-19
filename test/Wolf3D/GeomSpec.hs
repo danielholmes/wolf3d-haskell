@@ -40,3 +40,13 @@ geomSpec = do
         ray = createRay (Vector2 10 10) (Vector2 1 1)
       in
         rotateRay ray (-pi / 4) `shouldSatisfy` veryCloseToRay (createRay (Vector2 10 10) (Vector2 0 1))
+
+  describe "Wolf3D.Geom.angleToVector2" $ do
+    it "should return correct for 0" $
+      angleToVector2 0 `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
+
+    it "should return correct for 180" $
+      angleToVector2 pi `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
+
+    it "should return correct for 90" $
+      angleToVector2 (pi / 2) `shouldSatisfy` veryCloseToVector2 (Vector2 1 0)
