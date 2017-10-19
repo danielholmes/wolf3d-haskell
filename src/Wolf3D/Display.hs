@@ -65,7 +65,7 @@ wallVisionRay hero i width = moveRayAlongDirection rotatedRay (-focalLength)
     hRay = heroLookRay hero
     widthI = fromIntegral (fromPosInt width)
     ratio = fromIntegral i / widthI - 0.5
-    rayRotation = 0.5 * ratio
+    rayRotation = 1.8 * ratio
     rotatedRay = rotateRay hRay rayRotation
 
 wallToLine :: Wall -> Line
