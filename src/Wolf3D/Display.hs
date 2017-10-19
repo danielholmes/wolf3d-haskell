@@ -1,33 +1,47 @@
-module Wolf3D.Display (render, Ray, castRayToClosestWall, rayLineIntersection) where
+module Wolf3D.Display (
+  setupRenderer,
+  render,
+  renderWorld,
+  castRayToClosestWall,
+  rayLineIntersection
+) where
 
 import Wolf3D.Types
 import Wolf3D.Geom
 import Wolf3D.Hero
 import Wolf3D.World
+import Wolf3D.SDLUtils
 import qualified SDL
-import Data.StateVar
+import Data.StateVar (($=))
 import Data.List
 import Data.Vector
 import Data.Foldable
 import Data.Word
-import Foreign.C.Types
+import Foreign.C.Types (CInt (CInt))
 
 
 type Line = (Vector2, Vector2)
 type WallHit = (PosZDouble, Wall, Vector2)
 
+setupRenderer :: SDL.Renderer -> IO ()
+setupRenderer _ = return ()
+
 render :: SDL.Renderer -> World -> IO ()
 render r w = do
+  renderWorld r w
+  SDL.present r
+
+renderWorld :: SDL.Renderer -> World -> IO ()
+renderWorld r w = do
   renderCeilingAndFloor r
   renderWalls r w
-  SDL.present r
 
 renderCeilingAndFloor :: SDL.Renderer -> IO ()
 renderCeilingAndFloor r = do
   SDL.rendererDrawColor r $= SDL.V4 1 84 88 255
-  SDL.fillRect r (Just (mkRect 0 0 640 240))
+  SDL.fillRect r (Just (mkSDLRect 0 0 640 240))
   SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
-  SDL.fillRect r (Just (mkRect 0 240 640 240))
+  SDL.fillRect r (Just (mkSDLRect 0 240 640 240))
 
 renderWalls :: SDL.Renderer -> World -> IO ()
 renderWalls r w = forM_ hits (renderWallLine r)
@@ -112,9 +126,3 @@ rayLineIntersection ray (q, s)
 
 vcross2 :: Vector2 -> Vector2 -> Scalar
 vcross2 (Vector2 x1 y1) (Vector2 x2 y2) = (x1 * y2) - (y1 * x2)
-
-mkRect :: a -> a -> a -> a -> SDL.Rectangle a
-mkRect x y w h = SDL.Rectangle o z
-  where
-    o = SDL.P (SDL.V2 x y)
-    z = SDL.V2 w h

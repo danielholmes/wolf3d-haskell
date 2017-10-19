@@ -22,7 +22,9 @@ library
                      , Wolf3D.Types
                      , Wolf3D.Display
                      , Wolf3D.UI
+                     , Wolf3D.SDLUtils
                      , Wolf3D.Debug.Data
+                     , Wolf3D.Debug.Display
   other-modules:       Wolf3D.Sim
                      , Wolf3D.Player
                      , Wolf3D.Input

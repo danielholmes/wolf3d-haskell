@@ -1,5 +1,6 @@
 module Wolf3D.Geom (
   Ray,
+  Rectangle (Rectangle),
   createRay,
   rayOrigin,
   rayDirection,
@@ -10,6 +11,8 @@ module Wolf3D.Geom (
 
 import Data.Vector
 
+
+data Rectangle = Rectangle Vector2 Vector2
 
 data Ray = Ray Vector2 Vector2
 
