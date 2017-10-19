@@ -11,6 +11,9 @@ module Wolf3D.Types (
   fromPosZDouble
 ) where
 
+import Data.Vector
+
+
 newtype PosZInt = PosZInt Int
 
 instance Eq PosZInt where

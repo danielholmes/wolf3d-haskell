@@ -44,7 +44,6 @@ stack test --pedantic
 ## TODO
 
  - keyboard rotate world
- - keyboard movement within world
  - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - provide top down rendering also for debugging (maybe separate exe?)

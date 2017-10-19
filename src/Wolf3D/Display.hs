@@ -1,6 +1,8 @@
 module Wolf3D.Display (render, Ray, castRayToClosestWall, rayLineIntersection) where
 
 import Wolf3D.Types
+import Wolf3D.Geom
+import Wolf3D.Hero
 import Wolf3D.World
 import qualified SDL
 import Data.StateVar
@@ -11,7 +13,6 @@ import Data.Word
 import Foreign.C.Types
 
 
-type Ray = (Vector2, Vector2)
 type Line = (Vector2, Vector2)
 type WallHit = (PosZDouble, Wall, Vector2)
 
@@ -60,18 +61,21 @@ wallHitColour (distance, Wall _ _ material, _) = SDL.V4 red green blue 255
       Blue -> (0, 0, colour)
 
 visibleWallLines :: World -> PosInt -> [(PosZInt, Maybe WallHit)]
-visibleWallLines w width = map (\i -> (posZInt i, castRayToClosestWall w (rayForX i))) [0..((fromPosInt width) - 1)]
+visibleWallLines w width = map (\i -> (posZInt i, castRayToClosestWall w (wallVisionRay (worldHero w) i width))) [0..(fromPosInt width - 1)]
+
+wallVisionRay :: Hero -> Int -> PosInt -> Ray
+wallVisionRay hero i width = createRay (pos - focalMagnitude) focalMagnitude
   where
+    focalMagnitude = Vector2 rayX focalLength
+    pos = heroPosition hero
     widthI = fromIntegral (fromPosInt width)
     halfWidth = widthI / 2.0
-    rayForX :: Int -> Ray
-    rayForX i = (Vector2 (-rayX) (-30), Vector2 rayX 30)
-      where
-        ratio = fromIntegral i / widthI
-        rayX = 0.1 * (ratio * widthI - halfWidth)
+    focalLength = 30
+    ratio = fromIntegral i / widthI
+    rayX = 0.1 * (ratio * widthI - halfWidth)
 
 wallToLine :: Wall -> Line
-wallToLine (Wall (x, y) (dx, dy) _) = (Vector2 (fromIntegral x) (fromIntegral y), Vector2 (fromIntegral dx) (fromIntegral dy))
+wallToLine (Wall start change _) = (start, change)
 
 castRayToClosestWall :: World -> Ray -> Maybe WallHit
 castRayToClosestWall w ray
@@ -83,8 +87,9 @@ castRayToClosestWall w ray
     compareHits (d1, _, _) (d2, _, _) = d1 `compare` d2
 
 castRay :: World -> Ray -> [WallHit]
-castRay world ray@(rStart, _) = foldr foldStep [] (worldWalls world)
+castRay world ray = foldr foldStep [] (worldWalls world)
   where
+    rStart = rayOrigin ray
     foldStep :: Wall -> [WallHit] -> [WallHit]
     foldStep wall accu = case rayLineIntersection ray (wallToLine wall) of
       Nothing -> accu
@@ -96,12 +101,14 @@ vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = posZDouble (sqrt (((x1 - x2) ** 2) 
 -- https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
 -- https://rootllama.wordpress.com/2014/06/20/ray-line-segment-intersection-test-in-2d/
 rayLineIntersection :: Ray -> Line -> Maybe Vector2
-rayLineIntersection (p, r) (q, s)
+rayLineIntersection ray (q, s)
   | rxs == 0 && qmpxr == 0                 = Nothing -- Collinear
   | rxs == 0 && qmpxr /= 0                 = Nothing -- Parallel
   | rxs /= 0 && t >= 0 && u >= 0 && u <= 1 = Just intersectP
   | otherwise                              = Nothing
   where
+    p = rayOrigin ray
+    r = rayDirection ray
     rxs = vcross2 r s
     qmp = q - p
     qmpxr = vcross2 qmp r

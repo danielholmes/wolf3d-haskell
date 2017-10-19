@@ -17,11 +17,12 @@ library
   hs-source-dirs:      src
   exposed-modules:     Wolf3D
                      , Wolf3D.World
+                     , Wolf3D.Geom
+                     , Wolf3D.Hero
                      , Wolf3D.Runner
                      , Wolf3D.Types
                      , Wolf3D.Display
   other-modules:       Wolf3D.Sim
-                     , Wolf3D.Hero
                      , Wolf3D.Player
                      , Wolf3D.Input
                      , Wolf3D.UI
@@ -53,6 +54,9 @@ test-suite wolf3d-test
                      , hspec >= 2.4.4 && < 3
                      , time >= 1.6.0.1 && < 2
                      , AC-Vector >= 1.2.2 && < 2
+  other-modules:       Wolf3D.HeroSpec
+                     , Wolf3D.DisplaySpec
+                     , Wolf3D.RunnerSpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

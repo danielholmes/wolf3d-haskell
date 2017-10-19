@@ -9,22 +9,28 @@ import Wolf3D.Types
 tickWorld :: PosInt -> World -> World
 tickWorld timeStep world = advanceWorldTime movedWorld timeStep
   where
-    pas = worldPlayerActionsState world
-    direction = playerActionsStateToDirection pas
-    movedHero = moveHero (worldHero world) (direction *| fromIntegral (fromPosInt timeStep))
+    movedHero = updateHero (worldHero world) (worldPlayerActionsState world) timeStep
     movedWorld = updateWorldHero world movedHero
 
-playerActionsStateToDirection :: PlayerActionsState -> Vector2
-playerActionsStateToDirection s = withDown
+updateHero :: Hero -> PlayerActionsState -> PosInt -> Hero
+updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
   where
-    conditionalAdd :: Vector2 -> Vector2 -> Bool -> Vector2
-    conditionalAdd p _ False = p
-    conditionalAdd p d True = p + d
+    rotationDirection = updateHeroRotation pas
+    direction = updateHeroMoveDirection pas
+    movement = direction *| fromIntegral (fromPosInt timeStep)
+    rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * 0.0001
 
-    withLeft = conditionalAdd (Vector2 0 0) (Vector2 (-1) 0) (playerActionsStateTurnLeft s)
-    withRight = conditionalAdd withLeft (Vector2 1 0) (playerActionsStateTurnRight s)
-    withUp = conditionalAdd withRight (Vector2 0 (-1)) (playerActionsStateUp s)
-    withDown = conditionalAdd withUp (Vector2 0 1) (playerActionsStateDown s)
+updateHeroMoveDirection :: PlayerActionsState -> Vector2
+updateHeroMoveDirection s = forwardMovement + backwardMovement
+  where
+    forwardMovement = if playerActionsStateMoveForward s then Vector2 0 1 else Vector2 0 0
+    backwardMovement = if playerActionsStateMoveBackward s then Vector2 0 (-1) else Vector2 0 0
+
+updateHeroRotation :: PlayerActionsState -> Double
+updateHeroRotation pas = leftRotation + rightRotation
+  where
+    leftRotation = if playerActionsStateTurnLeft pas then (-1) else 0
+    rightRotation = if playerActionsStateTurnLeft pas then 1 else 0
 
 tickWorldNTimes :: World -> PosInt -> PosZInt -> Maybe World
 tickWorldNTimes w f n

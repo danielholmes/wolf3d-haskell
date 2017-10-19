@@ -2,9 +2,13 @@ module Wolf3D.Hero (
   Hero,
   createHero,
   heroPosition,
-  moveHero
+  heroRotation,
+  heroLookRay,
+  moveHero,
+  rotateHero
 ) where
 
+import Wolf3D.Geom
 import Data.Vector
 
 
@@ -17,5 +21,15 @@ createHero pos = Hero pos 0
 heroPosition :: Hero -> Vector2
 heroPosition (Hero p _) = p
 
+heroRotation :: Hero -> Double
+heroRotation (Hero _ r) = r
+
+heroLookRay :: Hero -> Ray
+heroLookRay _ = createRay (Vector2 0 0) (Vector2 0 1)
+
 moveHero :: Hero -> Vector2 -> Hero
-moveHero (Hero pos r) d = Hero (pos + d) r
+moveHero (Hero p r) d = Hero (p + d) r
+
+-- TODO: Bound to 0-360
+rotateHero :: Hero -> Double -> Hero
+rotateHero (Hero p r) d = Hero p (r + d)

@@ -30,8 +30,8 @@ processKeyRelease = processKeyAction False
 
 processKeyAction :: Bool -> PlayerActionsState -> Keysym -> PlayerActionsState
 processKeyAction active p keySym = case keysymKeycode keySym of
-  KeycodeUp     -> modifyPlayerActionState p MoveUp active
-  KeycodeDown   -> modifyPlayerActionState p MoveDown active
+  KeycodeUp     -> modifyPlayerActionState p MoveForward active
+  KeycodeDown   -> modifyPlayerActionState p MoveBackward active
   KeycodeLeft   -> modifyPlayerActionState p TurnLeft active
   KeycodeRight  -> modifyPlayerActionState p TurnRight active
   _             -> p

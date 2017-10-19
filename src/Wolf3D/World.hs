@@ -19,7 +19,7 @@ import Data.Vector
 
 
 data WallMaterial = Red | Green | Blue
-type WallPosition = (Int, Int)
+type WallPosition = Vector2
 data Wall = Wall WallPosition WallPosition WallMaterial
 
 instance Show WallMaterial where
