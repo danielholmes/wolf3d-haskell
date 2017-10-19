@@ -4,7 +4,11 @@ import Test.Hspec
 import Data.Vector
 import Wolf3D.Geom
 import Wolf3D.Hero
+import Wolf3D.SpecHelp
 
+
+vec2Unit45 :: Double
+vec2Unit45 = sqrt 0.5
 
 heroSpec :: SpecWith ()
 heroSpec =
@@ -13,10 +17,22 @@ heroSpec =
       let
         hero = createHero (Vector2 0 0)
       in
-        heroLookRay hero `shouldBe` createRay (Vector2 0 0) (Vector2 0 1)
+        heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 1))
 
     it "should return correct for looking backward" $
       let
         hero = rotateHero (createHero (Vector2 0 0)) pi
       in
-        heroLookRay hero `shouldBe` createRay (Vector2 0 0) (Vector2 0 (-1))
+        heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 (-1)))
+
+    it "should return correct for looking 45 right" $
+      let
+        hero = rotateHero (createHero (Vector2 0 0)) (pi / 4)
+      in
+        heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 vec2Unit45 vec2Unit45))
+
+    it "should return correct for looking 45 left" $
+      let
+        hero = rotateHero (createHero (Vector2 0 0)) (-pi / 4)
+      in
+        heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 (-vec2Unit45) vec2Unit45))

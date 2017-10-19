@@ -1,6 +1,5 @@
 module Wolf3D.Sim (tickWorld, tickWorldNTimes) where
 
-import Data.Vector
 import Wolf3D.Hero
 import Wolf3D.World
 import Wolf3D.Player
@@ -17,20 +16,20 @@ updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
   where
     rotationDirection = updateHeroRotation pas
     direction = updateHeroMoveDirection pas
-    movement = direction *| fromIntegral (fromPosInt timeStep)
-    rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * 0.0001
+    movement = direction * fromIntegral (fromPosInt timeStep)
+    rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * 0.001
 
-updateHeroMoveDirection :: PlayerActionsState -> Vector2
+updateHeroMoveDirection :: PlayerActionsState -> Double
 updateHeroMoveDirection s = forwardMovement + backwardMovement
   where
-    forwardMovement = if playerActionsStateMoveForward s then Vector2 0 1 else Vector2 0 0
-    backwardMovement = if playerActionsStateMoveBackward s then Vector2 0 (-1) else Vector2 0 0
+    forwardMovement = if playerActionsStateMoveForward s then 1 else 0
+    backwardMovement = if playerActionsStateMoveBackward s then (-1) else 0
 
 updateHeroRotation :: PlayerActionsState -> Double
 updateHeroRotation pas = leftRotation + rightRotation
   where
     leftRotation = if playerActionsStateTurnLeft pas then (-1) else 0
-    rightRotation = if playerActionsStateTurnLeft pas then 1 else 0
+    rightRotation = if playerActionsStateTurnRight pas then 1 else 0
 
 tickWorldNTimes :: World -> PosInt -> PosZInt -> Maybe World
 tickWorldNTimes w f n

@@ -16,15 +16,10 @@ import Foreign.C.Types
 type Line = (Vector2, Vector2)
 type WallHit = (PosZDouble, Wall, Vector2)
 
-render :: SDL.Texture -> SDL.Renderer -> World -> IO ()
-render t r w = do
+render :: SDL.Renderer -> World -> IO ()
+render r w = do
   renderCeilingAndFloor r
   renderWalls r w
-
-  -- Dummy character rendering
-  let pos = worldHeroPosition w
-  SDL.copy r t (Just (mkRect 0 0 48 48)) (Just (mkRect (round (v2x pos)) (round (v2y pos)) 48 48))
-
   SDL.present r
 
 renderCeilingAndFloor :: SDL.Renderer -> IO ()
@@ -64,15 +59,14 @@ visibleWallLines :: World -> PosInt -> [(PosZInt, Maybe WallHit)]
 visibleWallLines w width = map (\i -> (posZInt i, castRayToClosestWall w (wallVisionRay (worldHero w) i width))) [0..(fromPosInt width - 1)]
 
 wallVisionRay :: Hero -> Int -> PosInt -> Ray
-wallVisionRay hero i width = createRay (pos - focalMagnitude) focalMagnitude
+wallVisionRay hero i width = moveRayAlongDirection rotatedRay (-focalLength)
   where
-    focalMagnitude = Vector2 rayX focalLength
-    pos = heroPosition hero
-    widthI = fromIntegral (fromPosInt width)
-    halfWidth = widthI / 2.0
     focalLength = 30
-    ratio = fromIntegral i / widthI
-    rayX = 0.1 * (ratio * widthI - halfWidth)
+    hRay = heroLookRay hero
+    widthI = fromIntegral (fromPosInt width)
+    ratio = fromIntegral i / widthI - 0.5
+    rayRotation = 0.5 * ratio
+    rotatedRay = rotateRay hRay rayRotation
 
 wallToLine :: Wall -> Line
 wallToLine (Wall start change _) = (start, change)

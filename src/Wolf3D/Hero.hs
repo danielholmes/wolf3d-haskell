@@ -25,11 +25,11 @@ heroRotation :: Hero -> Double
 heroRotation (Hero _ r) = r
 
 heroLookRay :: Hero -> Ray
-heroLookRay _ = createRay (Vector2 0 0) (Vector2 0 1)
+heroLookRay (Hero pos rot) = createRay pos (Vector2 (sin rot) (cos rot))
 
-moveHero :: Hero -> Vector2 -> Hero
-moveHero (Hero p r) d = Hero (p + d) r
+moveHero :: Hero -> Double -> Hero
+moveHero (Hero p r) m = Hero (p + (m |* angleToVector2 r)) r
 
--- TODO: Bound to 0-360
+-- TODO: Bound to (-pi) - pi
 rotateHero :: Hero -> Double -> Hero
 rotateHero (Hero p r) d = Hero p (r + d)

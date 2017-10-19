@@ -1,8 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Wolf3D (main) where
 
-import qualified SDL
-import qualified SDL.Image
 import Control.Monad.Loops (iterateUntilM)
 import Data.Vector
 import Wolf3D.World
@@ -14,7 +11,6 @@ import Wolf3D.Types
 main :: IO ()
 main = createUI $
   \r -> do
-    texture <- SDL.Image.loadTexture r "./assets/walk.png"
     let walls = [ Wall (Vector2 (-1000) (-1000)) (Vector2 0 2000) Red
                 , Wall (Vector2 (-1000) 1000) (Vector2 950 0) Green
                 , Wall (Vector2 (-50) 1000) (Vector2 0 1000) Blue
@@ -23,8 +19,7 @@ main = createUI $
                 , Wall (Vector2 50 1000) (Vector2 950 0) Blue
                 , Wall (Vector2 1000 1000) (Vector2 0 (-2000)) Red]
     simRun <- startSimRun (createWorld walls) (posInt 16)
-    _ <- iterateUntilM simRunIsFinished (timerTick (render texture r)) simRun
-    SDL.destroyTexture texture
+    iterateUntilM simRunIsFinished (timerTick (render r)) simRun
 
 --        loopM (timerTick (render texture r)) initWorld
 
