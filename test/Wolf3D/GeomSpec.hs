@@ -2,6 +2,7 @@ module Wolf3D.GeomSpec (geomSpec) where
 
 import Test.Hspec
 import Data.Vector
+import Data.Maybe
 import Wolf3D.Geom
 import Wolf3D.SpecHelp
 
@@ -108,3 +109,34 @@ geomSpec =
           line = (Vector2 10 10, Vector2 5 5)
         in
           rectangleTouchesLine rect line `shouldBe` True
+
+    describe "rayLineIntersection" $ do
+      it "should return nothing if collinear" $
+        let
+          result = rayLineIntersection (createRay (Vector2 0 0) (Vector2 0 1)) (Vector2 0 2, Vector2 0 1)
+        in
+          isNothing result `shouldBe` True
+
+      it "should return nothing if parallel" $
+        let
+          result = rayLineIntersection (createRay (Vector2 0 0) (Vector2 0 1)) (Vector2 1 0, Vector2 0 1)
+        in
+          isNothing result `shouldBe` True
+
+      it "should return result if line-line intersection" $
+        let
+          result = rayLineIntersection (createRay (Vector2 0 0) (Vector2 0 2)) (Vector2 (-1) 1, Vector2 2 0)
+        in
+          result `shouldBe` Just (Vector2 0 1)
+
+      it "should return result if ray-line intersection" $
+        let
+          result = rayLineIntersection (createRay (Vector2 0 0) (Vector2 0 2)) (Vector2 (-1) 3, Vector2 2 0)
+        in
+          result `shouldBe` Just (Vector2 0 3)
+
+      it "should return nothing if regular non intersect" $
+        let
+          result = rayLineIntersection (createRay (Vector2 0 0) (Vector2 0 2)) (Vector2 1 1, Vector2 1 0)
+        in
+          isNothing result `shouldBe` True

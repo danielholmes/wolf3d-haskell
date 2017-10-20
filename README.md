@@ -62,6 +62,7 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
+ - FPS/ms/render time, etc stats in debug view
  - Optimise render - a lot of calculations can be done once
  - Find better PosInt and PosZInt implementation
  - Try reading original data file?

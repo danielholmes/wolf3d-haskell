@@ -1,7 +1,7 @@
 module Wolf3D.World (
   World,
   Wall (Wall),
-  WallMaterial (Red, Green, Blue),
+  WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
   createWorld,
   worldPlayerActionsState,
@@ -24,7 +24,7 @@ import Data.Vector
 import Data.List
 
 
-data WallMaterial = Red | Green | Blue
+data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
 
 type WallPosition = Vector2
 type WallSize = Vector2
@@ -34,11 +34,20 @@ instance Show WallMaterial where
   show Red   = "Red"
   show Green = "Green"
   show Blue  = "Blue"
+  show Blue2  = "Blue2"
+  show Blue3  = "Blue3"
+  show Blue4  = "Blue4"
+
+instance Ord WallMaterial where
+  m1 `compare` m2 = show m1 `compare` show m2
 
 instance Eq WallMaterial where
   (==) Red Red = True
   (==) Green Green = True
   (==) Blue Blue = True
+  (==) Blue2 Blue2 = True
+  (==) Blue3 Blue3 = True
+  (==) Blue4 Blue4 = True
   (==) _ _ = False
 
 instance Show Wall where

@@ -2,7 +2,8 @@ module Wolf3D.Display (
   setupRenderer,
   render,
   renderWorld,
-  rayLineIntersection
+  rayLineIntersection,
+  RenderData (RenderData)
 ) where
 
 import Wolf3D.Types
@@ -15,21 +16,24 @@ import Data.StateVar (($=))
 import Data.Vector
 import Data.Foldable
 import Data.Word
+import Data.Map (Map)
 import Foreign.C.Types (CInt (CInt))
 
+
+data RenderData = RenderData (Map WallMaterial (SDL.Texture, (PosInt, PosInt))) Vector2
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer _ = return ()
 
-render :: SDL.Renderer -> Vector2 -> World -> IO ()
-render r s w = do
-  renderWorld r s w
+render :: SDL.Renderer -> RenderData -> World -> IO ()
+render r d w = do
+  renderWorld r d w
   SDL.present r
 
-renderWorld :: SDL.Renderer -> Vector2 -> World -> IO ()
-renderWorld r s w = do
+renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()
+renderWorld r d@(RenderData _ s) w = do
   renderCeilingAndFloor r s
-  renderWalls r s w
+  renderWalls r d w
 
 renderCeilingAndFloor :: SDL.Renderer -> Vector2 -> IO ()
 renderCeilingAndFloor r s = do
@@ -40,15 +44,15 @@ renderCeilingAndFloor r s = do
   SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
   SDL.fillRect r (Just (mkSDLRect 0 halfHeight width halfHeight))
 
-renderWalls :: SDL.Renderer -> Vector2 -> World -> IO ()
-renderWalls r s w = forM_ hits (renderWallLine r s)
+renderWalls :: SDL.Renderer -> RenderData -> World -> IO ()
+renderWalls r d@(RenderData _ s) w = forM_ hits (renderWallLine r d)
   where hits = pixelWallHits s w (posInt (round (v2x s)))
 
 tan30 :: Double
 tan30 = tan (pi / 6)
 
-renderWallLine :: SDL.Renderer -> Vector2 -> (PosZInt, WallHit, PosZDouble) -> IO ()
-renderWallLine r s (x, hit, distance) = do
+renderWallLine :: SDL.Renderer -> RenderData -> (PosZInt, WallHit, PosZDouble) -> IO ()
+renderWallLine r (RenderData _ s) (x, hit, distance) = do
   SDL.rendererDrawColor r $= wallHitColour hit
   SDL.drawLine r from to
   where
@@ -73,6 +77,9 @@ wallHitColour (WallHit (Wall _ _ material) _ distance) = SDL.V4 red green blue 2
       Red -> (colour, 0, 0)
       Green -> (0, colour, 0)
       Blue -> (0, 0, colour)
+      Blue2 -> (0, 0, colour)
+      Blue3 -> (0, 0, colour)
+      Blue4 -> (0, 0, colour)
 
 pixelWallHits :: Vector2 -> World -> PosInt -> [(PosZInt, WallHit, PosZDouble)]
 pixelWallHits _ w width = foldr foldStep [] hits
