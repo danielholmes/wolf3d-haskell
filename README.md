@@ -49,7 +49,6 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - Get rendering perspective flat - like wolf3d. Research focal length
  - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down)
@@ -63,6 +62,7 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
+ - Optimise render - a lot of calculations can be done once
  - Find better PosInt and PosZInt implementation
  - Try reading original data file?
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php

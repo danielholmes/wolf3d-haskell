@@ -44,20 +44,24 @@ renderWalls :: SDL.Renderer -> Vector2 -> World -> IO ()
 renderWalls r s w = forM_ hits (renderWallLine r s)
   where hits = pixelWallHits s w (posInt (round (v2x s)))
 
+tan30 :: Double
+tan30 = tan (pi / 6)
+
 renderWallLine :: SDL.Renderer -> Vector2 -> (PosZInt, WallHit, PosZDouble) -> IO ()
 renderWallLine r s (x, hit, distance) = do
-  -- TODO: Take into account hero's height above ground
   SDL.rendererDrawColor r $= wallHitColour hit
   SDL.drawLine r from to
   where
+    heroHeight = 1500
+    wallHeight = 3000
+    distanceToProjectionPlane = (v2x s / 2) / tan30
+    ratio = distanceToProjectionPlane / fromPosZDouble distance
+    halfScreenHeight = v2y s / 2
+    projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
+    projectedHeight = round (ratio * wallHeight)
     xInt = CInt (fromIntegral (fromPosZInt x))
-    maxScaler = 40000.0
-    distanceRatio = max 0 (1.0 - (fromPosZDouble distance / maxScaler))
-    height = round (300 * distanceRatio)
-    halfHeight = height `div` 2
-    halfScreenHeight = round (v2y s) `div` 2
-    from = SDL.P (SDL.V2 xInt (halfScreenHeight - halfHeight))
-    to = SDL.P (SDL.V2 xInt (halfScreenHeight + halfHeight))
+    from = SDL.P (SDL.V2 xInt projectedTop)
+    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
 
 wallHitColour :: WallHit -> SDL.V4 Word8
 wallHitColour (WallHit (Wall _ _ material) _ distance) = SDL.V4 red green blue 255
@@ -93,8 +97,3 @@ perpendicularDistance rayRotation (WallHit _ _ d) = posZDouble (fromPosZDouble d
 
 fieldOfView :: Double
 fieldOfView = pi / 3
-
---tan30 :: Double
---tan30 = tan (pi / 6)
---distanceToProjectionPlane = (v2x size / 2) / tan30
-

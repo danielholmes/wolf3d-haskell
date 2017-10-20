@@ -16,7 +16,7 @@ updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
   where
     rotationDirection = updateHeroRotation pas
     direction = updateHeroMoveDirection pas
-    heroMoveMetresPerSec = 4
+    heroMoveMetresPerSec = 8
     movement = direction * fromIntegral (fromPosInt timeStep) * heroMoveMetresPerSec
     heroRotatePerMilli = 0.002
     rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * heroRotatePerMilli
