@@ -15,12 +15,13 @@ import qualified SDL
 import Data.StateVar (($=))
 import Data.Vector
 import Data.Foldable
-import Data.Word
-import Data.Map (Map)
+import Data.Maybe
+import Data.Fixed (mod')
+import qualified Data.Map as M
 import Foreign.C.Types (CInt (CInt))
 
 
-data RenderData = RenderData (Map WallMaterial (SDL.Texture, (PosInt, PosInt))) Vector2
+data RenderData = RenderData (M.Map WallMaterial (SDL.Texture, (PosInt, PosInt))) Vector2
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer _ = return ()
@@ -52,9 +53,8 @@ tan30 :: Double
 tan30 = tan (pi / 6)
 
 renderWallLine :: SDL.Renderer -> RenderData -> (PosZInt, WallHit, PosZDouble) -> IO ()
-renderWallLine r (RenderData _ s) (x, hit, distance) = do
-  SDL.rendererDrawColor r $= wallHitColour hit
-  SDL.drawLine r from to
+renderWallLine r (RenderData wt s) (x, WallHit (Wall o _ m) hit _, distance) =
+  SDL.copy r texture (Just (mkSDLRect textureX 0 1 128)) (Just (mkSDLRect xInt projectedTop 1 projectedHeight))
   where
     heroHeight = 1500
     wallHeight = 3000
@@ -64,22 +64,44 @@ renderWallLine r (RenderData _ s) (x, hit, distance) = do
     projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
     xInt = CInt (fromIntegral (fromPosZInt x))
-    from = SDL.P (SDL.V2 xInt projectedTop)
-    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
+    (texture, (textureWidth, _)) = fromJust (M.lookup m wt)
+    -- TODO: Find position on wall relative to wall origin
+    hitWallX = fromPosZDouble (vectorDist hit o)
+    hitWallTextureRatio = (hitWallX `mod'` wallHeight) / wallHeight
+    textureXDouble :: Double
+    textureXDouble = hitWallTextureRatio * (fromIntegral (fromPosInt textureWidth) - 1)
+    textureX = CInt (floor textureXDouble)
 
-wallHitColour :: WallHit -> SDL.V4 Word8
-wallHitColour (WallHit (Wall _ _ material) _ distance) = SDL.V4 red green blue 255
-  where
-    maxScaler = 30000.0
-    distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
-    colour = fromIntegral (round (255.0 * distanceRatio) :: Int)
-    (red, green, blue) = case material of
-      Red -> (colour, 0, 0)
-      Green -> (0, colour, 0)
-      Blue -> (0, 0, colour)
-      Blue2 -> (0, 0, colour)
-      Blue3 -> (0, 0, colour)
-      Blue4 -> (0, 0, colour)
+-- Solid color
+--renderWallLine :: SDL.Renderer -> RenderData -> (PosZInt, WallHit, PosZDouble) -> IO ()
+--renderWallLine r (RenderData _ s) (x, hit, distance) = do
+--  SDL.rendererDrawColor r $= wallHitColour hit
+--  SDL.drawLine r from to
+--  where
+--    heroHeight = 1500
+--    wallHeight = 3000
+--    distanceToProjectionPlane = (v2x s / 2) / tan30
+--    ratio = distanceToProjectionPlane / fromPosZDouble distance
+--    halfScreenHeight = v2y s / 2
+--    projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
+--    projectedHeight = round (ratio * wallHeight)
+--    xInt = CInt (fromIntegral (fromPosZInt x))
+--    from = SDL.P (SDL.V2 xInt projectedTop)
+--    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
+
+--wallHitColour :: WallHit -> SDL.V4 Word8
+--wallHitColour (WallHit (Wall _ _ material) _ distance) = SDL.V4 red green blue 255
+--  where
+--    maxScaler = 30000.0
+--    distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
+--    colour = fromIntegral (round (255.0 * distanceRatio) :: Int)
+--    (red, green, blue) = case material of
+--      Red -> (colour, 0, 0)
+--      Green -> (0, colour, 0)
+--      Blue -> (0, 0, colour)
+--      Blue2 -> (0, 0, colour)
+--      Blue3 -> (0, 0, colour)
+--      Blue4 -> (0, 0, colour)
 
 pixelWallHits :: Vector2 -> World -> PosInt -> [(PosZInt, WallHit, PosZDouble)]
 pixelWallHits _ w width = foldr foldStep [] hits

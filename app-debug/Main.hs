@@ -4,7 +4,7 @@ import Wolf3D.UI
 import Wolf3D.Runner
 import Wolf3D.Types
 import Wolf3D.Data
-import Wolf3D.Debug.Data
+import Wolf3D.Debug.Dummy
 import Wolf3D.Debug.Display
 
 main :: IO ()

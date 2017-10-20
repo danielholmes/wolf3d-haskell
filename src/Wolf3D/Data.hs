@@ -20,7 +20,11 @@ loadWallTextures :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (PosInt, 
 loadWallTextures r = do
   b <- loadWallTexture r Blue "blue.png"
   b2 <- loadWallTexture r Blue2 "blue2.png"
-  return (fromList [b, b2])
+  b3 <- loadWallTexture r Blue3 "blue3.png"
+  b4 <- loadWallTexture r Blue4 "blue4.png"
+  red <- loadWallTexture r Red "w_1.png"
+  g <- loadWallTexture r Green "w_3.png"
+  return (fromList [b, b2, b3, b4, red, g])
 
 loadWallTexture :: SDL.Renderer -> WallMaterial -> FilePath -> IO (WallMaterial, (SDL.Texture, (PosInt, PosInt)))
 loadWallTexture r m p = do

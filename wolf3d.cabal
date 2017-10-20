@@ -25,7 +25,7 @@ library
                      , Wolf3D.Display.MiniMap
                      , Wolf3D.UI
                      , Wolf3D.SDLUtils
-                     , Wolf3D.Debug.Data
+                     , Wolf3D.Debug.Dummy
                      , Wolf3D.Debug.Display
                      , Wolf3D.Data
   other-modules:       Wolf3D.Sim

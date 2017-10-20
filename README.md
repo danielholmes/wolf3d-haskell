@@ -49,9 +49,9 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down)
+ - Example world that shows off diagonal walls, etc
  - sprite items that block movement
  - render and shoot gun
  - static sprite targets that can shoot and kill
@@ -62,6 +62,7 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
+ - Num,Fractional,Rational instances where appropriate for PosZDouble, etc
  - FPS/ms/render time, etc stats in debug view
  - Optimise render - a lot of calculations can be done once
  - Find better PosInt and PosZInt implementation
