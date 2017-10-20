@@ -9,10 +9,13 @@ module Wolf3D.World (
   worldHero,
   updateWorldPlayerActionsState,
   advanceWorldTime,
-  updateWorldHero
+  updateWorldHero,
+  worldWallsTouching,
+  wallToLine
 ) where
 
 import Wolf3D.Hero
+import Wolf3D.Geom
 import Wolf3D.Player
 import Wolf3D.Types
 import Data.Vector
@@ -56,6 +59,15 @@ worldHeroPosition (World h _ _ _) = heroPosition h
 
 worldWalls :: World -> [Wall]
 worldWalls (World _ walls _ _) = walls
+
+worldWallsTouching :: World -> Rectangle -> [Wall]
+worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
+
+wallIsTouching :: Rectangle -> Wall -> Bool
+wallIsTouching r w = rectangleTouchesLine r (wallToLine w)
+
+wallToLine :: Wall -> Line
+wallToLine (Wall start change _) = (start, change)
 
 worldHero :: World -> Hero
 worldHero (World h _ _ _) = h

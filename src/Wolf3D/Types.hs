@@ -2,9 +2,12 @@ module Wolf3D.Types (
   PosInt,
   PosZInt,
   PosZDouble,
+  PosDouble,
   posZInt,
   posZInt0,
   posInt,
+  posDouble,
+  fromPosDouble,
   fromPosInt,
   fromPosZInt,
   posZDouble,
@@ -48,6 +51,18 @@ instance Ord PosZDouble where
   (PosZDouble i1) `compare` (PosZDouble i2) = i1 `compare` i2
 
 
+newtype PosDouble = PosDouble Double
+
+instance Eq PosDouble where
+  (==) (PosDouble i1) (PosDouble i2) = i1 == i2
+
+instance Show PosDouble where
+  show (PosDouble i) = show i
+
+instance Ord PosDouble where
+  (PosDouble i1) `compare` (PosDouble i2) = i1 `compare` i2
+
+
 posZInt0 :: PosZInt
 posZInt0 = posZInt 0
 
@@ -74,3 +89,11 @@ posZDouble r
 
 fromPosZDouble :: PosZDouble -> Double
 fromPosZDouble (PosZDouble i) = i
+
+posDouble :: Double -> PosDouble
+posDouble r
+  | r >= 0    = PosDouble r
+  | otherwise = error ("Invalid PosDouble " ++ show r)
+
+fromPosDouble :: PosDouble -> Double
+fromPosDouble (PosDouble i) = i

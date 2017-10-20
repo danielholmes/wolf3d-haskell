@@ -20,7 +20,6 @@ import Data.Word
 import Foreign.C.Types (CInt (CInt))
 
 
-type Line = (Vector2, Vector2)
 type WallHit = (PosZDouble, Wall, Vector2)
 
 setupRenderer :: SDL.Renderer -> IO ()
@@ -51,7 +50,7 @@ renderWallLine :: SDL.Renderer -> (PosZInt, Maybe WallHit) -> IO ()
 renderWallLine _ (_, Nothing) = return ()
 renderWallLine r (x, Just hit@(distance, _, _)) = do
   let xInt = CInt (fromIntegral (fromPosZInt x))
-  let maxScaler = 2000.0
+  let maxScaler = 40000.0
   let distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
   let height = round (200 * distanceRatio)
   let halfHeight = height `div` 2
@@ -61,7 +60,7 @@ renderWallLine r (x, Just hit@(distance, _, _)) = do
 wallHitColour :: WallHit -> SDL.V4 Word8
 wallHitColour (distance, Wall _ _ material, _) = SDL.V4 red green blue 255
   where
-    maxScaler = 2000.0
+    maxScaler = 40000.0
     distanceRatio = 1.0 - min 1.0 (fromPosZDouble distance / maxScaler)
     colour = fromIntegral (round (255.0 * distanceRatio) :: Int)
     (red, green, blue) = case material of
@@ -82,9 +81,6 @@ wallVisionRay hero i width = moveRayAlongDirection rotatedRay (-focalLength)
     rayRotation = 1.8 * ratio
     rotatedRay = rotateRay hRay rayRotation
 
-wallToLine :: Wall -> Line
-wallToLine (Wall start change _) = (start, change)
-
 castRayToClosestWall :: World -> Ray -> Maybe WallHit
 castRayToClosestWall w ray
   | null allHits = Nothing
@@ -102,27 +98,3 @@ castRay world ray = foldr foldStep [] (worldWalls world)
     foldStep wall accu = case rayLineIntersection ray (wallToLine wall) of
       Nothing -> accu
       Just foundPos -> (vectorDist rStart foundPos, wall, foundPos) : accu
-
-vectorDist :: Vector2 -> Vector2 -> PosZDouble
-vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = posZDouble (sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2)))
-
--- https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
--- https://rootllama.wordpress.com/2014/06/20/ray-line-segment-intersection-test-in-2d/
-rayLineIntersection :: Ray -> Line -> Maybe Vector2
-rayLineIntersection ray (q, s)
-  | rxs == 0 && qmpxr == 0                 = Nothing -- Collinear
-  | rxs == 0 && qmpxr /= 0                 = Nothing -- Parallel
-  | rxs /= 0 && t >= 0 && u >= 0 && u <= 1 = Just intersectP
-  | otherwise                              = Nothing
-  where
-    p = rayOrigin ray
-    r = rayDirection ray
-    rxs = vcross2 r s
-    qmp = q - p
-    qmpxr = vcross2 qmp r
-    u = vcross2 qmp r / rxs
-    t = vcross2 qmp s / rxs
-    intersectP = p + (t |* r)
-
-vcross2 :: Vector2 -> Vector2 -> Scalar
-vcross2 (Vector2 x1 y1) (Vector2 x2 y2) = (x1 * y2) - (y1 * x2)

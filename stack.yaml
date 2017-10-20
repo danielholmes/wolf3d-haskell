@@ -49,6 +49,7 @@ extra-deps:
   - "hspec-2.4.4"
   - "StateVar-1.1.0.4"
   - "AC-Vector-1.2.2"
+  - "vector-0.12.0.1"
 
 # Override default flag values for local packages and extra-deps
 flags: {}

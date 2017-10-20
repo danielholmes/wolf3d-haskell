@@ -3,12 +3,11 @@ module Wolf3D.UI (createUI) where
 
 import qualified SDL
 import qualified SDL.Image
-
 import Control.Monad          (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text              (Text)
-
 import Wolf3D.Types
+
 
 createUI :: (MonadIO m) => (SDL.Renderer -> m a) -> m ()
 createUI op = do

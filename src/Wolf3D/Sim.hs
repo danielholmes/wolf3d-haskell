@@ -16,8 +16,10 @@ updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
   where
     rotationDirection = updateHeroRotation pas
     direction = updateHeroMoveDirection pas
-    movement = direction * fromIntegral (fromPosInt timeStep)
-    rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * 0.001
+    heroMoveMetresPerSec = 4
+    movement = direction * fromIntegral (fromPosInt timeStep) * heroMoveMetresPerSec
+    heroRotatePerMilli = 0.002
+    rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * heroRotatePerMilli
 
 updateHeroMoveDirection :: PlayerActionsState -> Double
 updateHeroMoveDirection s = forwardMovement + backwardMovement

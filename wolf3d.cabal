@@ -1,5 +1,5 @@
 name:                wolf3d
-version:             0.1.0.0
+version:             0.0.0.1
 -- synopsis:
 -- description:
 homepage:            https://github.com/danielholmes/wolf3d#readme
@@ -21,6 +21,8 @@ library
                      , Wolf3D.Runner
                      , Wolf3D.Types
                      , Wolf3D.Display
+                     , Wolf3D.Display.Utils
+                     , Wolf3D.Display.MiniMap
                      , Wolf3D.UI
                      , Wolf3D.SDLUtils
                      , Wolf3D.Debug.Data
@@ -69,6 +71,7 @@ test-suite wolf3d-test
                      , Wolf3D.HeroSpec
                      , Wolf3D.DisplaySpec
                      , Wolf3D.RunnerSpec
+                     , Wolf3D.WorldSpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
