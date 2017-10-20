@@ -19,10 +19,10 @@ setupRenderer r = do
   D.setupRenderer r
   SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
 
-render :: SDL.Renderer -> World -> IO ()
-render r w = do
-  D.renderWorld r w
-  let size = Vector2 192 144
-  withViewport r (Just (mkOriginSDLRect size)) $
-    renderMiniMap r (posDouble 0.009) size w
+render :: SDL.Renderer -> Vector2 -> World -> IO ()
+render r s w = do
+  D.renderWorld r s w
+  let miniMapSize = s *| 0.3
+  withViewport r (Just (mkOriginSDLRect miniMapSize)) $
+    renderMiniMap r (posDouble 0.009) miniMapSize w
   SDL.present r

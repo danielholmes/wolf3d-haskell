@@ -49,9 +49,7 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - provide top down rendering also for debugging
  - git tag
- - Clean up Display.render in terms of window width+height hardcoding
  - Get rendering perspective flat - like wolf3d. Research focal length
  - 2d with image texture - http://3d.wolfenstein.com/game/wolf3d.html
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events

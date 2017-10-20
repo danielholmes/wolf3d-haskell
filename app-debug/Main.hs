@@ -8,6 +8,6 @@ import Wolf3D.Debug.Display
 
 main :: IO ()
 main = createUI $
-  \r -> do
+  \r s -> do
     setupRenderer r
-    runLoop dummyWorld (posInt 16) (render r)
+    runLoop dummyWorld (posInt 16) (render r s)
