@@ -53,8 +53,10 @@ tan30 :: Double
 tan30 = tan (pi / 6)
 
 renderWallLine :: SDL.Renderer -> RenderData -> (PosZInt, WallHit, PosZDouble) -> IO ()
-renderWallLine r (RenderData wt s) (x, WallHit (Wall o _ m) hit _, distance) =
+renderWallLine r (RenderData wt s) (x, WallHit (Wall o _ m) hit _, distance) = do
   SDL.copy r texture (Just (mkSDLRect textureX 0 1 128)) (Just (mkSDLRect xInt projectedTop 1 projectedHeight))
+  SDL.rendererDrawColor r $= SDL.V4 0 0 0 alpha
+  SDL.drawLine r from to
   where
     heroHeight = 1500
     wallHeight = 3000
@@ -71,6 +73,11 @@ renderWallLine r (RenderData wt s) (x, WallHit (Wall o _ m) hit _, distance) =
     textureXDouble :: Double
     textureXDouble = hitWallTextureRatio * (fromIntegral (fromPosInt textureWidth) - 1)
     textureX = CInt (floor textureXDouble)
+    from = SDL.P (SDL.V2 xInt projectedTop)
+    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
+    darknessMultiplier = 8000
+    intensity = 1 - min 1 ((1 / fromPosZDouble distance) * darknessMultiplier)
+    alpha = round (255 * intensity)
 
 -- Solid color
 --renderWallLine :: SDL.Renderer -> RenderData -> (PosZInt, WallHit, PosZDouble) -> IO ()

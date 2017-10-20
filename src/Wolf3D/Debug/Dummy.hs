@@ -18,9 +18,9 @@ dummyWorld = createWorld walls
   where
     metreWalls = [ Wall (Vector2 (-4) (-3)) (Vector2 0 7) Red
                  , Wall (Vector2 (-4) 4) (Vector2 3 0) Green
-                 , Wall (Vector2 (-1) 4) (Vector2 0 3) Blue
-                 , Wall (Vector2 (-1) 7) (Vector2 2 0) Red
-                 , Wall (Vector2 1 7) (Vector2 0 (-3)) Green
+                 , Wall (Vector2 (-1) 4) (Vector2 0 6) Blue
+                 , Wall (Vector2 (-1) 10) (Vector2 2 0) Red
+                 , Wall (Vector2 1 10) (Vector2 0 (-6)) Green
                  , Wall (Vector2 1 4) (Vector2 3 0) Blue
                  , Wall (Vector2 4 4) (Vector2 0 (-7)) Red]
     walls = map (\(Wall o s m) -> Wall (fromVBlocks o) (fromVBlocks s) m) metreWalls

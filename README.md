@@ -49,15 +49,20 @@ stack test --pedantic --file-watch
 
 ## TODO
 
+ - render sprite item minimap
+ - render sprite item 3d
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down)
  - Example world that shows off diagonal walls, etc
- - sprite items that block movement
+ - sprite items block movement
  - render and shoot gun
  - static sprite targets that can shoot and kill
  - pickup items
  - fix travis build
  - All events together at the end of game loop passed to audio handler, which plays audio
+ - mouse look horizontal
+ - mouse look up/down (move projection plane up/down)
+ - SDL dispose textures at the end
 
 
 ## Nice to haves
