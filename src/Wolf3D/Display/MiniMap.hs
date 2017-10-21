@@ -36,14 +36,14 @@ createMiniMapData dScale size w = MiniMapData scale size worldRect hPosition
     worldRect = Rectangle (hPosition - worldHalfSize) worldSize
 
 renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
-renderHero r (MiniMapData scale s _ _) h = do
+renderHero r d@(MiniMapData scale size _ heroPos) h = do
   SDL.rendererDrawColor r $= SDL.V4 255 0 0 255
-  drawEqTriangle r (scale * heroSize) halfSize rotation
-  SDL.drawLine r (roundToSDLP halfSize) (roundToSDLP (halfSize - rotateVector2 (Vector2 0 (heroSize / 2) *| scale) rotation))
+  drawEqTriangle r (scale * heroSize) halfSize (-rotation)
+  drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) rotation)
   where
     heroSize = 1000
-    halfSize = s *| 0.5
-    rotation = - (heroRotation h)
+    halfSize = size *| 0.5
+    rotation = heroRotation h
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World -> IO ()
 renderWalls r d@(MiniMapData _ _ worldRect _) w = do

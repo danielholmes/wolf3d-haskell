@@ -12,11 +12,14 @@ import Data.Vector
 import Foreign.C.Types (CInt (CInt))
 
 
+tan30 :: Double
+tan30 = tan (pi / 6)
+
 loadRenderData :: SDL.Renderer -> Vector2 -> IO RenderData
 loadRenderData r s = do
   w <- loadWallTextures r
   i <- loadItemTextures r
-  return (RenderData s w i)
+  return (RenderData s ((v2x s / 2) / tan30) w i)
 
 loadWallTextures :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (PosInt, PosInt)))
 loadWallTextures r = do

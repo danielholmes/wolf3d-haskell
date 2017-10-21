@@ -51,6 +51,8 @@ stack test --pedantic --file-watch
 
  - render sprite item 3d
  - Dont render hidden sprites
+   - only render within field of view bounds
+   - only render in front of walls
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down)
  - Example world that shows off diagonal walls, etc

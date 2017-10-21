@@ -7,7 +7,9 @@ module Wolf3D.Geom (
   rayDirection,
   moveRayAlongDirection,
   rotateRay,
+  rayAngle,
   angleToVector2,
+  vector2ToAngle,
   rotateVector2,
   rectangleTouchesLine,
   rayLineIntersection,
@@ -35,6 +37,9 @@ createRay :: Vector2 -> Vector2 -> Ray
 createRay p m
   | vmag m > 0 = Ray p (vnormalise m)
   | otherwise  = error ("Invalid ray " ++ show p ++ " " ++ show m)
+
+rayAngle :: Ray -> Double
+rayAngle (Ray _ m) = vector2ToAngle m
 
 rayOrigin :: Ray -> Vector2
 rayOrigin (Ray o _) = o
@@ -77,6 +82,9 @@ rotateVector2 (Vector2 x y) r = Vector2 newX newY
 
 angleToVector2 :: Double -> Vector2
 angleToVector2 a = Vector2 (sin a) (cos a)
+
+vector2ToAngle :: Vector2 -> Double
+vector2ToAngle (Vector2 x y) = atan2 x y
 
 vectorDist :: Vector2 -> Vector2 -> PosZDouble
 vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = posZDouble (sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2)))

@@ -1,7 +1,9 @@
 module Wolf3D.Items (
   ItemType (Drum),
   Item (Item),
-  itemRectangle
+  itemRectangle,
+  itemHeight,
+  itemSize
 ) where
 
 import Wolf3D.Geom
@@ -13,11 +15,14 @@ data ItemType = Drum
 
 data Item = Item ItemType Vector2
 
-itemSize :: Vector2
-itemSize = Vector2 3000 3000
+itemSize :: Item -> Vector2
+itemSize _ = Vector2 3000 3000
 
-halfItemSize :: Vector2
-halfItemSize = itemSize *| 0.5
+itemHeight :: Double
+itemHeight = 3000
+
+halfItemSize :: Item -> Vector2
+halfItemSize i = itemSize i *| 0.5
 
 itemRectangle :: Item -> Rectangle
-itemRectangle (Item _ o) = Rectangle (o - halfItemSize) itemSize
+itemRectangle i@(Item _ o) = Rectangle (o - halfItemSize i) (itemSize i)

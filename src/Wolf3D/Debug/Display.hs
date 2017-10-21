@@ -20,7 +20,7 @@ setupRenderer r = do
   SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
 
 render :: SDL.Renderer -> D.RenderData -> World -> IO ()
-render r d@(D.RenderData s _ _) w = do
+render r d@(D.RenderData s _ _ _) w = do
   D.renderWorld r d w
   let miniMapSize = s *| 0.3
   withViewport r (Just (mkOriginSDLRect miniMapSize)) $

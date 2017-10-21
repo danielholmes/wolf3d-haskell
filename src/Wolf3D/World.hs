@@ -15,7 +15,8 @@ module Wolf3D.World (
   worldWallsTouching,
   worldItemsTouching,
   wallToLine,
-  castRayToClosestWall
+  castRayToClosestWall,
+  wallHeight
 ) where
 
 import Wolf3D.Hero
@@ -74,6 +75,9 @@ wallIsTouching r w = rectangleTouchesLine r (wallToLine w)
 
 wallToLine :: Wall -> Line
 wallToLine (Wall start change _) = (start, change)
+
+wallHeight :: Double
+wallHeight = 3000
 
 worldHero :: World -> Hero
 worldHero (World h _ _ _ _) = h

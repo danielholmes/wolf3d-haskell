@@ -176,3 +176,16 @@ geomSpec =
           rect2 = Rectangle (Vector2 10 10) (Vector2 10 10)
         in
           rectangleOverlapsRectangle rect1 rect2 `shouldBe` False
+
+    describe "vector2ToAngle" $ do
+      it "should return correct for 45 degrees" $
+        vector2ToAngle (Vector2 4 4) `shouldBe` pi / 4
+
+      it "should return correct for straight" $
+        vector2ToAngle (Vector2 0 4) `shouldBe` 0
+
+      it "should return correct for 60 degrees" $
+        vector2ToAngle (Vector2 2 1) `shouldSatisfy` veryCloseToDouble 1.107148720000547
+
+      it "should return correct for 30 degrees" $
+        vector2ToAngle (Vector2 1 2) `shouldSatisfy` veryCloseToDouble 0.4636476067904533
