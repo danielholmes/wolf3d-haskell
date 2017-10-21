@@ -16,7 +16,9 @@ module Wolf3D.Hero (
   heroActionsStateTurnLeft,
   heroActionsStateTurnRight,
   updateHeroActionsState,
-  heroActionsState
+  heroActionsState,
+  heroFieldOfViewSize,
+  heroLookRayAtFieldOfViewRatio
 ) where
 
 import Wolf3D.Geom
@@ -59,6 +61,15 @@ heroRotation (Hero _ r _) = r
 
 heroActionsState :: Hero -> HeroActionsState
 heroActionsState (Hero _ _ a) = a
+
+heroFieldOfViewSize :: Hero -> Double
+heroFieldOfViewSize _ = pi / 3
+
+heroLookRayAtFieldOfViewRatio :: Hero -> Double -> Ray
+heroLookRayAtFieldOfViewRatio hero ratio = rotateRay (heroLookRay hero) rayRotation
+  where
+    fieldOfViewSize = heroFieldOfViewSize hero
+    rayRotation = fieldOfViewSize * (ratio - 0.5)
 
 heroLookRay :: Hero -> Ray
 heroLookRay (Hero pos rot _) = createRay pos (Vector2 (sin rot) (cos rot))

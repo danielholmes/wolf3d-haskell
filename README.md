@@ -49,13 +49,12 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - move field of view/vision angle into hero
  - abstracted map level definition (in blocks)
  - Num,Fractional,Rational instances where appropriate for PosZDouble, etc
  - SDL draw text - FPS/ms/render time, etc stats in debug view
-
  - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - possibly record syntax for world - see how interacts with deconstructor
+ 
  - watch carmack haskell wolf talk
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down) - do some research on physics engines and functional esp.

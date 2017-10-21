@@ -107,10 +107,11 @@ pixelWallHits w width = foldr foldStep [] hits
 pixelWallHit :: World -> PosInt -> PosZInt -> Maybe (WallHit, PosZDouble)
 pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
   where
-    hRay = heroLookRay (worldHero w)
+    hero = worldHero w
+    hRay = heroLookRay hero
     widthI = fromIntegral (fromPosInt width)
     ratio = fromIntegral (fromPosZInt i) / widthI
-    rayRotation = fieldOfView * (ratio - 0.5)
+    rayRotation = heroFieldOfViewSize hero * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation
 
 renderItems :: SDL.Renderer -> RenderData -> World -> IO ()
@@ -132,7 +133,8 @@ renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, te
     heroLookAngle = rayAngle (heroLookRay hero)
     itemAngle = vector2ToAngle (oPos - heroPos)
     projectionAngle = itemAngle - heroLookAngle
-    angleRatio = ((fieldOfView / 2) + projectionAngle) / fieldOfView
+    fieldOfViewSize = heroFieldOfViewSize hero
+    angleRatio = ((fieldOfViewSize / 2) + projectionAngle) / fieldOfViewSize
 
     distance = vectorDist heroPos oPos
     -- TODO: Not sure of correct way to handle when 0 distance
@@ -148,9 +150,6 @@ renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, te
 
 perpendicularDistance :: Double -> WallHit -> PosZDouble
 perpendicularDistance rayRotation (WallHit _ _ d) = posZDouble (fromPosZDouble d * cos rayRotation)
-
-fieldOfView :: Double
-fieldOfView = pi / 3
 
 posIntToCInt :: PosInt -> CInt
 posIntToCInt = CInt . fromIntegral . fromPosInt
