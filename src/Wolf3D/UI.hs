@@ -6,18 +6,15 @@ import qualified SDL.Image
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
-import Data.Vector
 
 
-createUI :: (MonadIO m) => (SDL.Renderer -> Vector2 -> m a) -> m ()
-createUI op = do
+createUI :: (MonadIO m) => (Int, Int) -> (SDL.Renderer -> m a) -> m ()
+createUI (width, height) op = do
   SDL.initialize []
   SDL.Image.initialize []
-  let width = 640
-  let height = 480
   void $
     withWindow "Wolfenstein 3D" (width, height) $ \w ->
-      withRenderer w (\r -> op r (Vector2 (fromIntegral width) (fromIntegral height)))
+      withRenderer w op
   SDL.Image.quit
   SDL.quit
 

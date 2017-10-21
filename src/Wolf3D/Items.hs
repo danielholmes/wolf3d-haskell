@@ -1,5 +1,5 @@
 module Wolf3D.Items (
-  ItemType (Drum, Flag),
+  ItemType (Drum, Flag, Light),
   Item (Item),
   itemRectangle,
   itemHeight,
@@ -10,7 +10,7 @@ import Wolf3D.Geom
 import Data.Vector
 
 
-data ItemType = Drum | Flag
+data ItemType = Drum | Flag | Light
   deriving (Show, Eq, Ord)
 
 data Item = Item ItemType Vector2

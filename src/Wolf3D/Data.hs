@@ -8,7 +8,6 @@ import Wolf3D.World
 import Wolf3D.Items
 import Data.Map (Map, fromList)
 import Data.Vector
-import Foreign.C.Types (CInt (CInt))
 
 
 tan30 :: Double
@@ -39,7 +38,8 @@ loadItemTextures :: SDL.Renderer -> IO (Map ItemType (SDL.Texture, (Int, Int)))
 loadItemTextures r = do
   drum <- loadTexture r "drum.png"
   flag <- loadTexture r "flag.png"
-  return (fromList [ (Drum, drum), (Flag, flag)])
+  light <- loadTexture r "light.png"
+  return (fromList [ (Drum, drum), (Flag, flag), (Light, light)])
 
 loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, (Int, Int))
 loadTexture r p = do

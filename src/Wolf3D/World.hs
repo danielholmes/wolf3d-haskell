@@ -23,6 +23,7 @@ import Wolf3D.Hero
 import Wolf3D.Items
 import Data.Vector
 import Data.List
+import Data.Maybe
 
 
 data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
@@ -41,9 +42,9 @@ data WallHit = WallHit Wall HitPosition DistanceToWall
 type WorldTimeMillis = Int
 data World = World Hero [Wall] [Item] WorldTimeMillis
 
-createWorld :: [Wall] -> [Item] -> World
-createWorld walls items = World hero walls items 0
-  where hero = createHero (Vector2 0 0)
+createWorld :: [Wall] -> [Item] -> Maybe Vector2 -> World
+createWorld walls items heroPos = World hero walls items 0
+  where hero = createHero (fromMaybe (Vector2 0 0) heroPos)
 
 worldHeroPosition :: World -> Vector2
 worldHeroPosition (World h _ _ _) = heroPosition h

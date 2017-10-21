@@ -18,7 +18,6 @@ import Data.Foldable
 import Data.Maybe
 import Data.Fixed (mod')
 import qualified Data.Map as M
-import Foreign.C.Types (CInt (CInt))
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
@@ -62,12 +61,12 @@ renderWallLine r (RenderData size distToProjPlane wt _) (x, WallHit (Wall o _ m)
     halfScreenHeight = v2y size / 2
     projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
-    xInt = CInt (fromIntegral x)
+    xInt = fromIntegral x
     (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
     hitWallX = vectorDist hit o
     hitWallTextureRatio = hitWallX `mod'` wallHeight / wallHeight
     textureXDouble = hitWallTextureRatio * (fromIntegral textureWidth - 1)
-    textureX = CInt (floor textureXDouble)
+    textureX = floor textureXDouble
     from = SDL.P (SDL.V2 xInt projectedTop)
     to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
     darknessMultiplier = 8000

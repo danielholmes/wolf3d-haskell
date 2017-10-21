@@ -49,7 +49,6 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - abstracted map level definition (in blocks)
  - SDL draw text - FPS/ms/render time, etc stats in debug view
  - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - possibly record syntax for world - see how interacts with deconstructor
