@@ -1,19 +1,19 @@
-module Wolf3D.Input (processInput, InputState, inputQuit, inputPlayerActionsState) where
+module Wolf3D.Input (processInput, InputState, inputQuit, inputHeroActionsState) where
 
-import Wolf3D.Player
+import Wolf3D.Hero
 import SDL
 
-data InputState = Quit | Running PlayerActionsState
+data InputState = Quit | Running HeroActionsState
 
 inputQuit :: InputState -> Bool
 inputQuit Quit = True
 inputQuit _ = False
 
-inputPlayerActionsState :: InputState -> PlayerActionsState
-inputPlayerActionsState (Running a) = a
-inputPlayerActionsState _ = error "Invalid"
+inputHeroActionsState :: InputState -> HeroActionsState
+inputHeroActionsState (Running a) = a
+inputHeroActionsState _ = error "Invalid"
 
-processInput :: PlayerActionsState -> IO InputState
+processInput :: HeroActionsState -> IO InputState
 processInput p = do
   event <- pollEvent
   case event of
@@ -22,17 +22,17 @@ processInput p = do
     Just (Event _ (KeyboardEvent (KeyboardEventData _ Pressed False keySym))) -> return (Running (processKeyPress p keySym))
     _ -> return (Running p)
 
-processKeyPress :: PlayerActionsState -> Keysym -> PlayerActionsState
+processKeyPress :: HeroActionsState -> Keysym -> HeroActionsState
 processKeyPress = processKeyAction True
 
-processKeyRelease :: PlayerActionsState -> Keysym -> PlayerActionsState
+processKeyRelease :: HeroActionsState -> Keysym -> HeroActionsState
 processKeyRelease = processKeyAction False
 
-processKeyAction :: Bool -> PlayerActionsState -> Keysym -> PlayerActionsState
+processKeyAction :: Bool -> HeroActionsState -> Keysym -> HeroActionsState
 processKeyAction active p keySym = case keysymKeycode keySym of
-  KeycodeUp     -> modifyPlayerActionState p MoveForward active
-  KeycodeDown   -> modifyPlayerActionState p MoveBackward active
-  KeycodeLeft   -> modifyPlayerActionState p TurnLeft active
-  KeycodeRight  -> modifyPlayerActionState p TurnRight active
+  KeycodeUp     -> modifyHeroActionState p MoveForward active
+  KeycodeDown   -> modifyHeroActionState p MoveBackward active
+  KeycodeLeft   -> modifyHeroActionState p TurnLeft active
+  KeycodeRight  -> modifyHeroActionState p TurnRight active
   _             -> p
 

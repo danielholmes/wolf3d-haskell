@@ -1,17 +1,17 @@
 module Wolf3D.Sim (tickWorld, tickWorldNTimes) where
 
-import Wolf3D.Hero
 import Wolf3D.World
-import Wolf3D.Player
+import Wolf3D.Hero
 import Wolf3D.Types
 
 tickWorld :: PosInt -> World -> World
 tickWorld timeStep world = advanceWorldTime movedWorld timeStep
   where
-    movedHero = updateHero (worldHero world) (worldPlayerActionsState world) timeStep
+    hero = worldHero world
+    movedHero = updateHero hero (heroActionsState hero) timeStep
     movedWorld = updateWorldHero world movedHero
 
-updateHero :: Hero -> PlayerActionsState -> PosInt -> Hero
+updateHero :: Hero -> HeroActionsState -> PosInt -> Hero
 updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
   where
     rotationDirection = updateHeroRotation pas
@@ -21,17 +21,17 @@ updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
     heroRotatePerMilli = 0.002
     rotation = rotationDirection * fromIntegral (fromPosInt timeStep) * heroRotatePerMilli
 
-updateHeroMoveDirection :: PlayerActionsState -> Double
+updateHeroMoveDirection :: HeroActionsState -> Double
 updateHeroMoveDirection s = forwardMovement + backwardMovement
   where
-    forwardMovement = if playerActionsStateMoveForward s then 1 else 0
-    backwardMovement = if playerActionsStateMoveBackward s then (-1) else 0
+    forwardMovement = if heroActionsStateMoveForward s then 1 else 0
+    backwardMovement = if heroActionsStateMoveBackward s then (-1) else 0
 
-updateHeroRotation :: PlayerActionsState -> Double
+updateHeroRotation :: HeroActionsState -> Double
 updateHeroRotation pas = leftRotation + rightRotation
   where
-    leftRotation = if playerActionsStateTurnLeft pas then (-1) else 0
-    rightRotation = if playerActionsStateTurnRight pas then 1 else 0
+    leftRotation = if heroActionsStateTurnLeft pas then (-1) else 0
+    rightRotation = if heroActionsStateTurnRight pas then 1 else 0
 
 tickWorldNTimes :: World -> PosInt -> PosZInt -> Maybe World
 tickWorldNTimes w f n

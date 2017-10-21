@@ -4,12 +4,11 @@ module Wolf3D.World (
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
   createWorld,
-  worldPlayerActionsState,
   worldHeroPosition,
   worldWalls,
   worldHero,
   worldItems,
-  updateWorldPlayerActionsState,
+  updateWorldHeroActionsState,
   advanceWorldTime,
   updateWorldHero,
   worldWallsTouching,
@@ -19,9 +18,8 @@ module Wolf3D.World (
   wallHeight
 ) where
 
-import Wolf3D.Hero
 import Wolf3D.Geom
-import Wolf3D.Player
+import Wolf3D.Hero
 import Wolf3D.Items
 import Wolf3D.Types
 import Data.Vector
@@ -42,24 +40,20 @@ data WallHit = WallHit Wall HitPosition DistanceToWall
   deriving (Show, Eq)
 
 type WorldTimeMillis = PosZInt
-data World = World Hero [Wall] [Item] PlayerActionsState WorldTimeMillis
+data World = World Hero [Wall] [Item] WorldTimeMillis
 
 createWorld :: [Wall] -> [Item] -> World
-createWorld walls items = World hero walls items staticPlayerActionsState posZInt0
-  where
-    hero = createHero (Vector2 0 0)
-
-worldPlayerActionsState :: World -> PlayerActionsState
-worldPlayerActionsState (World _ _ _ a _) = a
+createWorld walls items = World hero walls items posZInt0
+  where hero = createHero (Vector2 0 0)
 
 worldHeroPosition :: World -> Vector2
-worldHeroPosition (World h _ _ _ _) = heroPosition h
+worldHeroPosition (World h _ _ _) = heroPosition h
 
 worldWalls :: World -> [Wall]
-worldWalls (World _ walls _ _ _) = walls
+worldWalls (World _ walls _ _) = walls
 
 worldItems :: World -> [Item]
-worldItems (World _ _ is _ _) = is
+worldItems (World _ _ is _) = is
 
 worldItemsTouching :: World -> Rectangle -> [Item]
 worldItemsTouching w r = filter (itemIsTouching r) (worldItems w)
@@ -80,18 +74,18 @@ wallHeight :: Double
 wallHeight = 3000
 
 worldHero :: World -> Hero
-worldHero (World h _ _ _ _) = h
+worldHero (World h _ _ _) = h
 
-updateWorldPlayerActionsState :: World -> PlayerActionsState -> World
-updateWorldPlayerActionsState (World p w i _ r) s = World p w i s r
+updateWorldHeroActionsState :: World -> HeroActionsState -> World
+updateWorldHeroActionsState w@(World h _ _ _) a = updateWorldHero w (updateHeroActionsState h a)
 
 advanceWorldTime :: World -> PosInt -> World
-advanceWorldTime (World p ws is pas time) step = World p ws is pas newTime
+advanceWorldTime (World p ws is time) step = World p ws is newTime
   where
     newTime = posZInt (fromPosZInt time + fromPosInt step)
 
 updateWorldHero :: World -> Hero -> World
-updateWorldHero (World _ ws is pas time) h = World h ws is pas time
+updateWorldHero (World _ ws is time) h = World h ws is time
 
 castRayToClosestWall :: World -> Ray -> Maybe WallHit
 castRayToClosestWall w ray

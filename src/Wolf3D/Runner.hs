@@ -15,7 +15,7 @@ import Data.Maybe
 import Wolf3D.World
 import Wolf3D.Input
 import Wolf3D.Sim
-import Wolf3D.Player
+import Wolf3D.Hero
 import Wolf3D.Types
 
 
@@ -64,7 +64,7 @@ timerTick render run@(SimRun world fixedStep previousTime _) = do
   let maxStepsPerTick = posInt 3
   let (TimerTickSpec numSteps updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
 
-  currentInput <- processInput (worldPlayerActionsState world)
+  currentInput <- processInput (heroActionsState (worldHero world))
   let runWithInput = applyInput run currentInput
   let preTickWorld = simRunWorld runWithInput
 
@@ -84,7 +84,7 @@ timerTick render run@(SimRun world fixedStep previousTime _) = do
 applyInput :: SimRun -> InputState -> SimRun
 applyInput run input
   | inputQuit input = finishRun run
-  | otherwise       = updateSimRunPlayerActionsState run (inputPlayerActionsState input)
+  | otherwise       = updateSimRunPlayerActionsState run (inputHeroActionsState input)
 
 diffUTCTimeMillis :: UTCTime -> UTCTime -> PosZInt
 diffUTCTimeMillis previous now = posZInt diffMillis
@@ -98,5 +98,5 @@ updateSimRunWorld (SimRun _ s p f) newWorld = SimRun newWorld s p f
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun
 updateSimRunTimes (SimRun w s _ f) newTime = SimRun w s newTime f
 
-updateSimRunPlayerActionsState :: SimRun -> PlayerActionsState -> SimRun
-updateSimRunPlayerActionsState (SimRun w s t f) pas = SimRun (updateWorldPlayerActionsState w pas) s t f
+updateSimRunPlayerActionsState :: SimRun -> HeroActionsState -> SimRun
+updateSimRunPlayerActionsState (SimRun w s t f) pas = SimRun (updateWorldHeroActionsState w pas) s t f

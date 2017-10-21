@@ -49,8 +49,16 @@ stack test --pedantic --file-watch
 
 ## TODO
 
+ - move field of view/vision angle into hero
+ - abstracted map level definition (in blocks)
+ - Num,Fractional,Rational instances where appropriate for PosZDouble, etc
+ - SDL draw text - FPS/ms/render time, etc stats in debug view
+
+ - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
+ - possibly record syntax for world - see how interacts with deconstructor
+ - watch carmack haskell wolf talk
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
- - physics engine (2d top down)
+ - physics engine (2d top down) - do some research on physics engines and functional esp.
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls
@@ -59,6 +67,8 @@ stack test --pedantic --file-watch
  - render and shoot gun
  - static sprite targets that can shoot and kill
  - pickup items
+ - doors
+ - enemy
  - fix travis build
  - All events together at the end of game loop passed to audio handler, which plays audio
  - mouse look horizontal
@@ -68,8 +78,8 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
- - Num,Fractional,Rational instances where appropriate for PosZDouble, etc
- - FPS/ms/render time, etc stats in debug view
+ - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
+ - Link to https://www.youtube.com/watch?v=1PhArSujR_A video with reference to time
  - Optimise render - a lot of calculations can be done once
  - Find better PosInt and PosZInt implementation
  - Try reading original data file?

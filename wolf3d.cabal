@@ -30,7 +30,6 @@ library
                      , Wolf3D.Debug.Display
                      , Wolf3D.Data
   other-modules:       Wolf3D.Sim
-                     , Wolf3D.Player
                      , Wolf3D.Input
   build-depends:       base >= 4.7 && < 5
                      , sdl2 >= 2.3.0 && < 3
