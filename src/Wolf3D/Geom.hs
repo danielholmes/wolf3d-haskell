@@ -33,6 +33,12 @@ data Rectangle = Rectangle Vector2 Vector2
 data Ray = Ray Vector2 Vector2
   deriving (Show, Eq)
 
+--data Angle = Angle Ray Ray Double
+--
+--createAngleFromCentre :: Ray -> Double -> Angle
+--createAngleFromCentre centre size = Angle (rotateRay centre (-halfSize)) (rotateRay centre halfSize) size
+--  where halfSize = size / 2
+
 createRay :: Vector2 -> Vector2 -> Ray
 createRay p m
   | vmag m > 0 = Ray p (vnormalise m)

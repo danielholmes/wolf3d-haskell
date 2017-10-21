@@ -123,10 +123,10 @@ renderItem r d@(RenderData _ _ _ is) hero i@(Item t itemPos) =
     texture = fromJust (M.lookup t is)
 
 renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, (PosInt, PosInt)) -> Hero -> Vector2 -> Vector2 -> IO ()
-renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, textureHeight)) hero oPos oSize = do
+renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, textureHeight)) hero oPos oSize =
   SDL.copy r texture (Just sourceRect) (Just destRect)
-  SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
-  SDL.fillRect r (Just destRect)
+  --SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
+  --SDL.fillRect r (Just destRect)
   where
     heroPos = heroPosition hero
     heroLookAngle = rayAngle (heroLookRay hero)
