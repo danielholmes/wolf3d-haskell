@@ -1,25 +1,42 @@
 module Wolf3D.Display.MiniMap (renderMiniMap) where
 
 import qualified SDL
+import qualified SDL.Vect
+import Foreign.C.Types (CInt)
 import Data.Vector
 import Wolf3D.Hero
 import Wolf3D.World
 import Wolf3D.Types
+import Wolf3D.Items
 import Wolf3D.Geom
 import Wolf3D.SDLUtils
 import Data.Foldable (forM_)
 import Data.StateVar (($=))
 
 
+data MiniMapData = MiniMapData Double Vector2 Rectangle Vector2
+
 renderMiniMap :: SDL.Renderer -> PosDouble -> Vector2 -> World -> IO ()
-renderMiniMap r scale size w = do
+renderMiniMap r dScale size w = do
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 100
   SDL.fillRect r (Just (mkOriginSDLRect size))
-  renderHero r (fromPosDouble scale) size (worldHero w)
-  renderWalls r (fromPosDouble scale) size w
+  renderHero r mMData (worldHero w)
+  renderItems r mMData w
+  renderWalls r mMData w
+  where
+    mMData = createMiniMapData dScale size w
 
-renderHero :: SDL.Renderer -> Double -> Vector2 -> Hero -> IO ()
-renderHero r scale s h = do
+createMiniMapData :: PosDouble -> Vector2 -> World -> MiniMapData
+createMiniMapData dScale size w = MiniMapData scale size worldRect hPosition
+  where
+    hPosition = worldHeroPosition w
+    scale = fromPosDouble dScale
+    worldSize = size *| (1 / scale)
+    worldHalfSize = worldSize *| 0.5
+    worldRect = Rectangle (hPosition - worldHalfSize) worldSize
+
+renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
+renderHero r (MiniMapData scale s _ _) h = do
   SDL.rendererDrawColor r $= SDL.V4 255 0 0 255
   drawEqTriangle r (scale * heroSize) halfSize rotation
   SDL.drawLine r (roundToSDLP halfSize) (roundToSDLP (halfSize - rotateVector2 (Vector2 0 (heroSize / 2) *| scale) rotation))
@@ -28,27 +45,22 @@ renderHero r scale s h = do
     halfSize = s *| 0.5
     rotation = - (heroRotation h)
 
-renderWalls :: SDL.Renderer -> Double -> Vector2 -> World -> IO ()
-renderWalls r scale size w = do
+renderWalls :: SDL.Renderer -> MiniMapData -> World -> IO ()
+renderWalls r d@(MiniMapData _ _ worldRect _) w = do
   SDL.rendererDrawColor r $= SDL.V4 0 255 0 255
-  forM_ walls (renderWall r scale size position)
-  where
-    position = worldHeroPosition w
-    --flipY = Vector2 (-1) 1
-    worldSize = size *| (1 / scale)
-    worldHalfSize = worldSize *| 0.5
-    worldRect = Rectangle (position - worldHalfSize) worldSize
-    walls = worldWallsTouching w worldRect
+  forM_ (worldWallsTouching w worldRect) (renderWall r d)
 
-renderWall :: SDL.Renderer -> Double -> Vector2 -> Vector2 -> Wall -> IO ()
-renderWall r scale size heroPos (Wall o s _) = SDL.drawLine r from to
+renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
+renderWall r d (Wall o s _) = drawMiniMapLine r d (o, s)
+
+drawMiniMapLine :: SDL.Renderer -> MiniMapData -> Line -> IO ()
+drawMiniMapLine r d (o, s) = SDL.drawLine r (toMiniMapP d o) (toMiniMapP d (o + s))
+
+toMiniMapP :: MiniMapData -> Vector2 -> SDL.Vect.Point SDL.Vect.V2 CInt
+toMiniMapP (MiniMapData scale size _ heroPos) v = roundToSDLP (halfSize + (flipY * (v - heroPos) *| scale))
   where
-    halfSize = size *| 0.5
     flipY = Vector2 1 (-1)
-    oFromHero = o - heroPos
-    sFromHero = oFromHero + s
-    from = roundToSDLP (halfSize + (flipY * oFromHero *| scale))
-    to = roundToSDLP (halfSize + (flipY * sFromHero *| scale))
+    halfSize = size *| 0.5
 
 cos60 :: Double
 cos60 = cos (pi / 3)
@@ -67,3 +79,16 @@ drawEqTriangle r s pos rot = do
     top = roundToSDLP (pos + rotateVector2 (Vector2 0 topY) rot)
     right = roundToSDLP (pos + rotateVector2 (Vector2 rightX bottomY) rot)
     left = roundToSDLP (pos + rotateVector2 (Vector2 leftX bottomY) rot)
+
+drawRectangle :: SDL.Renderer -> MiniMapData -> Rectangle -> IO ()
+drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)
+
+renderItems :: SDL.Renderer -> MiniMapData -> World -> IO ()
+renderItems r d@(MiniMapData _ _ worldRect _) w = do
+  SDL.rendererDrawColor r $= SDL.V4 0 0 255 255
+  forM_ items (renderItem r d)
+  where
+    items = worldItemsTouching w worldRect
+
+renderItem :: SDL.Renderer -> MiniMapData -> Item -> IO ()
+renderItem r d i = drawRectangle r d (itemRectangle i)

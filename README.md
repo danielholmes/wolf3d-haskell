@@ -49,8 +49,8 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - render sprite item minimap
  - render sprite item 3d
+ - Dont render hidden sprites
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down)
  - Example world that shows off diagonal walls, etc

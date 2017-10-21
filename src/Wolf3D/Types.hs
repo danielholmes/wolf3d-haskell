@@ -16,52 +16,16 @@ module Wolf3D.Types (
 
 
 newtype PosZInt = PosZInt Int
-
-instance Eq PosZInt where
-  (==) (PosZInt i1) (PosZInt i2) = i1 == i2
-
-instance Show PosZInt where
-  show (PosZInt i) = show i
-
-instance Ord PosZInt where
-  (PosZInt i1) `compare` (PosZInt i2) = i1 `compare` i2
-
+  deriving (Show, Eq, Ord)
 
 newtype PosInt = PosInt Int
-
-instance Eq PosInt where
-  (==) (PosInt i1) (PosInt i2) = i1 == i2
-
-instance Show PosInt where
-  show (PosInt i) = show i
-
-instance Ord PosInt where
-  (PosInt i1) `compare` (PosInt i2) = i1 `compare` i2
-
+  deriving (Show, Eq, Ord)
 
 newtype PosZDouble = PosZDouble Double
-
-instance Eq PosZDouble where
-  (==) (PosZDouble i1) (PosZDouble i2) = i1 == i2
-
-instance Show PosZDouble where
-  show (PosZDouble i) = show i
-
-instance Ord PosZDouble where
-  (PosZDouble i1) `compare` (PosZDouble i2) = i1 `compare` i2
-
+  deriving (Show, Eq, Ord)
 
 newtype PosDouble = PosDouble Double
-
-instance Eq PosDouble where
-  (==) (PosDouble i1) (PosDouble i2) = i1 == i2
-
-instance Show PosDouble where
-  show (PosDouble i) = show i
-
-instance Ord PosDouble where
-  (PosDouble i1) `compare` (PosDouble i2) = i1 `compare` i2
-
+  deriving (Show, Eq, Ord)
 
 posZInt0 :: PosZInt
 posZInt0 = posZInt 0

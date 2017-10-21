@@ -13,7 +13,10 @@ module Wolf3D.Geom (
   rayLineIntersection,
   vcross,
   vectorDist,
-  rectangleSides
+  rectangleSides,
+  rectangleOverlapsRectangle,
+  rectMult,
+  rectAdd
 ) where
 
 import Data.Vector
@@ -26,12 +29,7 @@ type Line = (Vector2, Vector2)
 data Rectangle = Rectangle Vector2 Vector2
 
 data Ray = Ray Vector2 Vector2
-
-instance Show Ray where
-  show (Ray o d) = "Ray " ++ show o ++ " " ++ show d
-
-instance Eq Ray where
-  (==) (Ray o1 d1) (Ray o2 d2) = o1 == o2 && d1 == d2
+  deriving (Show, Eq)
 
 createRay :: Vector2 -> Vector2 -> Ray
 createRay p m
@@ -123,3 +121,13 @@ rectangleSides (Rectangle topLeft (Vector2 w h)) = [top, right, bottom, left]
     bottom = (bottomLeft, horizontalMagnitude)
     right = (topRight, verticalMagnitude)
     left = (topLeft, verticalMagnitude)
+
+rectangleOverlapsRectangle :: Rectangle -> Rectangle -> Bool
+rectangleOverlapsRectangle (Rectangle (Vector2 x1 y1) (Vector2 w1 h1)) (Rectangle (Vector2 x2 y2) (Vector2 w2 h2)) =
+  x1 < (x2 + w2) && (x1 + w1) > x2 && y1 < (y2 + h2) && (y1 + h1) > y2
+
+rectMult :: Rectangle -> Double -> Rectangle
+rectMult (Rectangle o s) scale = Rectangle (o *| scale) (s *| scale)
+
+rectAdd :: Rectangle -> Vector2 -> Rectangle
+rectAdd (Rectangle o s) d = Rectangle (o + d) s

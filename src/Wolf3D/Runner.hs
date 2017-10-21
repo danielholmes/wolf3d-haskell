@@ -45,12 +45,7 @@ finishRun (SimRun w f t _) = SimRun w f t True
 type NumSteps = PosZInt
 
 data TimerTickSpec = TimerTickSpec NumSteps UTCTime
-
-instance Show TimerTickSpec where
-  show (TimerTickSpec n t) = "TimerTickSpec numSteps=" ++ show n ++ " newTime=" ++ show t
-
-instance Eq TimerTickSpec where
-  (==) (TimerTickSpec n1 t1) (TimerTickSpec n2 t2) = n1 == n2 && t1 == t2
+  deriving (Show, Eq)
 
 calculateTimerTickSpec :: UTCTime -> FixedStepMillis -> PosInt -> UTCTime -> TimerTickSpec
 calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps updatedTime
