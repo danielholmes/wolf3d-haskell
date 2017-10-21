@@ -19,7 +19,6 @@ library
                      , Wolf3D.Geom
                      , Wolf3D.Hero
                      , Wolf3D.Runner
-                     , Wolf3D.Types
                      , Wolf3D.Items
                      , Wolf3D.Display
                      , Wolf3D.Display.Utils

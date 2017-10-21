@@ -5,7 +5,6 @@ module Wolf3D.Debug.Display (
 
 import qualified Wolf3D.Display as D
 import Wolf3D.World
-import Wolf3D.Types
 import Wolf3D.SDLUtils
 import Wolf3D.Display.MiniMap
 import Wolf3D.Display.Utils
@@ -24,5 +23,5 @@ render r d@(D.RenderData s _ _ _) w = do
   D.renderWorld r d w
   let miniMapSize = s *| 0.3
   withViewport r (Just (mkOriginSDLRect miniMapSize)) $
-    renderMiniMap r (posDouble 0.009) miniMapSize w
+    renderMiniMap r 0.009 miniMapSize w
   SDL.present r

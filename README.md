@@ -50,7 +50,6 @@ stack test --pedantic --file-watch
 ## TODO
 
  - abstracted map level definition (in blocks)
- - Num,Fractional,Rational instances where appropriate for PosZDouble, etc
  - SDL draw text - FPS/ms/render time, etc stats in debug view
  - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - possibly record syntax for world - see how interacts with deconstructor
@@ -61,18 +60,19 @@ stack test --pedantic --file-watch
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls
- - Example world that shows off diagonal walls, etc
- - sprite items block movement
+ - sprite items stop hero moving movement
  - render and shoot gun
  - static sprite targets that can shoot and kill
  - pickup items
  - doors
  - enemy
+ - secret doors
  - fix travis build
  - All events together at the end of game loop passed to audio handler, which plays audio
  - mouse look horizontal
  - mouse look up/down (move projection plane up/down)
  - SDL dispose textures at the end
+ - Example world that shows off diagonal walls, etc
 
 
 ## Nice to haves
@@ -80,7 +80,7 @@ stack test --pedantic --file-watch
  - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
  - Link to https://www.youtube.com/watch?v=1PhArSujR_A video with reference to time
  - Optimise render - a lot of calculations can be done once
- - Find better PosInt and PosZInt implementation
+ - Find good PosInt, PosZInt, etc implementation
  - Try reading original data file?
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
  

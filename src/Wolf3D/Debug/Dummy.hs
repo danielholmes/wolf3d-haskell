@@ -25,4 +25,5 @@ dummyWorld = createWorld walls items
                  , Wall (Vector2 1 4) (Vector2 3 0) Blue
                  , Wall (Vector2 4 4) (Vector2 0 (-7)) Red]
     walls = map (\(Wall o s m) -> Wall (fromVBlocks o) (fromVBlocks s) m) metreWalls
-    items = [Item Drum (fromVBlocks (Vector2 (-3.5) 3.5))]
+    items = [ Item Drum (fromVBlocks (Vector2 (-3.5) 3.5))
+            , Item Flag (fromVBlocks (Vector2 3.5 3.5))]

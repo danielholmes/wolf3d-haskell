@@ -3,7 +3,6 @@ module Wolf3D.Data (loadRenderData) where
 import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
-import Wolf3D.Types
 import Wolf3D.Display
 import Wolf3D.World
 import Wolf3D.Items
@@ -21,7 +20,7 @@ loadRenderData r s = do
   i <- loadItemTextures r
   return (RenderData s ((v2x s / 2) / tan30) w i)
 
-loadWallTextures :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (PosInt, PosInt)))
+loadWallTextures :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (Int, Int)))
 loadWallTextures r = do
   blue <- loadTexture r "blue.png"
   blue2 <- loadTexture r "blue2.png"
@@ -36,19 +35,16 @@ loadWallTextures r = do
                    , (Red, red)
                    , (Green, green)])
 
-loadItemTextures :: SDL.Renderer -> IO (Map ItemType (SDL.Texture, (PosInt, PosInt)))
+loadItemTextures :: SDL.Renderer -> IO (Map ItemType (SDL.Texture, (Int, Int)))
 loadItemTextures r = do
   drum <- loadTexture r "drum.png"
-  return (fromList [ (Drum, drum)])
+  flag <- loadTexture r "flag.png"
+  return (fromList [ (Drum, drum), (Flag, flag)])
 
-loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, (PosInt, PosInt))
+loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, (Int, Int))
 loadTexture r p = do
   t <- SDL.Image.loadTexture r ("assets/" ++ p)
   i <- SDL.queryTexture t
-  let w = cIntToPosInt (SDL.Video.Renderer.textureWidth i)
-  let h = cIntToPosInt (SDL.Video.Renderer.textureHeight i)
+  let w = fromIntegral (SDL.Video.Renderer.textureWidth i)
+  let h = fromIntegral (SDL.Video.Renderer.textureHeight i)
   return (t, (w, h))
-
-
-cIntToPosInt :: CInt -> PosInt
-cIntToPosInt (CInt i) = posInt (fromIntegral i)

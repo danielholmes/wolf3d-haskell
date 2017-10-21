@@ -7,7 +7,6 @@ import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
 import Data.Vector
-import Wolf3D.Types
 
 
 createUI :: (MonadIO m) => (SDL.Renderer -> Vector2 -> m a) -> m ()
@@ -17,12 +16,12 @@ createUI op = do
   let width = 640
   let height = 480
   void $
-    withWindow "Wolfenstein 3D" (posInt width, posInt height) $ \w ->
+    withWindow "Wolfenstein 3D" (width, height) $ \w ->
       withRenderer w (\r -> op r (Vector2 (fromIntegral width) (fromIntegral height)))
   SDL.Image.quit
   SDL.quit
 
-withWindow :: (MonadIO m) => Text -> (PosInt, PosInt) -> (SDL.Window -> m a) -> m ()
+withWindow :: (MonadIO m) => Text -> (Int, Int) -> (SDL.Window -> m a) -> m ()
 withWindow title (x, y) op = do
   w <- SDL.createWindow title p
   SDL.showWindow w
@@ -30,7 +29,7 @@ withWindow title (x, y) op = do
   SDL.destroyWindow w
     where
       p = SDL.defaultWindow { SDL.windowInitialSize = z }
-      z = SDL.V2 (fromIntegral (fromPosInt x)) (fromIntegral (fromPosInt y))
+      z = SDL.V2 (fromIntegral x) (fromIntegral y)
 
 withRenderer :: (MonadIO m) => SDL.Window -> (SDL.Renderer -> m a) -> m ()
 withRenderer w op = do

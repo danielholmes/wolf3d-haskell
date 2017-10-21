@@ -6,7 +6,6 @@ import Foreign.C.Types (CInt)
 import Data.Vector
 import Wolf3D.Hero
 import Wolf3D.World
-import Wolf3D.Types
 import Wolf3D.Items
 import Wolf3D.Geom
 import Wolf3D.SDLUtils
@@ -16,7 +15,7 @@ import Data.StateVar (($=))
 
 data MiniMapData = MiniMapData Double Vector2 Rectangle Vector2
 
-renderMiniMap :: SDL.Renderer -> PosDouble -> Vector2 -> World -> IO ()
+renderMiniMap :: SDL.Renderer -> Double -> Vector2 -> World -> IO ()
 renderMiniMap r dScale size w = do
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 100
   SDL.fillRect r (Just (mkOriginSDLRect size))
@@ -26,11 +25,10 @@ renderMiniMap r dScale size w = do
   where
     mMData = createMiniMapData dScale size w
 
-createMiniMapData :: PosDouble -> Vector2 -> World -> MiniMapData
-createMiniMapData dScale size w = MiniMapData scale size worldRect hPosition
+createMiniMapData :: Double -> Vector2 -> World -> MiniMapData
+createMiniMapData scale size w = MiniMapData scale size worldRect hPosition
   where
     hPosition = worldHeroPosition w
-    scale = fromPosDouble dScale
     worldSize = size *| (1 / scale)
     worldHalfSize = worldSize *| 0.5
     worldRect = Rectangle (hPosition - worldHalfSize) worldSize

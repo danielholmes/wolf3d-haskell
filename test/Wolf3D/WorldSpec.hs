@@ -3,7 +3,6 @@ module Wolf3D.WorldSpec (worldSpec) where
 import Test.Hspec
 import Wolf3D.Geom
 import Wolf3D.World
-import Wolf3D.Types
 import Data.Vector
 import Data.Maybe
 
@@ -43,4 +42,4 @@ worldSpec =
           world = createWorld [wall] []
           result = castRayToClosestWall world (createRay (Vector2 0 (-30)) (Vector2 0 30))
         in
-          result `shouldBe` Just (WallHit wall (Vector2 0 100) (posZDouble 130))
+          result `shouldBe` Just (WallHit wall (Vector2 0 100) 130)

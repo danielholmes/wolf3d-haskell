@@ -21,7 +21,6 @@ module Wolf3D.World (
 import Wolf3D.Geom
 import Wolf3D.Hero
 import Wolf3D.Items
-import Wolf3D.Types
 import Data.Vector
 import Data.List
 
@@ -34,16 +33,16 @@ type WallSize = Vector2
 data Wall = Wall WallPosition WallSize WallMaterial
   deriving (Show, Eq)
 
-type DistanceToWall = PosZDouble
+type DistanceToWall = Double
 type HitPosition = Vector2
 data WallHit = WallHit Wall HitPosition DistanceToWall
   deriving (Show, Eq)
 
-type WorldTimeMillis = PosZInt
+type WorldTimeMillis = Int
 data World = World Hero [Wall] [Item] WorldTimeMillis
 
 createWorld :: [Wall] -> [Item] -> World
-createWorld walls items = World hero walls items posZInt0
+createWorld walls items = World hero walls items 0
   where hero = createHero (Vector2 0 0)
 
 worldHeroPosition :: World -> Vector2
@@ -79,10 +78,8 @@ worldHero (World h _ _ _) = h
 updateWorldHeroActionsState :: World -> HeroActionsState -> World
 updateWorldHeroActionsState w@(World h _ _ _) a = updateWorldHero w (updateHeroActionsState h a)
 
-advanceWorldTime :: World -> PosInt -> World
-advanceWorldTime (World p ws is time) step = World p ws is newTime
-  where
-    newTime = posZInt (fromPosZInt time + fromPosInt step)
+advanceWorldTime :: World -> Int -> World
+advanceWorldTime (World p ws is time) step = World p ws is (time + step)
 
 updateWorldHero :: World -> Hero -> World
 updateWorldHero (World _ ws is time) h = World h ws is time

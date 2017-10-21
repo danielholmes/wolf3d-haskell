@@ -23,7 +23,6 @@ module Wolf3D.Geom (
 
 import Data.Vector
 import Data.Maybe
-import Wolf3D.Types
 
 
 type Line = (Vector2, Vector2)
@@ -92,8 +91,8 @@ angleToVector2 a = Vector2 (sin a) (cos a)
 vector2ToAngle :: Vector2 -> Double
 vector2ToAngle (Vector2 x y) = atan2 x y
 
-vectorDist :: Vector2 -> Vector2 -> PosZDouble
-vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = posZDouble (sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2)))
+vectorDist :: Vector2 -> Vector2 -> Double
+vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2))
 
 vcross2 :: Vector2 -> Vector2 -> Scalar
 vcross2 (Vector2 x1 y1) (Vector2 x2 y2) = (x1 * y2) - (y1 * x2)

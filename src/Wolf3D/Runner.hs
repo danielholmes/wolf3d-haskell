@@ -16,14 +16,13 @@ import Wolf3D.World
 import Wolf3D.Input
 import Wolf3D.Sim
 import Wolf3D.Hero
-import Wolf3D.Types
 
 
-type FixedStepMillis = PosInt
+type FixedStepMillis = Int
 
 data SimRun = SimRun World FixedStepMillis UTCTime Bool
 
-runLoop :: World -> PosInt -> (World -> IO ()) -> IO SimRun
+runLoop :: World -> Int -> (World -> IO ()) -> IO SimRun
 runLoop w s r = do
   simRun <- startSimRun w s
   iterateUntilM simRunIsFinished (timerTick r) simRun
@@ -42,26 +41,26 @@ simRunWorld (SimRun w _ _ _) = w
 finishRun :: SimRun -> SimRun
 finishRun (SimRun w f t _) = SimRun w f t True
 
-type NumSteps = PosZInt
+type NumSteps = Int
 
 data TimerTickSpec = TimerTickSpec NumSteps UTCTime
   deriving (Show, Eq)
 
-calculateTimerTickSpec :: UTCTime -> FixedStepMillis -> PosInt -> UTCTime -> TimerTickSpec
+calculateTimerTickSpec :: UTCTime -> FixedStepMillis -> Int -> UTCTime -> TimerTickSpec
 calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps updatedTime
   where
     millisAvailable = diffUTCTimeMillis prev now
-    numSteps = posZInt (min (fromPosInt maxSteps) (fromPosZInt millisAvailable `div` fromPosInt fixedStep))
-    usedTime = realToFrac (fromPosZInt numSteps * fromPosInt fixedStep) / 1000.0
+    numSteps = min maxSteps (millisAvailable `div` fixedStep)
+    usedTime = realToFrac (numSteps * fixedStep) / 1000.0
     updatedTime
-      | fromPosZInt numSteps < fromPosInt maxSteps = addUTCTime usedTime prev
-      | otherwise                                  = now
+      | numSteps < maxSteps = addUTCTime usedTime prev
+      | otherwise           = now
 
 timerTick :: (World -> IO ()) -> SimRun -> IO SimRun
 timerTick render run@(SimRun world fixedStep previousTime _) = do
   now <- getCurrentTime
   -- TODO: Lift to SimRun
-  let maxStepsPerTick = posInt 3
+  let maxStepsPerTick = 3
   let (TimerTickSpec numSteps updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
 
   currentInput <- processInput (heroActionsState (worldHero world))
@@ -86,11 +85,10 @@ applyInput run input
   | inputQuit input = finishRun run
   | otherwise       = updateSimRunPlayerActionsState run (inputHeroActionsState input)
 
-diffUTCTimeMillis :: UTCTime -> UTCTime -> PosZInt
-diffUTCTimeMillis previous now = posZInt diffMillis
+diffUTCTimeMillis :: UTCTime -> UTCTime -> Int
+diffUTCTimeMillis previous now = floor (diff * 1000)
   where
     diff = toRational (diffUTCTime now previous)
-    diffMillis = floor (diff * 1000) :: Int
 
 updateSimRunWorld :: SimRun -> World -> SimRun
 updateSimRunWorld (SimRun _ s p f) newWorld = SimRun newWorld s p f
