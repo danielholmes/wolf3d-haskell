@@ -9,6 +9,7 @@ module Wolf3D.Display (
 import Wolf3D.Geom
 import Wolf3D.Hero
 import Wolf3D.World
+import Wolf3D.Runner
 import Wolf3D.Items
 import Wolf3D.SDLUtils
 import qualified SDL
@@ -25,11 +26,11 @@ type ItemTypeData = M.Map ItemType (SDL.Texture, (Int, Int))
 data RenderData = RenderData Vector2 Double WallMaterialData ItemTypeData
 
 setupRenderer :: SDL.Renderer -> IO ()
-setupRenderer _ = return ()
+setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
 
-render :: SDL.Renderer -> RenderData -> World -> IO ()
-render r d w = do
-  renderWorld r d w
+render :: SDL.Renderer -> RenderData -> SimRun -> IO ()
+render r d s = do
+  renderWorld r d (simRunWorld s)
   SDL.present r
 
 renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()

@@ -10,6 +10,7 @@ Functional Wolfenstein 3D engine implementation in Haskell.
  - [Stack](https://www.haskellstack.org) (Tested with 1.4)
  - [SDL2 2.0.4+](https://www.libsdl.org/)
  - [SDL2 Image](https://www.libsdl.org/projects/SDL_image/)
+ - [SDL2 TTF](https://www.libsdl.org/projects/SDL_ttf/)
 
 
 ## Setting up Development Environment
@@ -49,7 +50,6 @@ stack test --pedantic --file-watch
 
 ## TODO
 
- - SDL draw text - FPS/ms/render time, etc stats in debug view
  - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - possibly record syntax for world - see how interacts with deconstructor
  

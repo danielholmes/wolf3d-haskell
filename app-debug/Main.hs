@@ -3,7 +3,7 @@ module Main where
 import Wolf3D.UI
 import Wolf3D.Geom
 import Wolf3D.Runner
-import Wolf3D.Data
+import Wolf3D.Debug.Data
 import Wolf3D.Debug.Dummy
 import Wolf3D.Debug.Display
 import Data.Vector
@@ -15,4 +15,4 @@ main = do
     \r -> do
       setupRenderer r
       d <- loadRenderData r size
-      runLoop dummyWorld2 16 (render r d)
+      runLoop dummyWorld 16 3 (render r d)

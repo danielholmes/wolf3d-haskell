@@ -15,7 +15,8 @@ module Wolf3D.World (
   worldItemsTouching,
   wallToLine,
   castRayToClosestWall,
-  wallHeight
+  wallHeight,
+  worldTime
 ) where
 
 import Wolf3D.Geom
@@ -54,6 +55,9 @@ worldWalls (World _ walls _ _) = walls
 
 worldItems :: World -> [Item]
 worldItems (World _ _ is _) = is
+
+worldTime :: World -> Int
+worldTime (World _ _ _ t) = t
 
 worldItemsTouching :: World -> Rectangle -> [Item]
 worldItemsTouching w r = filter (itemIsTouching r) (worldItems w)

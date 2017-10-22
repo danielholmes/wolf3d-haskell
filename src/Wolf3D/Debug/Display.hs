@@ -1,27 +1,56 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Wolf3D.Debug.Display (
+  DebugRenderData (DebugRenderData),
   setupRenderer,
   render
 ) where
 
 import qualified Wolf3D.Display as D
 import Wolf3D.World
+import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Display.MiniMap
 import Wolf3D.Display.Utils
 import qualified SDL
-import Data.Vector
+import qualified SDL.Font
+import Control.StopWatch
 import Data.StateVar (($=))
+import Data.Vector
+import Data.Text (pack)
+import System.Clock
 
+
+data DebugRenderData = DebugRenderData D.RenderData SDL.Font.Font
 
 setupRenderer :: SDL.Renderer -> IO ()
-setupRenderer r = do
-  D.setupRenderer r
-  SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
+setupRenderer = D.setupRenderer
 
-render :: SDL.Renderer -> D.RenderData -> World -> IO ()
-render r d@(D.RenderData s _ _ _) w = do
-  D.renderWorld r d w
-  let miniMapSize = s *| 0.3
+render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
+render r drd@(DebugRenderData rd@(D.RenderData s _ _ _) _) sr = do
+  (_, tookTime) <- stopWatch runRender
+  let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
   withViewport r (Just (mkOriginSDLRect miniMapSize)) $
     renderMiniMap r 0.009 miniMapSize w
+  drawDebugText r drd debugText
   SDL.present r
+  where
+    w = simRunWorld sr
+    miniMapSize = s *| 0.3
+    runRender = D.renderWorld r rd w
+
+createDebugText :: SimRun -> Integer -> String
+createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
+  where
+    world = simRunWorld sr
+    items = [("WT", show (worldTime world `div` 1000) ++ "s"), ("Render", show tookTime ++ "ms")]
+
+drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
+drawDebugText r (DebugRenderData (D.RenderData (Vector2 w h) _ _ _) font) text =
+  withViewport r (Just (mkSDLRect 0 0 (round w) (round h))) $ do
+    surface <- SDL.Font.solid font (SDL.V4 255 255 255 255) (pack text)
+    (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
+    texture <- SDL.createTextureFromSurface r surface
+    let rect = Just (mkSDLRect 0 (round h - textH) textW textH)
+    SDL.rendererDrawColor r $= SDL.V4 0 0 0 122
+    SDL.fillRect r rect
+    SDL.copy r texture Nothing rect

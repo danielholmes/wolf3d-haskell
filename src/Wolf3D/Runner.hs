@@ -13,33 +13,36 @@ import Control.Monad.Loops (iterateUntilM)
 import Data.Time.Clock
 import Data.Maybe
 import Wolf3D.World
+import Wolf3D.Utils
 import Wolf3D.Input
 import Wolf3D.Sim
 import Wolf3D.Hero
+import Data.Foldable
 
 
 type FixedStepMillis = Int
+type MaxStepsPerTick = Int
 
-data SimRun = SimRun World FixedStepMillis UTCTime Bool
+data SimRun = SimRun World FixedStepMillis MaxStepsPerTick UTCTime Bool
 
-runLoop :: World -> Int -> (World -> IO ()) -> IO SimRun
-runLoop w s r = do
-  simRun <- startSimRun w s
+runLoop :: World -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
+runLoop w f m r = do
+  simRun <- startSimRun w f m
   iterateUntilM simRunIsFinished (timerTick r) simRun
 
-startSimRun :: World -> FixedStepMillis -> IO SimRun
-startSimRun w s = do
+startSimRun :: World -> FixedStepMillis -> MaxStepsPerTick -> IO SimRun
+startSimRun w f m = do
   startTime <- getCurrentTime
-  return (SimRun w s startTime False)
+  return (SimRun w f m startTime False)
 
 simRunIsFinished :: SimRun -> Bool
-simRunIsFinished (SimRun _ _ _ f) = f
+simRunIsFinished (SimRun _ _ _ _ f) = f
 
 simRunWorld :: SimRun -> World
-simRunWorld (SimRun w _ _ _) = w
+simRunWorld (SimRun w _ _ _ _) = w
 
 finishRun :: SimRun -> SimRun
-finishRun (SimRun w f t _) = SimRun w f t True
+finishRun (SimRun w f m t _) = SimRun w f m t True
 
 type NumSteps = Int
 
@@ -56,11 +59,9 @@ calculateTimerTickSpec prev fixedStep maxSteps now = TimerTickSpec numSteps upda
       | numSteps < maxSteps = addUTCTime usedTime prev
       | otherwise           = now
 
-timerTick :: (World -> IO ()) -> SimRun -> IO SimRun
-timerTick render run@(SimRun world fixedStep previousTime _) = do
+timerTick :: (SimRun -> IO ()) -> SimRun -> IO SimRun
+timerTick render run@(SimRun world fixedStep maxStepsPerTick previousTime _) = do
   now <- getCurrentTime
-  -- TODO: Lift to SimRun
-  let maxStepsPerTick = 3
   let (TimerTickSpec numSteps updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
 
   currentInput <- processInput (heroActionsState (worldHero world))
@@ -69,32 +70,25 @@ timerTick render run@(SimRun world fixedStep previousTime _) = do
 
   let ranWorld = tickWorldNTimes preTickWorld fixedStep numSteps
 
-  case ranWorld of
-    Just newWorld -> render newWorld
-    Nothing -> return ()
-
   --TODO: Discard extra time IF frame rate running too slow. i.e. if numSteps == maxSteps then updatedTime should be now
   --SDL.delay 1000
   let runWithNewWorld = updateSimRunWorld runWithInput (fromMaybe preTickWorld ranWorld)
   let runWithNewTimes = updateSimRunTimes runWithNewWorld updatedTime
+
+  forM_ (fmap (const runWithNewTimes) ranWorld) render
+
   return runWithNewTimes
-  --traceShow (previousTime, now, millisAvailable, fixedStep, numSteps, updatedTime) (return runWithNewTimes)
 
 applyInput :: SimRun -> InputState -> SimRun
 applyInput run input
   | inputQuit input = finishRun run
   | otherwise       = updateSimRunPlayerActionsState run (inputHeroActionsState input)
 
-diffUTCTimeMillis :: UTCTime -> UTCTime -> Int
-diffUTCTimeMillis previous now = floor (diff * 1000)
-  where
-    diff = toRational (diffUTCTime now previous)
-
 updateSimRunWorld :: SimRun -> World -> SimRun
-updateSimRunWorld (SimRun _ s p f) newWorld = SimRun newWorld s p f
+updateSimRunWorld (SimRun _ s m p f) newWorld = SimRun newWorld s m p f
 
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun
-updateSimRunTimes (SimRun w s _ f) newTime = SimRun w s newTime f
+updateSimRunTimes (SimRun w s m _ f) newTime = SimRun w s m newTime f
 
 updateSimRunPlayerActionsState :: SimRun -> HeroActionsState -> SimRun
-updateSimRunPlayerActionsState (SimRun w s t f) pas = SimRun (updateWorldHeroActionsState w pas) s t f
+updateSimRunPlayerActionsState (SimRun w s m t f) pas = SimRun (updateWorldHeroActionsState w pas) s m t f

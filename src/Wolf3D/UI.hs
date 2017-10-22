@@ -3,6 +3,7 @@ module Wolf3D.UI (createUI) where
 
 import qualified SDL
 import qualified SDL.Image
+import qualified SDL.Font
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
@@ -12,9 +13,11 @@ createUI :: (MonadIO m) => (Int, Int) -> (SDL.Renderer -> m a) -> m ()
 createUI (width, height) op = do
   SDL.initialize []
   SDL.Image.initialize []
+  SDL.Font.initialize
   void $
     withWindow "Wolfenstein 3D" (width, height) $ \w ->
       withRenderer w op
+  SDL.Font.quit
   SDL.Image.quit
   SDL.quit
 
