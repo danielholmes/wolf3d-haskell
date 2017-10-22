@@ -1,6 +1,7 @@
 module Wolf3D.Hero (
   Hero,
   createHero,
+  createOriginHero,
   heroPosition,
   heroRotation,
   heroLookRay,
@@ -22,6 +23,7 @@ module Wolf3D.Hero (
 ) where
 
 import Wolf3D.Geom
+import Wolf3D.Sim
 import Data.Vector
 
 
@@ -31,6 +33,7 @@ data HeroActionsState = HeroActionsState
   , heroActionsStateTurnLeft     :: Bool
   , heroActionsStateTurnRight    :: Bool
   }
+  deriving (Show, Eq)
 
 data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight
 
@@ -46,9 +49,23 @@ modifyHeroActionState (HeroActionsState u d l _) TurnRight a = HeroActionsState 
 type Position = Vector2
 type Rotation = Double
 data Hero = Hero Position Rotation HeroActionsState
+  deriving (Show, Eq)
+
+instance SimItem Hero where
+  simUpdate m h@(Hero _ _ has) = rotateHero (moveHero h movement) rotation
+    where
+      rotationDirection = updateHeroRotation has
+      direction = updateHeroMoveDirection has
+      heroMoveMetresPerSec = 8
+      movement = direction * fromIntegral (m * heroMoveMetresPerSec)
+      heroRotatePerMilli = 0.002
+      rotation = rotationDirection * fromIntegral m * heroRotatePerMilli
 
 createHero :: Vector2 -> Hero
 createHero pos = Hero pos 0 staticHeroActionsState
+
+createOriginHero :: Hero
+createOriginHero = createHero (Vector2 0 0)
 
 heroPosition :: Hero -> Vector2
 heroPosition (Hero p _ _) = p
@@ -79,6 +96,18 @@ moveHero (Hero p r a) m = Hero (p + (m |* angleToVector2 r)) r a
 
 updateHeroActionsState :: Hero -> HeroActionsState -> Hero
 updateHeroActionsState (Hero p r _) = Hero p r
+
+updateHeroMoveDirection :: HeroActionsState -> Double
+updateHeroMoveDirection s = forwardMovement + backwardMovement
+  where
+    forwardMovement = if heroActionsStateMoveForward s then 1 else 0
+    backwardMovement = if heroActionsStateMoveBackward s then (-1) else 0
+
+updateHeroRotation :: HeroActionsState -> Double
+updateHeroRotation has = leftRotation + rightRotation
+  where
+    leftRotation = if heroActionsStateTurnLeft has then (-1) else 0
+    rightRotation = if heroActionsStateTurnRight has then 1 else 0
 
 -- TODO: Bound to (-pi) - pi
 rotateHero :: Hero -> Double -> Hero

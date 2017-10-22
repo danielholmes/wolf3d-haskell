@@ -1,41 +1,108 @@
-module Wolf3D.Sim (tickWorld, tickWorldNTimes) where
+{-# LANGUAGE GADTs #-}
+module Wolf3D.Sim (
+  SimItem (simUpdate),
+  World,
+  Wall (Wall),
+  WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
+  WallHit (WallHit),
+  createWorld,
+  worldWalls,
+  worldItems,
+  updateWorldItems,
+  advanceWorldTime,
+  worldWallsTouching,
+  wallToLine,
+  castRayToClosestWall,
+  wallHeight,
+  worldTime,
+  tickWorld,
+  tickWorldNTimes
+) where
 
-import Wolf3D.World
-import Wolf3D.Hero
+import Wolf3D.Geom
+import Data.Vector
+import Data.List
 
-tickWorld :: Int -> World -> World
-tickWorld timeStep world = advanceWorldTime movedWorld timeStep
+
+type StepMillis = Int
+class SimItem a where
+  simUpdate :: StepMillis -> a -> a
+
+data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
+  deriving (Show, Eq, Ord)
+
+type WallPosition = Vector2
+type WallSize = Vector2
+data Wall = Wall WallPosition WallSize WallMaterial
+  deriving (Show, Eq)
+
+type DistanceToWall = Double
+type HitPosition = Vector2
+data WallHit = WallHit Wall HitPosition DistanceToWall
+  deriving (Show, Eq)
+
+type WorldTimeMillis = Int
+data World i where
+  World :: (SimItem i) => [Wall] -> [i] -> WorldTimeMillis -> World i
+
+createWorld :: (SimItem i) => [Wall] -> [i] -> World i
+createWorld walls items = World walls items 0
+
+tickWorld :: Int -> World i -> World i
+tickWorld timeStep world@(World _ is _) = advanceWorldTime updatedWorld timeStep
   where
-    hero = worldHero world
-    movedHero = updateHero hero (heroActionsState hero) timeStep
-    movedWorld = updateWorldHero world movedHero
+    updatedItems = map (simUpdate timeStep) is
+    updatedWorld = updateWorldItems world updatedItems
 
-updateHero :: Hero -> HeroActionsState -> Int -> Hero
-updateHero h pas timeStep = rotateHero (moveHero h movement) rotation
-  where
-    rotationDirection = updateHeroRotation pas
-    direction = updateHeroMoveDirection pas
-    heroMoveMetresPerSec = 8
-    movement = direction * fromIntegral (timeStep * heroMoveMetresPerSec)
-    heroRotatePerMilli = 0.002
-    rotation = rotationDirection * fromIntegral timeStep * heroRotatePerMilli
-
-updateHeroMoveDirection :: HeroActionsState -> Double
-updateHeroMoveDirection s = forwardMovement + backwardMovement
-  where
-    forwardMovement = if heroActionsStateMoveForward s then 1 else 0
-    backwardMovement = if heroActionsStateMoveBackward s then (-1) else 0
-
-updateHeroRotation :: HeroActionsState -> Double
-updateHeroRotation pas = leftRotation + rightRotation
-  where
-    leftRotation = if heroActionsStateTurnLeft pas then (-1) else 0
-    rightRotation = if heroActionsStateTurnRight pas then 1 else 0
-
-tickWorldNTimes :: World -> Int -> Int -> Maybe World
+tickWorldNTimes :: World i -> Int -> Int -> Maybe (World i)
 tickWorldNTimes w f n
   | n == 0    = Nothing
   | otherwise = Just (foldr foldStep w [1..n])
     where
-      foldStep :: Int -> World -> World
+      foldStep :: Int -> World i -> World i
       foldStep _ = tickWorld f
+
+updateWorldItems :: World i -> [i] -> World i
+updateWorldItems (World w _ t) i = World w i t
+
+worldWalls :: World i -> [Wall]
+worldWalls (World walls _ _) = walls
+
+worldItems :: (SimItem i) => World i -> [i]
+worldItems (World _ is _) = is
+
+worldTime :: World i -> Int
+worldTime (World _ _ t) = t
+
+worldWallsTouching :: World i -> Rectangle -> [Wall]
+worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
+
+wallIsTouching :: Rectangle -> Wall -> Bool
+wallIsTouching r w = rectangleTouchesLine r (wallToLine w)
+
+wallToLine :: Wall -> Line
+wallToLine (Wall start change _) = (start, change)
+
+wallHeight :: Double
+wallHeight = 3000
+
+advanceWorldTime :: World i -> Int -> World i
+advanceWorldTime (World ws is time) step = World ws is (time + step)
+
+castRayToClosestWall :: World i -> Ray -> Maybe WallHit
+castRayToClosestWall w ray
+  | null allHits = Nothing
+  | otherwise    = Just (minimumBy compareHits allHits)
+  where
+    allHits = castRayToAllWalls w ray
+    compareHits :: WallHit -> WallHit -> Ordering
+    compareHits (WallHit _ _ d1) (WallHit _ _ d2) = d1 `compare` d2
+
+castRayToAllWalls :: World i -> Ray -> [WallHit]
+castRayToAllWalls world ray = foldr foldStep [] (worldWalls world)
+  where
+    rStart = rayOrigin ray
+    foldStep :: Wall -> [WallHit] -> [WallHit]
+    foldStep wall accu = case rayLineIntersection ray (wallToLine wall) of
+      Nothing -> accu
+      Just pos -> WallHit wall pos (vectorDist rStart pos) : accu

@@ -1,8 +1,8 @@
+{-# LANGUAGE GADTs #-}
 module Wolf3D.Runner (
   runLoop,
   timerTick,
   SimRun,
-  startSimRun,
   simRunIsFinished,
   simRunWorld,
   TimerTickSpec (TimerTickSpec),
@@ -12,25 +12,25 @@ module Wolf3D.Runner (
 import Control.Monad.Loops (iterateUntilM)
 import Data.Time.Clock
 import Data.Maybe
-import Wolf3D.World
+import Wolf3D.Sim
 import Wolf3D.Utils
 import Wolf3D.Input
-import Wolf3D.Sim
 import Wolf3D.Hero
+import Wolf3D.Wolf3DSim
 import Data.Foldable
 
 
 type FixedStepMillis = Int
 type MaxStepsPerTick = Int
 
-data SimRun = SimRun World FixedStepMillis MaxStepsPerTick UTCTime Bool
+data SimRun = SimRun (World Wolf3DSimItem) FixedStepMillis MaxStepsPerTick UTCTime Bool
 
-runLoop :: World -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
+runLoop :: World Wolf3DSimItem -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
 runLoop w f m r = do
   simRun <- startSimRun w f m
   iterateUntilM simRunIsFinished (timerTick r) simRun
 
-startSimRun :: World -> FixedStepMillis -> MaxStepsPerTick -> IO SimRun
+startSimRun :: World Wolf3DSimItem -> FixedStepMillis -> MaxStepsPerTick -> IO SimRun
 startSimRun w f m = do
   startTime <- getCurrentTime
   return (SimRun w f m startTime False)
@@ -38,7 +38,7 @@ startSimRun w f m = do
 simRunIsFinished :: SimRun -> Bool
 simRunIsFinished (SimRun _ _ _ _ f) = f
 
-simRunWorld :: SimRun -> World
+simRunWorld :: SimRun -> World Wolf3DSimItem
 simRunWorld (SimRun w _ _ _ _) = w
 
 finishRun :: SimRun -> SimRun
@@ -84,11 +84,11 @@ applyInput run input
   | inputQuit input = finishRun run
   | otherwise       = updateSimRunPlayerActionsState run (inputHeroActionsState input)
 
-updateSimRunWorld :: SimRun -> World -> SimRun
+updateSimRunWorld :: SimRun -> World Wolf3DSimItem -> SimRun
 updateSimRunWorld (SimRun _ s m p f) newWorld = SimRun newWorld s m p f
 
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun
 updateSimRunTimes (SimRun w s m _ f) newTime = SimRun w s m newTime f
 
 updateSimRunPlayerActionsState :: SimRun -> HeroActionsState -> SimRun
-updateSimRunPlayerActionsState (SimRun w s m t f) pas = SimRun (updateWorldHeroActionsState w pas) s m t f
+updateSimRunPlayerActionsState (SimRun w s m t f) has = SimRun (updateWorldHeroActionsState w has) s m t f

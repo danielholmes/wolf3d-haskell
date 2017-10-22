@@ -13,4 +13,4 @@ main = do
     \r -> do
       setupRenderer r
       d <- loadRenderData r size
-      runLoop dummyWorldSingleWall 16 3 (render r d)
+      runLoop dummyWorld2 16 3 (render r d)

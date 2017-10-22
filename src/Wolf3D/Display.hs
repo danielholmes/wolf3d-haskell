@@ -8,9 +8,10 @@ module Wolf3D.Display (
 
 import Wolf3D.Geom
 import Wolf3D.Hero
-import Wolf3D.World
+import Wolf3D.Wolf3DSim
+import Wolf3D.Sim
 import Wolf3D.Runner
-import Wolf3D.Items
+import Wolf3D.Environment
 import Wolf3D.SDLUtils
 import qualified SDL
 import Data.StateVar (($=))
@@ -23,7 +24,7 @@ import Foreign.C.Types (CInt)
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
-type ItemTypeData = M.Map ItemType (SDL.Texture, SDL.Rectangle CInt)
+type ItemTypeData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
 data RenderData = RenderData { size :: (Int, Int)
                              , halfSize :: (Int, Int)
                              , distToProjPlane :: Double
@@ -38,7 +39,7 @@ render r d s = do
   renderWorld r d (simRunWorld s)
   SDL.present r
 
-renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()
+renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
 renderWorld r d w = do
   renderCeilingAndFloor r d
   renderWalls r d w
@@ -54,7 +55,7 @@ renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
     cHalfH = fromIntegral halfH
     cWidth = fromIntegral width
 
-renderWalls :: SDL.Renderer -> RenderData -> World -> IO ()
+renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
 renderWalls r d@RenderData {size=(width, _)} w = forM_ hits (renderWallLine r d)
   where hits = pixelWallHits w width
 
@@ -98,7 +99,7 @@ renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTe
 --    from = SDL.P (SDL.V2 xInt projectedTop)
 --    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
 
-pixelWallHits :: World -> Int -> [(Int, WallHit, Double)]
+pixelWallHits :: World Wolf3DSimItem -> Int -> [(Int, WallHit, Double)]
 pixelWallHits w width = foldr foldStep [] hits
   where
     pixels = [0..(width - 1)]
@@ -107,7 +108,7 @@ pixelWallHits w width = foldr foldStep [] hits
     foldStep (_, Nothing) accu = accu
     foldStep (i, Just (h, d)) accu = (i, h, d) : accu
 
-pixelWallHit :: World -> Int -> Int -> Maybe (WallHit, Double)
+pixelWallHit :: World Wolf3DSimItem -> Int -> Int -> Maybe (WallHit, Double)
 pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
   where
     hero = worldHero w
@@ -117,11 +118,11 @@ pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (
     rayRotation = heroFieldOfViewSize hero * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation
 
-renderItems :: SDL.Renderer -> RenderData -> World -> IO ()
-renderItems r d w = forM_ (worldItems w) (renderItem r d (worldHero w))
+renderItems :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
+renderItems r d w = forM_ (worldEnvItems w) (renderItem r d (worldHero w))
 
-renderItem :: SDL.Renderer -> RenderData -> Hero -> Item -> IO ()
-renderItem r d@RenderData {itemTextures=it} hero i@(Item t itemPos) =
+renderItem :: SDL.Renderer -> RenderData -> Hero -> EnvItem -> IO ()
+renderItem r d@RenderData {itemTextures=it} hero i@(EnvItem t itemPos) =
   renderSprite r d texture hero itemPos (itemSize i)
   where
     texture = fromJust (M.lookup t it)

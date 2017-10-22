@@ -4,8 +4,8 @@ import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
 import Wolf3D.Display
-import Wolf3D.World
-import Wolf3D.Items
+import Wolf3D.Sim
+import Wolf3D.Environment
 import Wolf3D.SDLUtils
 import Data.Map (Map, fromList)
 import Foreign.C.Types (CInt)
@@ -39,7 +39,7 @@ loadWallTextures r = do
     rectToSize :: (WallMaterial, (SDL.Texture, SDL.Rectangle CInt)) -> (WallMaterial, (SDL.Texture, (Int, Int)))
     rectToSize (m, (t, SDL.Rectangle _ (SDL.V2 width height))) = (m, (t, (fromIntegral width, fromIntegral height)))
 
-loadItemTextures :: SDL.Renderer -> IO (Map ItemType (SDL.Texture, SDL.Rectangle CInt))
+loadItemTextures :: SDL.Renderer -> IO (Map EnvItemType (SDL.Texture, SDL.Rectangle CInt))
 loadItemTextures r = do
   drum <- loadTexture r "drum.png"
   flag <- loadTexture r "flag.png"

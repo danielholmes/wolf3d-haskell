@@ -4,10 +4,11 @@ module Wolf3D.Debug.Dummy (
   dummyWorldSingleWall
 ) where
 
-import Wolf3D.World
-import Wolf3D.Items
+import Wolf3D.Sim
+import Wolf3D.Wolf3DSim
+import Wolf3D.Hero
+import Wolf3D.Environment
 import Data.Vector
-import Control.Applicative
 
 
 fromMetres :: Double -> Double
@@ -19,8 +20,8 @@ fromBlocks i = fromMetres (i * 3)
 fromVBlocks :: Vector2 -> Vector2
 fromVBlocks (Vector2 x y) = Vector2 (fromBlocks x) (fromBlocks y)
 
-dummyWorld :: World
-dummyWorld = createWorld walls items Nothing
+dummyWorld :: World Wolf3DSimItem
+dummyWorld = createWorld walls items
   where
     metreWalls = [ Wall (Vector2 (-4) (-3)) (Vector2 0 7) Red
                  , Wall (Vector2 (-4) 4) (Vector2 3 0) Green
@@ -30,11 +31,12 @@ dummyWorld = createWorld walls items Nothing
                  , Wall (Vector2 1 4) (Vector2 3 0) Blue
                  , Wall (Vector2 4 4) (Vector2 0 (-7)) Red]
     walls = map (\(Wall o s m) -> Wall (fromVBlocks o) (fromVBlocks s) m) metreWalls
-    items = [ Item Drum (fromVBlocks (Vector2 (-3.5) 3.5))
-            , Item Light (fromVBlocks (Vector2 0 2))
-            , Item Flag (fromVBlocks (Vector2 3.5 3.5))]
+    items = [ SIEnvItem (EnvItem Drum (fromVBlocks (Vector2 (-3.5) 3.5)))
+            , SIEnvItem (EnvItem Light (fromVBlocks (Vector2 0 2)))
+            , SIEnvItem (EnvItem Flag (fromVBlocks (Vector2 3.5 3.5)))
+            , SIHero createOriginHero ]
 
-dummyWorld2 :: World
+dummyWorld2 :: World Wolf3DSimItem
 dummyWorld2 = fromGrid [["WB1", "WB1", "WB1", "WB2", "WB2"],
                         ["WB2", "DR",  "",    "DR",  "WB1"],
                         ["WB1", "",    "",    "",    "WB1"],
@@ -47,39 +49,39 @@ dummyWorld2 = fromGrid [["WB1", "WB1", "WB1", "WB2", "WB2"],
                         ["WB1", "",    "",    "",    "WB1"],
                         ["WB1", "",    "",    "",    "WB2"]]
 
-dummyWorldSingleWall :: World
-dummyWorldSingleWall = createWorld [wall] [] Nothing
+dummyWorldSingleWall :: World Wolf3DSimItem
+dummyWorldSingleWall = createWorld [wall] [SIHero createOriginHero]
   where
     wall = Wall (Vector2 (-24000) 9000) (Vector2 44000 0) Blue
 
-fromGrid :: [[String]] -> World
-fromGrid rows = createWorld ws is pos
+fromGrid :: [[String]] -> World Wolf3DSimItem
+fromGrid rows = createWorld ws is
   where
-    (ws, is, pos) = fromGridRows 0 rows
+    (ws, is) = fromGridRows 0 rows
 
-fromGridRows :: Int -> [[String]] -> ([Wall], [Item], Maybe Vector2)
-fromGridRows _ [] = ([], [], Nothing)
-fromGridRows y (r:rs) = (rowWs ++ nextWs, rowIs ++ nextIs, pos <|> nextPos)
+fromGridRows :: Int -> [[String]] -> ([Wall], [Wolf3DSimItem])
+fromGridRows _ [] = ([], [])
+fromGridRows y (r:rs) = (rowWs ++ nextWs, rowIs ++ nextIs)
   where
-    (rowWs, rowIs, pos) = fromGridRow (0, y) r
-    (nextWs, nextIs, nextPos) = fromGridRows (y-1) rs
+    (rowWs, rowIs) = fromGridRow (0, y) r
+    (nextWs, nextIs) = fromGridRows (y-1) rs
 
-fromGridRow :: (Int, Int) -> [String] -> ([Wall], [Item], Maybe Vector2)
-fromGridRow _ [] = ([], [], Nothing)
-fromGridRow (x, y) (c:cs) = (cellWs ++ nextWs, cellIs ++ nextIs, pos <|> nextPos)
+fromGridRow :: (Int, Int) -> [String] -> ([Wall], [Wolf3DSimItem])
+fromGridRow _ [] = ([], [])
+fromGridRow (x, y) (c:cs) = (cellWs ++ nextWs, cellIs ++ nextIs)
   where
     coordPos = Vector2 (fromIntegral x) (fromIntegral y)
-    (cellWs, cellIs, pos) = fromGridCell coordPos c
-    (nextWs, nextIs, nextPos) = fromGridRow (x+1, y) cs
+    (cellWs, cellIs) = fromGridCell coordPos c
+    (nextWs, nextIs) = fromGridRow (x+1, y) cs
 
-fromGridCell :: Vector2 -> String -> ([Wall], [Item], Maybe Vector2)
-fromGridCell _ "" = ([], [], Nothing)
-fromGridCell pos "H" = ([], [], Just (fromVBlocks pos))
-fromGridCell pos "DR" = ([], [Item Drum (toItemPos pos)], Nothing)
-fromGridCell pos "WB1" = (createWalls pos Blue, [], Nothing)
-fromGridCell pos "WB2" = (createWalls pos Blue2, [], Nothing)
-fromGridCell pos "WB3" = (createWalls pos Blue3, [], Nothing)
-fromGridCell pos "WB4" = (createWalls pos Blue4, [], Nothing)
+fromGridCell :: Vector2 -> String -> ([Wall], [Wolf3DSimItem])
+fromGridCell _ "" = ([], [])
+fromGridCell pos "H" = ([], [SIHero (createHero (fromVBlocks pos))])
+fromGridCell pos "DR" = ([], [SIEnvItem (EnvItem Drum (toItemPos pos))])
+fromGridCell pos "WB1" = (createWalls pos Blue, [])
+fromGridCell pos "WB2" = (createWalls pos Blue2, [])
+fromGridCell pos "WB3" = (createWalls pos Blue3, [])
+fromGridCell pos "WB4" = (createWalls pos Blue4, [])
 fromGridCell _ c = error ("Unknown cell '" ++ c ++ "'")
 
 createWalls :: Vector2 -> WallMaterial -> [Wall]

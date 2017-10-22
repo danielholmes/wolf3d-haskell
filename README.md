@@ -66,7 +66,6 @@ stack test --pedantic --file-watch
  - doors
  - enemy
  - secret doors
- - fix travis build
  - All events together at the end of game loop passed to audio handler, which plays audio
  - mouse look horizontal
  - mouse look up/down (move projection plane up/down)
@@ -78,6 +77,11 @@ stack test --pedantic --file-watch
 
  - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
  - Optimise render - a lot of calculations can be done once
+ - Speed up travis. See 
+   - http://rundef.com/fast-travis-ci-docker-build 
+   - https://gist.github.com/hc2p/9e284cee3d585eefbc59454e44cc247a
+   - http://atodorov.org/blog/2017/08/07/faster-travis-ci-tests-with-docker-cache/
+   - https://giorgos.sealabs.net/docker-cache-on-travis-and-docker-112.html
  - Try reading original data file?
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
  
