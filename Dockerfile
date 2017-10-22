@@ -9,7 +9,7 @@ RUN mkdir -p ~/.local/bin
 RUN export PATH=$HOME/.local/bin:$PATH
 RUN curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
-RUN git clone git@github.com:danielholmes/wolf3d-haskell.git /root/wolf3d
+RUN git clone https://github.com/danielholmes/wolf3d-haskell.git /root/wolf3d
 RUN cd /root/wolf3d
 RUN stack --no-terminal --skip-ghc-check setup
 RUN stack --no-terminal --skip-ghc-check test --pedantic
