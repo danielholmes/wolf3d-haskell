@@ -51,7 +51,6 @@ stack test --pedantic --file-watch
 
 ## TODO
  
- - watch carmack haskell wolf talk
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down) - do some research on physics engines and functional esp.
  - Dont render hidden sprites
