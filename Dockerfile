@@ -4,7 +4,7 @@ RUN apt-get update
 RUN apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:hvr/ghc
 RUN apt-get update
-RUN apt-get install -y ghc-8.0.2 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+RUN apt-get install -y curl ghc-8.0.2 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 RUN curl -sSL https://get.haskellstack.org/ | sh
 RUN mkdir -p ~/.local/bin
 RUN export PATH=$HOME/.local/bin:$PATH
