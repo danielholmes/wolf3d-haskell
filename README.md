@@ -60,6 +60,8 @@ stack test --pedantic --file-watch
  - sprite items stop hero moving movement
  - render and shoot gun
  - optimise rendering - too slow
+   - do some research on spritesheets, is it faster?
+     - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - static sprite targets that can shoot and kill
  - pickup items
  - doors
@@ -75,8 +77,6 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
- - do some research on spritesheets, is it faster?
-   - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
  - Optimise render - a lot of calculations can be done once
  - Try reading original data file?
