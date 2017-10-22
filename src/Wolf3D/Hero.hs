@@ -1,9 +1,11 @@
 module Wolf3D.Hero (
   Hero,
+  Weapon (Pistol),
   createHero,
   createOriginHero,
   heroPosition,
   heroRotation,
+  heroWeapon,
   heroLookRay,
   moveHero,
   rotateHero,
@@ -11,7 +13,7 @@ module Wolf3D.Hero (
   HeroActionsState,
   staticHeroActionsState,
   modifyHeroActionState,
-  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight),
+  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight, Shoot),
   heroActionsStateMoveForward,
   heroActionsStateMoveBackward,
   heroActionsStateTurnLeft,
@@ -27,32 +29,53 @@ import Wolf3D.Sim
 import Data.Vector
 
 
+data Weapon = Pistol WorldTime
+  deriving (Eq, Show)
+
+--instance SimItem Weapon where
+--  simUpdate m weapon = weapon
+--    | canShoot world weapon = shoot world weapon
+--    | otherwise             = weapon
+
+--canShoot :: World Wolf3DSimIem -> Weapon -> Bool
+--canShoot (World _ _ t) w@(Pistol lastShotTime) = t - lastShotTime >= timeBetweenShots w
+
+-- TODO:
+shoot :: Weapon -> Weapon
+shoot = id
+
+--timeBetweenShots :: Weapon -> Int
+--timeBetweenShots (Pistol _) = 2000
+
+
 data HeroActionsState = HeroActionsState
   { heroActionsStateMoveForward  :: Bool
   , heroActionsStateMoveBackward :: Bool
   , heroActionsStateTurnLeft     :: Bool
   , heroActionsStateTurnRight    :: Bool
+  , heroActionsStateShoot        :: Bool
   }
   deriving (Show, Eq)
 
-data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight
+data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | Shoot
 
 staticHeroActionsState :: HeroActionsState
-staticHeroActionsState = HeroActionsState False False False False
+staticHeroActionsState = HeroActionsState False False False False False
 
 modifyHeroActionState :: HeroActionsState -> HeroAction -> Bool -> HeroActionsState
-modifyHeroActionState (HeroActionsState _ d l r) MoveForward a = HeroActionsState a d l r
-modifyHeroActionState (HeroActionsState u _ l r) MoveBackward a = HeroActionsState u a l r
-modifyHeroActionState (HeroActionsState u d _ r) TurnLeft a = HeroActionsState u d a r
-modifyHeroActionState (HeroActionsState u d l _) TurnRight a = HeroActionsState u d l a
+modifyHeroActionState (HeroActionsState _ d l r s) MoveForward a = HeroActionsState a d l r s
+modifyHeroActionState (HeroActionsState u _ l r s) MoveBackward a = HeroActionsState u a l r s
+modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState u d a r s
+modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
+modifyHeroActionState (HeroActionsState u d l r _) Shoot a = HeroActionsState u d l r a
 
 type Position = Vector2
 type Rotation = Double
-data Hero = Hero Position Rotation HeroActionsState
+data Hero = Hero Position Rotation HeroActionsState Weapon
   deriving (Show, Eq)
 
 instance SimItem Hero where
-  simUpdate m h@(Hero _ _ has) = rotateHero (moveHero h movement) rotation
+  simUpdate m h@(Hero _ _ has _) = tryAndShoot (rotateHero (moveHero h movement) rotation)
     where
       rotationDirection = updateHeroRotation has
       direction = updateHeroMoveDirection has
@@ -61,23 +84,31 @@ instance SimItem Hero where
       heroRotatePerMilli = 0.002
       rotation = rotationDirection * fromIntegral m * heroRotatePerMilli
 
+tryAndShoot :: Hero -> Hero
+tryAndShoot h@(Hero p r has w)
+  | heroActionsStateShoot has = Hero p r has (shoot w)
+  | otherwise                 = h
+
 createHero :: Vector2 -> Hero
-createHero pos = Hero pos 0 staticHeroActionsState
+createHero pos = Hero pos 0 staticHeroActionsState (Pistol 0)
 
 createOriginHero :: Hero
 createOriginHero = createHero (Vector2 0 0)
 
 heroPosition :: Hero -> Vector2
-heroPosition (Hero p _ _) = p
+heroPosition (Hero p _ _ _) = p
 
 heroHeight :: Double
 heroHeight = 1500
 
 heroRotation :: Hero -> Double
-heroRotation (Hero _ r _) = r
+heroRotation (Hero _ r _ _) = r
 
 heroActionsState :: Hero -> HeroActionsState
-heroActionsState (Hero _ _ a) = a
+heroActionsState (Hero _ _ a _) = a
+
+heroWeapon :: Hero -> Weapon
+heroWeapon (Hero _ _ _ w) = w
 
 heroFieldOfViewSize :: Hero -> Double
 heroFieldOfViewSize _ = pi / 3
@@ -89,13 +120,13 @@ heroLookRayAtFieldOfViewRatio hero ratio = rotateRay (heroLookRay hero) rayRotat
     rayRotation = fieldOfViewSize * (ratio - 0.5)
 
 heroLookRay :: Hero -> Ray
-heroLookRay (Hero pos rot _) = createRay pos (Vector2 (sin rot) (cos rot))
+heroLookRay (Hero pos rot _ _) = createRay pos (Vector2 (sin rot) (cos rot))
 
 moveHero :: Hero -> Double -> Hero
-moveHero (Hero p r a) m = Hero (p + (m |* angleToVector2 r)) r a
+moveHero (Hero p r a w) m = Hero (p + (m |* angleToVector2 r)) r a w
 
 updateHeroActionsState :: Hero -> HeroActionsState -> Hero
-updateHeroActionsState (Hero p r _) = Hero p r
+updateHeroActionsState (Hero p r _ w) a = Hero p r a w
 
 updateHeroMoveDirection :: HeroActionsState -> Double
 updateHeroMoveDirection s = forwardMovement + backwardMovement
@@ -111,4 +142,4 @@ updateHeroRotation has = leftRotation + rightRotation
 
 -- TODO: Bound to (-pi) - pi
 rotateHero :: Hero -> Double -> Hero
-rotateHero (Hero p r a) d = Hero p (r + d) a
+rotateHero (Hero p r a w) d = Hero p (r + d) a w

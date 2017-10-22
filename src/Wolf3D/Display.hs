@@ -25,11 +25,13 @@ import Foreign.C.Types (CInt)
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
 type ItemTypeData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
+type WeaponData = M.Map String (SDL.Texture, SDL.Rectangle CInt)
 data RenderData = RenderData { size :: (Int, Int)
                              , halfSize :: (Int, Int)
                              , distToProjPlane :: Double
                              , wallTextures :: WallMaterialData
-                             , itemTextures :: ItemTypeData}
+                             , itemTextures :: ItemTypeData
+                             , weaponTextures :: WeaponData}
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
@@ -44,6 +46,7 @@ renderWorld r d w = do
   renderCeilingAndFloor r d
   renderWalls r d w
   renderItems r d w
+  renderWeapon r d (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
 renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
@@ -151,3 +154,11 @@ renderSprite r RenderData {size=(width, _), halfSize=(_, halfHeight), distToProj
 
 perpendicularDistance :: Double -> WallHit -> Double
 perpendicularDistance rayRotation (WallHit _ _ d) = d * cos rayRotation
+
+renderWeapon :: SDL.Renderer -> RenderData -> Weapon -> IO ()
+renderWeapon r RenderData {size=(width, height), weaponTextures=wt} _ =
+  SDL.copy r texture (Just sourceRect) (Just destRect)
+  where
+    (texture, sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH))) = fromJust (M.lookup "Pistol" wt)
+    destRect = mkSDLRect (fromIntegral (width - fromIntegral tW) `div` 2) (fromIntegral (height - fromIntegral tH)) tW tH
+

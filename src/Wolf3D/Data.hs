@@ -18,7 +18,8 @@ loadRenderData :: SDL.Renderer -> (Int, Int) -> IO RenderData
 loadRenderData r s@(width, height) = do
   w <- loadWallTextures r
   i <- loadItemTextures r
-  return (RenderData s (width `div` 2, height `div` 2) (fromIntegral (width `div` 2) / tan30) w i)
+  weapons <- loadWeaponTextures r
+  return (RenderData s (width `div` 2, height `div` 2) (fromIntegral (width `div` 2) / tan30) w i weapons)
 
 loadWallTextures :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (Int, Int)))
 loadWallTextures r = do
@@ -45,6 +46,11 @@ loadItemTextures r = do
   flag <- loadTexture r "flag.png"
   light <- loadTexture r "light.png"
   return (fromList [ (Drum, drum), (Flag, flag), (Light, light)])
+
+loadWeaponTextures :: SDL.Renderer -> IO (Map String (SDL.Texture, SDL.Rectangle CInt))
+loadWeaponTextures r = do
+  pistol <- loadTexture r "pistol.png"
+  return (fromList [("Pistol", pistol)])
 
 loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, SDL.Rectangle CInt)
 loadTexture r p = do

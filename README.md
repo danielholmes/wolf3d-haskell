@@ -51,17 +51,17 @@ stack test --pedantic --file-watch
 
 ## TODO
  
+ - render and shoot gun
+ - static sprite targets that can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down) - do some research on physics engines and functional esp.
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls
  - sprite items stop hero moving movement
- - render and shoot gun
  - optimise rendering - too slow
    - do some research on spritesheets, is it faster?
      - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
- - static sprite targets that can shoot and kill
  - pickup items
  - doors
  - enemy

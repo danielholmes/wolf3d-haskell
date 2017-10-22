@@ -34,5 +34,6 @@ processKeyAction active p keySym = case keysymKeycode keySym of
   KeycodeDown   -> modifyHeroActionState p MoveBackward active
   KeycodeLeft   -> modifyHeroActionState p TurnLeft active
   KeycodeRight  -> modifyHeroActionState p TurnRight active
+  KeycodeLCtrl  -> modifyHeroActionState p Shoot active
   _             -> p
 

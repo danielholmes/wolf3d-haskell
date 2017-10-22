@@ -2,6 +2,7 @@
 module Wolf3D.Sim (
   SimItem (simUpdate),
   World,
+  WorldTime,
   Wall (Wall),
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
@@ -41,9 +42,9 @@ type HitPosition = Vector2
 data WallHit = WallHit Wall HitPosition DistanceToWall
   deriving (Show, Eq)
 
-type WorldTimeMillis = Int
+type WorldTime = Int
 data World i where
-  World :: (SimItem i) => [Wall] -> [i] -> WorldTimeMillis -> World i
+  World :: (SimItem i) => [Wall] -> [i] -> WorldTime -> World i
 
 createWorld :: (SimItem i) => [Wall] -> [i] -> World i
 createWorld walls items = World walls items 0

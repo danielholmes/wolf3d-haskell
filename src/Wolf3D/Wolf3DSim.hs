@@ -1,6 +1,7 @@
 module Wolf3D.Wolf3DSim (
   Wolf3DSimItem (SIEnvItem, SIHero),
   worldHero,
+  worldHeroWeapon,
   worldEnvItems,
   worldEnvItemsTouching,
   updateWorldHeroActionsState
@@ -23,6 +24,9 @@ instance SimItem Wolf3DSimItem where
 
 worldHero :: World Wolf3DSimItem -> Hero
 worldHero w = fromJust (fmap (\(SIHero h) -> h) (find (\i -> case i of (SIHero _) -> True; _ -> False) (worldItems w)))
+
+worldHeroWeapon :: World Wolf3DSimItem -> Weapon
+worldHeroWeapon = heroWeapon . worldHero
 
 worldEnvItems :: World Wolf3DSimItem -> [EnvItem]
 worldEnvItems w = map (\(SIEnvItem e) -> e) (filter (\i -> case i of (SIEnvItem _) -> True; _ -> False) (worldItems w))

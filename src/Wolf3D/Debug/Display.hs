@@ -25,7 +25,7 @@ setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer = D.setupRenderer
 
 render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
-render r drd@(DebugRenderData rd@(D.RenderData (width, height) _ _ _ _) _) sr = do
+render r drd@(DebugRenderData rd@(D.RenderData (width, height) _ _ _ _ _) _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
   withViewport r (Just (mkSDLRect 0 0 (fromIntegral miniMapWidth) (fromIntegral miniMapHeight))) $
@@ -45,7 +45,7 @@ createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
     items = [("WT", show (worldTime world `div` 1000) ++ "s"), ("Render", show tookTime ++ "ms")]
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
-drawDebugText r (DebugRenderData (D.RenderData (w, h) _ _ _ _) font) text =
+drawDebugText r (DebugRenderData (D.RenderData (w, h) _ _ _ _ _) font) text =
   withViewport r (Just (mkSDLRect 0 0 (fromIntegral w) (fromIntegral h))) $ do
     surface <- SDL.Font.solid font (SDL.V4 255 255 255 255) (pack text)
     (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
