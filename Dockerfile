@@ -9,3 +9,6 @@ RUN export PATH=$HOME/.local/bin:$PATH
 RUN curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 RUN stack config set system-ghc --global true
 RUN export PATH=/opt/ghc/8.0.2/bin:$PATH
+
+RUN stack --no-terminal --skip-ghc-check setup
+RUN stack --no-terminal --skip-ghc-check test --pedantic

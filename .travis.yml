@@ -13,8 +13,4 @@ before_install:
   - docker pull ubuntu:16.04
 
 install:
-  - travis_wait stack --no-terminal --skip-ghc-check setup
-
-script:
   - docker build .
-  - stack --no-terminal --skip-ghc-check test --pedantic
