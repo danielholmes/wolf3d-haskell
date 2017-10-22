@@ -18,7 +18,8 @@ import Data.StateVar (($=))
 import Data.Vector
 import Data.Foldable
 import Data.Maybe
-import Data.Fixed (mod')
+--import Data.Word (Word8)
+import Data.Fixed
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 
@@ -65,42 +66,51 @@ renderWalls r d@RenderData {size=(width, _)} w = forM_ hits (renderWallLine r d)
 renderWallLine :: SDL.Renderer -> RenderData -> (Int, WallHit, Double) -> IO ()
 renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt} (x, WallHit (Wall o _ m) hit _, distance) = do
   SDL.copy r texture (Just sourceRect) (Just destRect)
-  SDL.rendererDrawColor r $= SDL.V4 0 0 0 alpha
+  SDL.rendererDrawColor r $= SDL.V4 0 0 0 darknessAlpha
   SDL.drawLine r from to
   where
+    (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
+    hitWallX = vectorDist hit o
+    hitWallTextureRatio = hitWallX `mod'` wallHeight / wallHeight
     ratio = d / distance
     projectedTop = round (fromIntegral halfHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
     xInt = fromIntegral x
-    (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
-    hitWallX = vectorDist hit o
-    hitWallTextureRatio = hitWallX `mod'` wallHeight / wallHeight
-    textureXDouble = hitWallTextureRatio * (fromIntegral textureWidth - 1)
-    textureX = floor textureXDouble
     from = SDL.P (SDL.V2 xInt projectedTop)
     to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
     darknessMultiplier = 8000
     intensity = 1 - min 1 ((1 / distance) * darknessMultiplier)
-    alpha = round (255 * intensity)
+    darknessAlpha = round (255 * intensity)
+    textureXDouble = hitWallTextureRatio * (fromIntegral textureWidth - 1)
+    textureX = floor textureXDouble
     sourceRect = mkSDLRect textureX 0 1 (fromIntegral textureHeight)
-    destRect = mkSDLRect xInt projectedTop 1 projectedHeight
+    destRect = SDL.Rectangle from (SDL.V2 1 projectedHeight)
 
--- Solid color
+---- Solid colour
 --renderWallLine :: SDL.Renderer -> RenderData -> (Int, WallHit, Double) -> IO ()
---renderWallLine r (RenderData _ s) (x, hit, distance) = do
---  SDL.rendererDrawColor r $= wallHitColour hit
+--renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt} (x, WallHit (Wall _ _ m) _ _, distance) = do
+--  SDL.rendererDrawColor r $= wallColour m
+--  SDL.drawLine r from to
+--  SDL.rendererDrawColor r $= SDL.V4 0 0 (fromIntegral (M.size wt)) darknessAlpha -- size only used so dont have to shuffle imports
 --  SDL.drawLine r from to
 --  where
---    heroHeight = 1500
---    wallHeight = 3000
---    distanceToProjectionPlane = (v2x s / 2) / tan30
---    ratio = distanceToProjectionPlane / distance
---    halfScreenHeight = v2y s / 2
---    projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
+--    ratio = d / distance
+--    projectedTop = round (fromIntegral halfHeight - (ratio * (wallHeight - heroHeight)))
 --    projectedHeight = round (ratio * wallHeight)
---    xInt = CInt (fromIntegral x)
+--    xInt = fromIntegral x
 --    from = SDL.P (SDL.V2 xInt projectedTop)
 --    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
+--    darknessMultiplier = 8000
+--    intensity = 1 - min 1 ((1 / distance) * darknessMultiplier)
+--    darknessAlpha = round (255 * intensity)
+
+--wallColour :: WallMaterial -> SDL.V4 Word8
+--wallColour Blue = SDL.V4 0 0 255 255
+--wallColour Blue2 = SDL.V4 0 0 240 255
+--wallColour Blue3 = SDL.V4 0 10 220 255
+--wallColour Blue4 = SDL.V4 0 20 210 255
+--wallColour Red = SDL.V4 255 0 0 255
+--wallColour Green = SDL.V4 0 255 0 255
 
 pixelWallHits :: World Wolf3DSimItem -> Int -> [(Int, WallHit, Double)]
 pixelWallHits w width = foldr foldStep [] hits
