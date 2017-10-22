@@ -1,5 +1,6 @@
 FROM ubuntu:16.04
 
+RUN apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:hvr/ghc
 RUN apt-get update
 RUN apt-get install -y ghc-8.0.2 libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
