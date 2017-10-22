@@ -50,9 +50,6 @@ stack test --pedantic --file-watch
 
 
 ## TODO
- 
- - optimise rendering.
-   - rendering solid colur instead of textures improves from ~30ms - ~5ms
    
  - merge packages to avoid circular refs (item, hero, w3dsim)
    - complete simitem def - pass world as part of update
@@ -65,8 +62,11 @@ stack test --pedantic --file-watch
      2. move x only, if okay return
      3. move y only, if oka return
      4. return
- - do some research on spritesheets, is it faster?
-   - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
+ 
+ - optimise rendering
+   - rendering solid colur instead of textures improves from ~30ms - ~5ms
+   - do some research on spritesheets, is it faster?
+     - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls
