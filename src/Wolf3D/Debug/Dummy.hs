@@ -1,4 +1,8 @@
-module Wolf3D.Debug.Dummy (dummyWorld, dummyWorld2) where
+module Wolf3D.Debug.Dummy (
+  dummyWorld,
+  dummyWorld2,
+  dummyWorldSingleWall
+) where
 
 import Wolf3D.World
 import Wolf3D.Items
@@ -42,6 +46,11 @@ dummyWorld2 = fromGrid [["WB1", "WB1", "WB1", "WB2", "WB2"],
                         ["WB2", "",    "",    "",    "WB1"],
                         ["WB1", "",    "",    "",    "WB1"],
                         ["WB1", "",    "",    "",    "WB2"]]
+
+dummyWorldSingleWall :: World
+dummyWorldSingleWall = createWorld [wall] [] Nothing
+  where
+    wall = Wall (Vector2 (-24000) 9000) (Vector2 44000 0) Blue
 
 fromGrid :: [[String]] -> World
 fromGrid rows = createWorld ws is pos

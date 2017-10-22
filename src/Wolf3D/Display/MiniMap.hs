@@ -13,38 +13,38 @@ import Data.Foldable (forM_)
 import Data.StateVar (($=))
 
 
-data MiniMapData = MiniMapData Double Vector2 Rectangle Vector2
+data MiniMapData = MiniMapData Double (Int, Int) Vector2 Rectangle Vector2
 
-renderMiniMap :: SDL.Renderer -> Double -> Vector2 -> World -> IO ()
-renderMiniMap r dScale size w = do
+renderMiniMap :: SDL.Renderer -> Double -> (Int, Int) -> World -> IO ()
+renderMiniMap r dScale size@(width, height) w = do
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 100
-  SDL.fillRect r (Just (mkOriginSDLRect size))
+  SDL.fillRect r (Just (mkSDLRect 0 0 (fromIntegral width) (fromIntegral height)))
   renderHero r mMData (worldHero w)
   renderItems r mMData w
   renderWalls r mMData w
   where
     mMData = createMiniMapData dScale size w
 
-createMiniMapData :: Double -> Vector2 -> World -> MiniMapData
-createMiniMapData scale size w = MiniMapData scale size worldRect hPosition
+createMiniMapData :: Double -> (Int, Int) -> World -> MiniMapData
+createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize worldRect hPosition
   where
     hPosition = worldHeroPosition w
-    worldSize = size *| (1 / scale)
+    halfSize = Vector2 (fromIntegral (width `div` 2)) (fromIntegral (height `div` 2))
+    worldSize = Vector2 (fromIntegral width) (fromIntegral height) *| (1 / scale)
     worldHalfSize = worldSize *| 0.5
     worldRect = Rectangle (hPosition - worldHalfSize) worldSize
 
 renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
-renderHero r d@(MiniMapData scale size _ heroPos) h = do
+renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
   SDL.rendererDrawColor r $= SDL.V4 255 0 0 255
   drawEqTriangle r (scale * heroSize) halfSize (-rotation)
   drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) rotation)
   where
     heroSize = 1000
-    halfSize = size *| 0.5
     rotation = heroRotation h
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World -> IO ()
-renderWalls r d@(MiniMapData _ _ worldRect _) w = do
+renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
   SDL.rendererDrawColor r $= SDL.V4 0 255 0 255
   forM_ (worldWallsTouching w worldRect) (renderWall r d)
 
@@ -55,10 +55,9 @@ drawMiniMapLine :: SDL.Renderer -> MiniMapData -> Line -> IO ()
 drawMiniMapLine r d (o, s) = SDL.drawLine r (toMiniMapP d o) (toMiniMapP d (o + s))
 
 toMiniMapP :: MiniMapData -> Vector2 -> SDL.Vect.Point SDL.Vect.V2 CInt
-toMiniMapP (MiniMapData scale size _ heroPos) v = roundToSDLP (halfSize + (flipY * (v - heroPos) *| scale))
+toMiniMapP (MiniMapData scale _ halfSize _ heroPos) v = roundToSDLP (halfSize + (flipY * (v - heroPos) *| scale))
   where
     flipY = Vector2 1 (-1)
-    halfSize = size *| 0.5
 
 cos60 :: Double
 cos60 = cos (pi / 3)
@@ -82,7 +81,7 @@ drawRectangle :: SDL.Renderer -> MiniMapData -> Rectangle -> IO ()
 drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)
 
 renderItems :: SDL.Renderer -> MiniMapData -> World -> IO ()
-renderItems r d@(MiniMapData _ _ worldRect _) w = do
+renderItems r d@(MiniMapData _ _ _ worldRect _) w = do
   SDL.rendererDrawColor r $= SDL.V4 0 0 255 255
   forM_ items (renderItem r d)
   where

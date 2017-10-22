@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/danielholmes/wolf3d-haskell.svg?branch=master)](https://travis-ci.org/danielholmes/wolf3d-haskell)
 
-Functional Wolfenstein 3D engine implementation in Haskell.
+Wolfenstein 3D engine implementation in Haskell. Functionality is equivalent, but doesn't use same types of 
+optimisations. Inspired by [John Carmack's Quakecon 2013 Talk](https://youtu.be/Uooh0Y9fC_M?t=4660)
 
 
 ## Requirements
@@ -49,9 +50,6 @@ stack test --pedantic --file-watch
 
 
 ## TODO
-
- - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
- - possibly record syntax for world - see how interacts with deconstructor
  
  - watch carmack haskell wolf talk
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
@@ -61,6 +59,7 @@ stack test --pedantic --file-watch
    - only render in front of walls
  - sprite items stop hero moving movement
  - render and shoot gun
+ - optimise rendering - too slow
  - static sprite targets that can shoot and kill
  - pickup items
  - doors
@@ -76,10 +75,10 @@ stack test --pedantic --file-watch
 
 ## Nice to haves
 
+ - do some research on spritesheets, is it faster?
+   - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
  - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
- - Link to https://www.youtube.com/watch?v=1PhArSujR_A video with reference to time
  - Optimise render - a lot of calculations can be done once
- - Find good PosInt, PosZInt, etc implementation
  - Try reading original data file?
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
  

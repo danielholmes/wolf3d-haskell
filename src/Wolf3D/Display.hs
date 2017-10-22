@@ -19,11 +19,16 @@ import Data.Foldable
 import Data.Maybe
 import Data.Fixed (mod')
 import qualified Data.Map as M
+import Foreign.C.Types (CInt)
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
-type ItemTypeData = M.Map ItemType (SDL.Texture, (Int, Int))
-data RenderData = RenderData Vector2 Double WallMaterialData ItemTypeData
+type ItemTypeData = M.Map ItemType (SDL.Texture, SDL.Rectangle CInt)
+data RenderData = RenderData { size :: (Int, Int)
+                             , halfSize :: (Int, Int)
+                             , distToProjPlane :: Double
+                             , wallTextures :: WallMaterialData
+                             , itemTextures :: ItemTypeData}
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
@@ -40,27 +45,27 @@ renderWorld r d w = do
   renderItems r d w
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
-renderCeilingAndFloor r (RenderData s _ _ _) = do
-  let width = round (v2x s)
-  let halfHeight = round (v2y s / 2)
+renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
   SDL.rendererDrawColor r $= SDL.V4 1 84 88 255
-  SDL.fillRect r (Just (mkSDLRect 0 0 width halfHeight))
+  SDL.fillRect r (Just (mkSDLRect 0 0 cWidth cHalfH))
   SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
-  SDL.fillRect r (Just (mkSDLRect 0 halfHeight width halfHeight))
+  SDL.fillRect r (Just (mkSDLRect 0 cHalfH cWidth cHalfH))
+  where
+    cHalfH = fromIntegral halfH
+    cWidth = fromIntegral width
 
 renderWalls :: SDL.Renderer -> RenderData -> World -> IO ()
-renderWalls r d@(RenderData s _ _ _) w = forM_ hits (renderWallLine r d)
-  where hits = pixelWallHits w (round (v2x s))
+renderWalls r d@RenderData {size=(width, _)} w = forM_ hits (renderWallLine r d)
+  where hits = pixelWallHits w width
 
 renderWallLine :: SDL.Renderer -> RenderData -> (Int, WallHit, Double) -> IO ()
-renderWallLine r (RenderData size distToProjPlane wt _) (x, WallHit (Wall o _ m) hit _, distance) = do
+renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt} (x, WallHit (Wall o _ m) hit _, distance) = do
   SDL.copy r texture (Just sourceRect) (Just destRect)
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 alpha
   SDL.drawLine r from to
   where
-    ratio = distToProjPlane / distance
-    halfScreenHeight = v2y size / 2
-    projectedTop = round (halfScreenHeight - (ratio * (wallHeight - heroHeight)))
+    ratio = d / distance
+    projectedTop = round (fromIntegral halfHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
     xInt = fromIntegral x
     (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
@@ -116,13 +121,13 @@ renderItems :: SDL.Renderer -> RenderData -> World -> IO ()
 renderItems r d w = forM_ (worldItems w) (renderItem r d (worldHero w))
 
 renderItem :: SDL.Renderer -> RenderData -> Hero -> Item -> IO ()
-renderItem r d@(RenderData _ _ _ is) hero i@(Item t itemPos) =
+renderItem r d@RenderData {itemTextures=it} hero i@(Item t itemPos) =
   renderSprite r d texture hero itemPos (itemSize i)
   where
-    texture = fromJust (M.lookup t is)
+    texture = fromJust (M.lookup t it)
 
-renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, (Int, Int)) -> Hero -> Vector2 -> Vector2 -> IO ()
-renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, textureHeight)) hero oPos oSize =
+renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()
+renderSprite r RenderData {size=(width, _), halfSize=(_, halfHeight), distToProjPlane=d} (texture, sourceRect) hero oPos oSize =
   SDL.copy r texture (Just sourceRect) (Just destRect)
   --SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
   --SDL.fillRect r (Just destRect)
@@ -136,14 +141,11 @@ renderSprite r (RenderData size distToProjPlane _ _) (texture, (textureWidth, te
 
     distance = vectorDist heroPos oPos
     -- TODO: Not sure of correct way to handle when 0 distance
-    ratio = distToProjPlane / max 0.01 distance
-    halfScreenHeight = v2y size / 2
-    projectedTop = round (halfScreenHeight - (ratio * (itemHeight - heroHeight)))
+    ratio = d / max 0.01 distance
+    projectedTop = round (fromIntegral halfHeight - (ratio * (itemHeight - heroHeight)))
     projectedHeight = round (ratio * itemHeight)
     projectedWidth = ratio * v2x oSize
-    x = round ((v2x size * angleRatio) - (projectedWidth / 2))
-
-    sourceRect = mkSDLRect 0 0 (fromIntegral textureWidth) (fromIntegral textureHeight)
+    x = round ((fromIntegral width * angleRatio) - (projectedWidth / 2))
     destRect = mkSDLRect x projectedTop (round projectedWidth) projectedHeight
 
 perpendicularDistance :: Double -> WallHit -> Double

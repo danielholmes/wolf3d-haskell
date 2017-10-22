@@ -18,8 +18,7 @@ module Wolf3D.Geom (
   rectangleSides,
   rectangleOverlapsRectangle,
   rectMult,
-  rectAdd,
-  roundToTuple
+  rectAdd
 ) where
 
 import Data.Vector
@@ -85,9 +84,6 @@ rotateVector2 (Vector2 x y) r = Vector2 newX newY
     c = cos mr
     newX = (c * x) - (s * y)
     newY = (s * x) + (c * y)
-
-roundToTuple :: Vector2 -> (Int, Int)
-roundToTuple (Vector2 x y) = (round x, round y)
 
 angleToVector2 :: Double -> Vector2
 angleToVector2 a = Vector2 (sin a) (cos a)

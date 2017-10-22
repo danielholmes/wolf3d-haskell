@@ -15,7 +15,6 @@ import qualified SDL
 import qualified SDL.Font
 import Control.StopWatch
 import Data.StateVar (($=))
-import Data.Vector
 import Data.Text (pack)
 import System.Clock
 
@@ -26,16 +25,17 @@ setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer = D.setupRenderer
 
 render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
-render r drd@(DebugRenderData rd@(D.RenderData s _ _ _) _) sr = do
+render r drd@(DebugRenderData rd@(D.RenderData (width, height) _ _ _ _) _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
-  withViewport r (Just (mkOriginSDLRect miniMapSize)) $
-    renderMiniMap r 0.009 miniMapSize w
+  withViewport r (Just (mkSDLRect 0 0 (fromIntegral miniMapWidth) (fromIntegral miniMapHeight))) $
+    renderMiniMap r 0.009 (miniMapWidth, miniMapHeight) w
   drawDebugText r drd debugText
   SDL.present r
   where
     w = simRunWorld sr
-    miniMapSize = s *| 0.3
+    miniMapWidth = width `div` 3
+    miniMapHeight = height `div` 3
     runRender = D.renderWorld r rd w
 
 createDebugText :: SimRun -> Integer -> String
@@ -45,12 +45,13 @@ createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
     items = [("WT", show (worldTime world `div` 1000) ++ "s"), ("Render", show tookTime ++ "ms")]
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
-drawDebugText r (DebugRenderData (D.RenderData (Vector2 w h) _ _ _) font) text =
-  withViewport r (Just (mkSDLRect 0 0 (round w) (round h))) $ do
+drawDebugText r (DebugRenderData (D.RenderData (w, h) _ _ _ _) font) text =
+  withViewport r (Just (mkSDLRect 0 0 (fromIntegral w) (fromIntegral h))) $ do
     surface <- SDL.Font.solid font (SDL.V4 255 255 255 255) (pack text)
     (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
     texture <- SDL.createTextureFromSurface r surface
-    let rect = Just (mkSDLRect 0 (round h - textH) textW textH)
+    let rect = Just (mkSDLRect 0 (fromIntegral (h - fromIntegral textH)) textW textH)
     SDL.rendererDrawColor r $= SDL.V4 0 0 0 122
     SDL.fillRect r rect
     SDL.copy r texture Nothing rect
+    SDL.freeSurface surface

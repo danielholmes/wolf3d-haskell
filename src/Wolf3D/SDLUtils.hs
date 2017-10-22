@@ -12,7 +12,7 @@ import Wolf3D.Geom
 import Data.Vector
 
 
-mkSDLRect :: a -> a -> a -> a -> SDL.Rectangle a
+mkSDLRect :: CInt -> CInt -> CInt -> CInt -> SDL.Rectangle CInt
 mkSDLRect x y w h = SDL.Rectangle o z
   where
     o = SDL.P (SDL.V2 x y)
