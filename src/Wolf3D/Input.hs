@@ -1,7 +1,14 @@
-module Wolf3D.Input (processInput, InputState, inputQuit, inputHeroActionsState) where
+module Wolf3D.Input (
+  processInput,
+  InputState,
+  inputQuit,
+  inputHeroActionsState
+) where
 
 import Wolf3D.Sim
 import SDL
+import Debug.Trace
+
 
 data InputState = Quit | Running HeroActionsState
 
@@ -34,6 +41,6 @@ processKeyAction active p keySym = case keysymKeycode keySym of
   KeycodeDown   -> modifyHeroActionState p MoveBackward active
   KeycodeLeft   -> modifyHeroActionState p TurnLeft active
   KeycodeRight  -> modifyHeroActionState p TurnRight active
-  KeycodeLCtrl  -> modifyHeroActionState p Shoot active
+  KeycodeLCtrl  -> traceShow ("Shoot press " ++ show active) (modifyHeroActionState p Shoot active)
   _             -> p
 

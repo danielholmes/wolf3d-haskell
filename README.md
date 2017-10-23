@@ -50,11 +50,8 @@ stack test --pedantic --file-watch
 
 
 ## TODO
-   
- - merge packages to avoid circular refs (item, hero, w3dsim)
-   - complete simitem def - pass world as part of update
-   
- - render and shoot gun
+ 
+ - animate shooting pistol
  - static sprite targets that can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - physics engine (2d top down) - do some research on physics engines and functional esp.

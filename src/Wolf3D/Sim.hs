@@ -42,17 +42,18 @@ import SimEngine.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
+import Debug.Trace
 
 
-{-
+{-----------------------------------------------------------------------------------------------------------------------
  General
--}
+-----------------------------------------------------------------------------------------------------------------------}
 data Wolf3DSimItem = SIEnvItem EnvItem | SIHero Hero
   deriving (Show, Eq)
 
 instance SimItem Wolf3DSimItem where
-  simUpdate t (SIEnvItem i) = SIEnvItem (simUpdate t i)
-  simUpdate t (SIHero i) = SIHero (simUpdate t i)
+  simUpdate w t (SIEnvItem i) = SIEnvItem (simUpdate w t i)
+  simUpdate w t (SIHero i) = SIHero (simUpdate w t i)
 
 worldHero :: World Wolf3DSimItem -> Hero
 worldHero w = fromJust (fmap (\(SIHero h) -> h) (find (\i -> case i of (SIHero _) -> True; _ -> False) (worldItems w)))
@@ -80,28 +81,42 @@ worldEnvItemsTouching r w = filter (itemIsTouching r) (worldEnvItems w)
 itemIsTouching :: Rectangle -> EnvItem -> Bool
 itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
 
-{-
- Hero
--}
-data Weapon = Pistol WorldTime
+{-----------------------------------------------------------------------------------------------------------------------
+ Weapon
+-----------------------------------------------------------------------------------------------------------------------}
+type ShootingWeapon = Bool
+data Weapon = Pistol WorldTime ShootingWeapon
   deriving (Eq, Show)
 
---instance SimItem Weapon where
---  simUpdate m weapon = weapon
---    | canShoot world weapon = shoot world weapon
---    | otherwise             = weapon
+instance SimItem Weapon where
+  simUpdate w _ weapon
+    | isShooting weapon && canShoot w weapon = traceShow "Shoot" (shoot w weapon)
+    | otherwise                              = weapon
 
---canShoot :: World Wolf3DSimIem -> Weapon -> Bool
---canShoot (World _ _ t) w@(Pistol lastShotTime) = t - lastShotTime >= timeBetweenShots w
+canShoot :: World a -> Weapon -> Bool
+canShoot w weapon@(Pistol lastShotTime _) = worldTime w - lastShotTime >= timeBetweenShots weapon
 
--- TODO:
-shoot :: Weapon -> Weapon
-shoot = id
+shoot :: World a -> Weapon -> Weapon
+shoot w = updateWeaponToShot (worldTime w)
 
---timeBetweenShots :: Weapon -> Int
---timeBetweenShots (Pistol _) = 2000
+updateWeaponToShot :: WorldTime -> Weapon -> Weapon
+updateWeaponToShot t (Pistol _ s) = Pistol t s
 
+timeBetweenShots :: Weapon -> Int
+timeBetweenShots (Pistol _ _) = 2000
 
+isShooting :: Weapon -> Bool
+isShooting (Pistol _ s) = s
+
+startShooting :: Weapon -> Weapon
+startShooting (Pistol t _) = Pistol t True
+
+stopShooting :: Weapon -> Weapon
+stopShooting (Pistol t _) = Pistol t False
+
+{-----------------------------------------------------------------------------------------------------------------------
+ Hero
+-----------------------------------------------------------------------------------------------------------------------}
 data HeroActionsState = HeroActionsState
   { heroActionsStateMoveForward  :: Bool
   , heroActionsStateMoveBackward :: Bool
@@ -129,22 +144,27 @@ data Hero = Hero Position Rotation HeroActionsState Weapon
   deriving (Show, Eq)
 
 instance SimItem Hero where
-  simUpdate m h@(Hero _ _ has _) = tryAndShoot (rotateHero (moveHero h movement) rotation)
+  simUpdate w t h@(Hero _ _ has _) = updateWeapon w t (rotateHero (moveHero h movement) rotation)
     where
       rotationDirection = updateHeroRotation has
       direction = updateHeroMoveDirection has
       heroMoveMetresPerSec = 8
-      movement = direction * fromIntegral (m * heroMoveMetresPerSec)
+      movement = direction * fromIntegral (t * heroMoveMetresPerSec)
       heroRotatePerMilli = 0.002
-      rotation = rotationDirection * fromIntegral m * heroRotatePerMilli
+      rotation = rotationDirection * fromIntegral t * heroRotatePerMilli
 
-tryAndShoot :: Hero -> Hero
-tryAndShoot h@(Hero p r has w)
-  | heroActionsStateShoot has = Hero p r has (shoot w)
-  | otherwise                 = h
+updateWeapon :: World a -> Int -> Hero -> Hero
+updateWeapon w t (Hero p r has weapon) = Hero p r has (simUpdate w t (updateWeaponShooting has weapon))
+
+updateWeaponShooting :: HeroActionsState -> Weapon -> Weapon
+updateWeaponShooting has w
+  | heroActionsStateShoot has && not current   = startShooting w
+  | not (heroActionsStateShoot has) && current = stopShooting w
+  | otherwise                                  = w
+  where current = isShooting w
 
 createHero :: Vector2 -> Hero
-createHero pos = Hero pos 0 staticHeroActionsState (Pistol 0)
+createHero pos = Hero pos 0 staticHeroActionsState (Pistol 0 False)
 
 createOriginHero :: Hero
 createOriginHero = createHero (Vector2 0 0)
@@ -198,9 +218,9 @@ updateHeroRotation has = leftRotation + rightRotation
 rotateHero :: Hero -> Double -> Hero
 rotateHero (Hero p r a w) d = Hero p (r + d) a w
 
-{- ---------------------
+{-----------------------------------------------------------------------------------------------------------------------
  Environment
- -}
+-----------------------------------------------------------------------------------------------------------------------}
 data EnvItemType = Drum | Flag | Light
  deriving (Show, Eq, Ord)
 
@@ -208,7 +228,7 @@ data EnvItem = EnvItem EnvItemType Vector2
  deriving (Show, Eq)
 
 instance SimItem EnvItem where
- simUpdate _ = id
+ simUpdate _ _ = id
 
 itemSize :: EnvItem -> Vector2
 itemSize _ = Vector2 3000 3000

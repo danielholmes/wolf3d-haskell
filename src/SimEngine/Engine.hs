@@ -26,8 +26,8 @@ import Data.List
 
 
 type StepMillis = Int
-class SimItem a where
-  simUpdate :: StepMillis -> a -> a
+class SimItem i where
+  simUpdate :: World a -> StepMillis -> i -> i
 
 -- TODO: See if way of moving wall materials outside of engine
 data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
@@ -53,7 +53,7 @@ createWorld walls items = World walls items 0
 tickWorld :: Int -> World i -> World i
 tickWorld timeStep world@(World _ is _) = advanceWorldTime updatedWorld timeStep
   where
-    updatedItems = map (simUpdate timeStep) is
+    updatedItems = map (simUpdate world timeStep) is
     updatedWorld = updateWorldItems world updatedItems
 
 tickWorldNTimes :: World i -> Int -> Int -> Maybe (World i)
