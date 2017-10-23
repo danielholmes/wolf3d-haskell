@@ -6,12 +6,10 @@ module Wolf3D.Display (
   RenderData (RenderData)
 ) where
 
-import Wolf3D.Geom
-import Wolf3D.Hero
-import Wolf3D.Wolf3DSim
+import SimEngine.Geom
 import Wolf3D.Sim
+import SimEngine.Engine
 import Wolf3D.Runner
-import Wolf3D.Environment
 import Wolf3D.SDLUtils
 import qualified SDL
 import Data.StateVar (($=))

@@ -4,11 +4,9 @@ import qualified SDL
 import qualified SDL.Vect
 import Foreign.C.Types (CInt)
 import Data.Vector
-import Wolf3D.Hero
+import SimEngine.Engine
+import SimEngine.Geom
 import Wolf3D.Sim
-import Wolf3D.Wolf3DSim
-import Wolf3D.Environment
-import Wolf3D.Geom
 import Wolf3D.SDLUtils
 import Data.Foldable (forM_)
 import Data.StateVar (($=))

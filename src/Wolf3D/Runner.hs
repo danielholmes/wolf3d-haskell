@@ -12,11 +12,10 @@ module Wolf3D.Runner (
 import Control.Monad.Loops (iterateUntilM)
 import Data.Time.Clock
 import Data.Maybe
-import Wolf3D.Sim
+import SimEngine.Engine
 import Wolf3D.Utils
 import Wolf3D.Input
-import Wolf3D.Hero
-import Wolf3D.Wolf3DSim
+import Wolf3D.Sim
 import Data.Foldable
 
 

@@ -1,4 +1,4 @@
-module Wolf3D.Geom (
+module SimEngine.Geom (
   Ray,
   Rectangle (Rectangle),
   Line,

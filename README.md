@@ -53,6 +53,7 @@ stack test --pedantic --file-watch
    
  - merge packages to avoid circular refs (item, hero, w3dsim)
    - complete simitem def - pass world as part of update
+   
  - render and shoot gun
  - static sprite targets that can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
@@ -67,6 +68,9 @@ stack test --pedantic --file-watch
    - rendering solid colur instead of textures improves from ~30ms - ~5ms
    - do some research on spritesheets, is it faster?
      - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
+ - Split Wolf3D.Sim into separate files, resolving circular dependencies
+   - https://stackoverflow.com/questions/8650297/haskell-recursive-circular-module-definitions
+   - https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/separate-compilation.html#mutual-recursion 
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls

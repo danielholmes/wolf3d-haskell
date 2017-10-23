@@ -4,10 +4,8 @@ module Wolf3D.Debug.Dummy (
   dummyWorldSingleWall
 ) where
 
+import SimEngine.Engine
 import Wolf3D.Sim
-import Wolf3D.Wolf3DSim
-import Wolf3D.Hero
-import Wolf3D.Environment
 import Data.Vector
 
 

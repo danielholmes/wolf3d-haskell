@@ -1,15 +1,15 @@
-module Wolf3D.GeomSpec (geomSpec) where
+module SimEngine.GeomSpec (geomSpec) where
 
 import Test.Hspec
 import Data.Vector
 import Data.Maybe
-import Wolf3D.Geom
+import SimEngine.Geom
 import Wolf3D.SpecHelp
 
 
 geomSpec :: SpecWith ()
 geomSpec =
-  describe "Wolf3D.Geom" $ do
+  describe "SimEngine.Geom" $ do
     describe "moveRayAlongDirection" $ do
       it "should return correct for straight ray" $
         let

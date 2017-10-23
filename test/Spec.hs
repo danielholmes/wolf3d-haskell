@@ -1,12 +1,12 @@
 import Test.Hspec
-import Wolf3D.HeroSpec
-import Wolf3D.RunnerSpec
-import Wolf3D.GeomSpec
 import Wolf3D.SimSpec
+import Wolf3D.RunnerSpec
+import SimEngine.GeomSpec
+import SimEngine.EngineSpec
 
 main :: IO ()
 main = hspec $ do
   heroSpec
   runnerSpec
   geomSpec
-  simSpec
+  engineSpec

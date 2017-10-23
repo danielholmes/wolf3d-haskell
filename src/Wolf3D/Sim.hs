@@ -1,109 +1,223 @@
-{-# LANGUAGE GADTs #-}
 module Wolf3D.Sim (
-  SimItem (simUpdate),
-  World,
-  WorldTime,
-  Wall (Wall),
-  WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
-  WallHit (WallHit),
-  createWorld,
-  worldWalls,
-  worldItems,
-  updateWorldItems,
-  advanceWorldTime,
-  worldWallsTouching,
-  wallToLine,
-  castRayToClosestWall,
-  wallHeight,
-  worldTime,
-  tickWorld,
-  tickWorldNTimes
+Wolf3DSimItem (SIEnvItem, SIHero),
+  worldHero,
+  worldHeroWeapon,
+  worldEnvItems,
+  worldEnvItemsTouching,
+  updateWorldHeroActionsState,
+
+  Hero,
+  Weapon (Pistol),
+  createHero,
+  createOriginHero,
+  heroPosition,
+  heroRotation,
+  heroWeapon,
+  heroLookRay,
+  moveHero,
+  rotateHero,
+  heroHeight,
+  HeroActionsState,
+  staticHeroActionsState,
+  modifyHeroActionState,
+  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight, Shoot),
+  heroActionsStateMoveForward,
+  heroActionsStateMoveBackward,
+  heroActionsStateTurnLeft,
+  heroActionsStateTurnRight,
+  updateHeroActionsState,
+  heroActionsState,
+  heroFieldOfViewSize,
+  heroLookRayAtFieldOfViewRatio,
+
+  EnvItemType (Drum, Flag, Light),
+  EnvItem (EnvItem),
+  itemRectangle,
+  itemHeight,
+  itemSize
 ) where
 
-import Wolf3D.Geom
+import SimEngine.Geom
+import SimEngine.Engine
 import Data.Vector
-import Data.List
+import Data.Maybe (fromJust)
+import Data.List (find)
 
 
-type StepMillis = Int
-class SimItem a where
-  simUpdate :: StepMillis -> a -> a
-
-data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
-  deriving (Show, Eq, Ord)
-
-type WallPosition = Vector2
-type WallSize = Vector2
-data Wall = Wall WallPosition WallSize WallMaterial
+{-
+ General
+-}
+data Wolf3DSimItem = SIEnvItem EnvItem | SIHero Hero
   deriving (Show, Eq)
 
-type DistanceToWall = Double
-type HitPosition = Vector2
-data WallHit = WallHit Wall HitPosition DistanceToWall
-  deriving (Show, Eq)
+instance SimItem Wolf3DSimItem where
+  simUpdate t (SIEnvItem i) = SIEnvItem (simUpdate t i)
+  simUpdate t (SIHero i) = SIHero (simUpdate t i)
 
-type WorldTime = Int
-data World i where
-  World :: (SimItem i) => [Wall] -> [i] -> WorldTime -> World i
+worldHero :: World Wolf3DSimItem -> Hero
+worldHero w = fromJust (fmap (\(SIHero h) -> h) (find (\i -> case i of (SIHero _) -> True; _ -> False) (worldItems w)))
 
-createWorld :: (SimItem i) => [Wall] -> [i] -> World i
-createWorld walls items = World walls items 0
+worldHeroWeapon :: World Wolf3DSimItem -> Weapon
+worldHeroWeapon = heroWeapon . worldHero
 
-tickWorld :: Int -> World i -> World i
-tickWorld timeStep world@(World _ is _) = advanceWorldTime updatedWorld timeStep
+worldEnvItems :: World Wolf3DSimItem -> [EnvItem]
+worldEnvItems w = map (\(SIEnvItem e) -> e) (filter (\i -> case i of (SIEnvItem _) -> True; _ -> False) (worldItems w))
+
+updateWorldHeroActionsState :: World Wolf3DSimItem -> HeroActionsState -> World Wolf3DSimItem
+updateWorldHeroActionsState w a = updateWorldHero w (\h -> updateHeroActionsState h a)
+
+updateWorldHero :: World Wolf3DSimItem -> (Hero -> Hero) -> World Wolf3DSimItem
+updateWorldHero w op = updateWorldItems w newItems
   where
-    updatedItems = map (simUpdate timeStep) is
-    updatedWorld = updateWorldItems world updatedItems
+    newItems = foldr foldStep [] (worldItems w)
+    foldStep :: Wolf3DSimItem -> [Wolf3DSimItem] -> [Wolf3DSimItem]
+    foldStep (SIHero h) accu = SIHero (op h) : accu
+    foldStep i accu = i : accu
 
-tickWorldNTimes :: World i -> Int -> Int -> Maybe (World i)
-tickWorldNTimes w f n
-  | n == 0    = Nothing
-  | otherwise = Just (foldr foldStep w [1..n])
+worldEnvItemsTouching :: Rectangle -> World Wolf3DSimItem -> [EnvItem]
+worldEnvItemsTouching r w = filter (itemIsTouching r) (worldEnvItems w)
+
+itemIsTouching :: Rectangle -> EnvItem -> Bool
+itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
+
+{-
+ Hero
+-}
+data Weapon = Pistol WorldTime
+  deriving (Eq, Show)
+
+--instance SimItem Weapon where
+--  simUpdate m weapon = weapon
+--    | canShoot world weapon = shoot world weapon
+--    | otherwise             = weapon
+
+--canShoot :: World Wolf3DSimIem -> Weapon -> Bool
+--canShoot (World _ _ t) w@(Pistol lastShotTime) = t - lastShotTime >= timeBetweenShots w
+
+-- TODO:
+shoot :: Weapon -> Weapon
+shoot = id
+
+--timeBetweenShots :: Weapon -> Int
+--timeBetweenShots (Pistol _) = 2000
+
+
+data HeroActionsState = HeroActionsState
+  { heroActionsStateMoveForward  :: Bool
+  , heroActionsStateMoveBackward :: Bool
+  , heroActionsStateTurnLeft     :: Bool
+  , heroActionsStateTurnRight    :: Bool
+  , heroActionsStateShoot        :: Bool
+  }
+  deriving (Show, Eq)
+
+data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | Shoot
+
+staticHeroActionsState :: HeroActionsState
+staticHeroActionsState = HeroActionsState False False False False False
+
+modifyHeroActionState :: HeroActionsState -> HeroAction -> Bool -> HeroActionsState
+modifyHeroActionState (HeroActionsState _ d l r s) MoveForward a = HeroActionsState a d l r s
+modifyHeroActionState (HeroActionsState u _ l r s) MoveBackward a = HeroActionsState u a l r s
+modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState u d a r s
+modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
+modifyHeroActionState (HeroActionsState u d l r _) Shoot a = HeroActionsState u d l r a
+
+type Position = Vector2
+type Rotation = Double
+data Hero = Hero Position Rotation HeroActionsState Weapon
+  deriving (Show, Eq)
+
+instance SimItem Hero where
+  simUpdate m h@(Hero _ _ has _) = tryAndShoot (rotateHero (moveHero h movement) rotation)
     where
-      foldStep :: Int -> World i -> World i
-      foldStep _ = tickWorld f
+      rotationDirection = updateHeroRotation has
+      direction = updateHeroMoveDirection has
+      heroMoveMetresPerSec = 8
+      movement = direction * fromIntegral (m * heroMoveMetresPerSec)
+      heroRotatePerMilli = 0.002
+      rotation = rotationDirection * fromIntegral m * heroRotatePerMilli
 
-updateWorldItems :: World i -> [i] -> World i
-updateWorldItems (World w _ t) i = World w i t
+tryAndShoot :: Hero -> Hero
+tryAndShoot h@(Hero p r has w)
+  | heroActionsStateShoot has = Hero p r has (shoot w)
+  | otherwise                 = h
 
-worldWalls :: World i -> [Wall]
-worldWalls (World walls _ _) = walls
+createHero :: Vector2 -> Hero
+createHero pos = Hero pos 0 staticHeroActionsState (Pistol 0)
 
-worldItems :: (SimItem i) => World i -> [i]
-worldItems (World _ is _) = is
+createOriginHero :: Hero
+createOriginHero = createHero (Vector2 0 0)
 
-worldTime :: World i -> Int
-worldTime (World _ _ t) = t
+heroPosition :: Hero -> Vector2
+heroPosition (Hero p _ _ _) = p
 
-worldWallsTouching :: World i -> Rectangle -> [Wall]
-worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
+heroHeight :: Double
+heroHeight = 1500
 
-wallIsTouching :: Rectangle -> Wall -> Bool
-wallIsTouching r w = rectangleTouchesLine r (wallToLine w)
+heroRotation :: Hero -> Double
+heroRotation (Hero _ r _ _) = r
 
-wallToLine :: Wall -> Line
-wallToLine (Wall start change _) = (start, change)
+heroActionsState :: Hero -> HeroActionsState
+heroActionsState (Hero _ _ a _) = a
 
-wallHeight :: Double
-wallHeight = 3000
+heroWeapon :: Hero -> Weapon
+heroWeapon (Hero _ _ _ w) = w
 
-advanceWorldTime :: World i -> Int -> World i
-advanceWorldTime (World ws is time) step = World ws is (time + step)
+heroFieldOfViewSize :: Hero -> Double
+heroFieldOfViewSize _ = pi / 3
 
-castRayToClosestWall :: World i -> Ray -> Maybe WallHit
-castRayToClosestWall w ray
-  | null allHits = Nothing
-  | otherwise    = Just (minimumBy compareHits allHits)
+heroLookRayAtFieldOfViewRatio :: Hero -> Double -> Ray
+heroLookRayAtFieldOfViewRatio hero ratio = rotateRay (heroLookRay hero) rayRotation
   where
-    allHits = castRayToAllWalls w ray
-    compareHits :: WallHit -> WallHit -> Ordering
-    compareHits (WallHit _ _ d1) (WallHit _ _ d2) = d1 `compare` d2
+    fieldOfViewSize = heroFieldOfViewSize hero
+    rayRotation = fieldOfViewSize * (ratio - 0.5)
 
-castRayToAllWalls :: World i -> Ray -> [WallHit]
-castRayToAllWalls world ray = foldr foldStep [] (worldWalls world)
+heroLookRay :: Hero -> Ray
+heroLookRay (Hero pos rot _ _) = createRay pos (Vector2 (sin rot) (cos rot))
+
+moveHero :: Hero -> Double -> Hero
+moveHero (Hero p r a w) m = Hero (p + (m |* angleToVector2 r)) r a w
+
+updateHeroActionsState :: Hero -> HeroActionsState -> Hero
+updateHeroActionsState (Hero p r _ w) a = Hero p r a w
+
+updateHeroMoveDirection :: HeroActionsState -> Double
+updateHeroMoveDirection s = forwardMovement + backwardMovement
   where
-    rStart = rayOrigin ray
-    foldStep :: Wall -> [WallHit] -> [WallHit]
-    foldStep wall accu = case rayLineIntersection ray (wallToLine wall) of
-      Nothing -> accu
-      Just pos -> WallHit wall pos (vectorDist rStart pos) : accu
+    forwardMovement = if heroActionsStateMoveForward s then 1 else 0
+    backwardMovement = if heroActionsStateMoveBackward s then (-1) else 0
+
+updateHeroRotation :: HeroActionsState -> Double
+updateHeroRotation has = leftRotation + rightRotation
+  where
+    leftRotation = if heroActionsStateTurnLeft has then (-1) else 0
+    rightRotation = if heroActionsStateTurnRight has then 1 else 0
+
+-- TODO: Bound to (-pi) - pi
+rotateHero :: Hero -> Double -> Hero
+rotateHero (Hero p r a w) d = Hero p (r + d) a w
+
+{- ---------------------
+ Environment
+ -}
+data EnvItemType = Drum | Flag | Light
+ deriving (Show, Eq, Ord)
+
+data EnvItem = EnvItem EnvItemType Vector2
+ deriving (Show, Eq)
+
+instance SimItem EnvItem where
+ simUpdate _ = id
+
+itemSize :: EnvItem -> Vector2
+itemSize _ = Vector2 3000 3000
+
+itemHeight :: Double
+itemHeight = 3000
+
+halfItemSize :: EnvItem -> Vector2
+halfItemSize i = itemSize i *| 0.5
+
+itemRectangle :: EnvItem -> Rectangle
+itemRectangle i@(EnvItem _ o) = Rectangle (o - halfItemSize i) (itemSize i)

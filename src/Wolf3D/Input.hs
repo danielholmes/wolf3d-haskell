@@ -1,6 +1,6 @@
 module Wolf3D.Input (processInput, InputState, inputQuit, inputHeroActionsState) where
 
-import Wolf3D.Hero
+import Wolf3D.Sim
 import SDL
 
 data InputState = Quit | Running HeroActionsState

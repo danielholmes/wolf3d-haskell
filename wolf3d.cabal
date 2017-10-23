@@ -15,11 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Wolf3D.Geom
+  exposed-modules:     SimEngine.Geom
+                     , SimEngine.Engine
                      , Wolf3D.Sim
-                     , Wolf3D.Hero
                      , Wolf3D.Runner
-                     , Wolf3D.Environment
                      , Wolf3D.Display
                      , Wolf3D.Display.Utils
                      , Wolf3D.Display.MiniMap
@@ -30,7 +29,6 @@ library
                      , Wolf3D.Debug.Data
                      , Wolf3D.Data
                      , Wolf3D.Utils
-                     , Wolf3D.Wolf3DSim
   other-modules:       Wolf3D.Input
   build-depends:       base >= 4.7 && < 5
                      , sdl2 >= 2.3.0 && < 3
@@ -75,10 +73,10 @@ test-suite wolf3d-test
                      , time >= 1.6.0.1 && < 2
                      , AC-Vector >= 1.2.2 && < 2
   other-modules:       Wolf3D.SpecHelp
-                     , Wolf3D.GeomSpec
-                     , Wolf3D.HeroSpec
-                     , Wolf3D.RunnerSpec
+                     , SimEngine.GeomSpec
                      , Wolf3D.SimSpec
+                     , Wolf3D.RunnerSpec
+                     , SimEngine.EngineSpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

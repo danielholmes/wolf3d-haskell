@@ -8,7 +8,7 @@ module Wolf3D.SDLUtils (
 import qualified SDL
 import qualified SDL.Vect
 import Foreign.C.Types (CInt)
-import Wolf3D.Geom
+import SimEngine.Geom
 import Data.Vector
 
 

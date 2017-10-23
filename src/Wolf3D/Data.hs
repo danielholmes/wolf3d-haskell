@@ -3,9 +3,9 @@ module Wolf3D.Data (loadRenderData) where
 import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
+import SimEngine.Engine
 import Wolf3D.Display
 import Wolf3D.Sim
-import Wolf3D.Environment
 import Wolf3D.SDLUtils
 import Data.Map (Map, fromList)
 import Foreign.C.Types (CInt)

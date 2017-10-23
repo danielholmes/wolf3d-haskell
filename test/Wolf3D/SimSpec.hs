@@ -1,46 +1,53 @@
-module Wolf3D.SimSpec (simSpec) where
+module Wolf3D.SimSpec (heroSpec) where
 
 import Test.Hspec
-import Wolf3D.Geom
-import Wolf3D.Sim
-import Wolf3D.Wolf3DSim
 import Data.Vector
-import Data.Maybe
+import SimEngine.Geom
+import Wolf3D.Sim
+import Wolf3D.SpecHelp
 
 
-simSpec :: SpecWith ()
-simSpec =
-  describe "Wolf3D.World" $ do
-    describe "worldWallsTouching" $ do
-      it "should return no walls if world has no walls" $
-        let world = createWorld [] [] :: World Wolf3DSimItem
-        in worldWallsTouching world (Rectangle (Vector2 0 0) (Vector2 10 10)) `shouldBe` []
+vec2Unit45 :: Double
+vec2Unit45 = sqrt 0.5
 
-      it "should return all walls if all within" $
+heroSpec :: SpecWith ()
+heroSpec =
+  describe "Wolf3D.Hero" $ do
+    describe "heroLookRay" $ do
+      it "should return correct length 1 for straight" $
         let
-          wall = Wall (Vector2 0 0) (Vector2 10 0) Red
-          world = createWorld [wall] [] :: World Wolf3DSimItem
-        in worldWallsTouching world (Rectangle (Vector2 0 0) (Vector2 10 10)) `shouldBe` [wall]
-
-    describe "castRayToClosestWall" $ do
-      it "should return empty if no walls" $
-        let
-          world = createWorld [] [] :: World Wolf3DSimItem
-          result = castRayToClosestWall world (createRay (Vector2 0 (-30)) (Vector2 0 30))
+          hero = createHero (Vector2 0 0)
         in
-          isNothing result `shouldBe` True
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 1))
 
-      it "should return empty if miss walls" $
+      it "should return correct for looking backward" $
         let
-          world = createWorld [Wall (Vector2 (-100) (-100)) (Vector2 200 0) Red] [] :: World Wolf3DSimItem
-          result = castRayToClosestWall world (createRay (Vector2 0 (-30)) (Vector2 0 30))
+          hero = rotateHero (createHero (Vector2 0 0)) pi
         in
-          isNothing result `shouldBe` True
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 (-1)))
 
-      it "should return correct wall and position if hit" $
+      it "should return correct for looking 45 right" $
         let
-          wall = Wall (Vector2 (-100) 100) (Vector2 200 0) Red
-          world = createWorld [wall] [] :: World Wolf3DSimItem
-          result = castRayToClosestWall world (createRay (Vector2 0 (-30)) (Vector2 0 30))
+          hero = rotateHero (createHero (Vector2 0 0)) (pi / 4)
         in
-          result `shouldBe` Just (WallHit wall (Vector2 0 100) 130)
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 vec2Unit45 vec2Unit45))
+
+      it "should return correct for looking 45 left" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (-pi / 4)
+        in
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 (-vec2Unit45) vec2Unit45))
+
+    describe "moveHero" $ do
+      it "should move correctly if facing forward" $
+        let
+          hero = createHero (Vector2 0 0)
+        in
+          heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
+
+      it "should move correctly if facing backward" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) pi
+        in
+          heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
+
