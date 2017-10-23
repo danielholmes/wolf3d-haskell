@@ -6,7 +6,7 @@ import SimEngine.EngineSpec
 
 main :: IO ()
 main = hspec $ do
-  heroSpec
+  simSpec
   runnerSpec
   geomSpec
   engineSpec

@@ -3,7 +3,7 @@ module Main where
 import Wolf3D.Display
 import Wolf3D.UI
 import Wolf3D.Runner
-import Wolf3D.Data
+import Wolf3D.Loader
 import Wolf3D.Debug.Dummy
 
 main :: IO ()

@@ -1,4 +1,4 @@
-module Wolf3D.SimSpec (heroSpec) where
+module Wolf3D.SimSpec (simSpec) where
 
 import Test.Hspec
 import Data.Vector
@@ -10,9 +10,9 @@ import Wolf3D.SpecHelp
 vec2Unit45 :: Double
 vec2Unit45 = sqrt 0.5
 
-heroSpec :: SpecWith ()
-heroSpec =
-  describe "Wolf3D.Hero" $ do
+simSpec :: SpecWith ()
+simSpec =
+  describe "Wolf3D.Sim" $ do
     describe "heroLookRay" $ do
       it "should return correct length 1 for straight" $
         let

@@ -11,11 +11,13 @@ import Wolf3D.Sim
 import SimEngine.Engine
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
+import Wolf3D.Animation
 import qualified SDL
 import Data.StateVar (($=))
 import Data.Vector
 import Data.Foldable
 import Data.Maybe
+import Control.Monad (mfilter)
 --import Data.Word (Word8)
 import Data.Fixed
 import qualified Data.Map as M
@@ -23,13 +25,13 @@ import Foreign.C.Types (CInt)
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
-type ItemTypeData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
-type WeaponData = M.Map String (SDL.Texture, SDL.Rectangle CInt)
+type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
+type WeaponData = M.Map String Animation
 data RenderData = RenderData { size :: (Int, Int)
                              , halfSize :: (Int, Int)
                              , distToProjPlane :: Double
                              , wallTextures :: WallMaterialData
-                             , itemTextures :: ItemTypeData
+                             , itemTextures :: EnvItemData
                              , weaponTextures :: WeaponData}
 
 setupRenderer :: SDL.Renderer -> IO ()
@@ -45,7 +47,7 @@ renderWorld r d w = do
   renderCeilingAndFloor r d
   renderWalls r d w
   renderItems r d w
-  renderWeapon r d (worldHeroWeapon w)
+  renderWeapon r d (worldTime w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
 renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
@@ -163,10 +165,15 @@ renderSprite r RenderData {size=(width, _), halfSize=(_, halfHeight), distToProj
 perpendicularDistance :: Double -> WallHit -> Double
 perpendicularDistance rayRotation (WallHit _ _ d) = d * cos rayRotation
 
-renderWeapon :: SDL.Renderer -> RenderData -> Weapon -> IO ()
-renderWeapon r RenderData {size=(width, height), weaponTextures=wt} _ =
+renderWeapon :: SDL.Renderer -> RenderData -> WorldTime -> Weapon -> IO ()
+renderWeapon r RenderData {size=(width, height), weaponTextures=wt} t w =
   SDL.copy r texture (Just sourceRect) (Just destRect)
   where
-    (texture, sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH))) = fromJust (M.lookup "Pistol" wt)
+    totalAnimationTime = 400
+    sinceUsed = fmap (t -) (lastTimeWeaponUsed w)
+    animationTime = mfilter (< totalAnimationTime) sinceUsed
+    progress = maybe 0 ((/ fromIntegral totalAnimationTime) . fromIntegral) animationTime
+    animation = fromJust (M.lookup "Pistol" wt)
+    texture = animationTexture animation
+    sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getAnimationFrame animation progress
     destRect = mkSDLRect (fromIntegral (width - fromIntegral tW) `div` 2) (fromIntegral (height - fromIntegral tH)) tW tH
-

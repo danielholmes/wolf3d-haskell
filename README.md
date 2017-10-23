@@ -52,19 +52,38 @@ stack test --pedantic --file-watch
 ## TODO
  
  - animate shooting pistol
+   - rename shoot to useWeapon
+ - id system for items
+   - SimItem implements Enum?
+   - change naming to SimEntity
  - static sprite targets that can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
- - physics engine (2d top down) - do some research on physics engines and functional esp.
-   - wolfs is simple
-     1. Move x and y, if okay then return
-     2. move x only, if okay return
-     3. move y only, if oka return
-     4. return
+ - physics engine (2d top down).  wolfs is simple
+    1. Move x and y, if okay then return
+    2. move x only, if okay return
+    3. move y only, if oka return
+    4. return
+ - Split SDL dependency into own module
+   - split Display into multiple modules
+   - merge UI into display? - simplifies some things like disposing and setting up renderer
  
  - optimise rendering
+   - SoftwareRenderer provides much better performance (in createRenderer)
+   - try using SDL.opengl ?
    - rendering solid colur instead of textures improves from ~30ms - ~5ms
    - do some research on spritesheets, is it faster?
      - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
+   - Can cache wall slices? i.e. abstract away Texture source, then cache
+     - 6 materials x 128 cols x 128 possible sizes
+       - Maybe a lazy list, so only generates as needed, then cached
+       - check RAM vs render time tradeoff
+ 
+ - Hold multiple weapons and change between them with key presses
+ - shoot Uzi
+ - animate Uzi
+ - difference for pistol and uzi - auto vs semi auto
+ - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
+   - Do general deeper research into cabal project and possibilities - multiple libraries?
  - Split Wolf3D.Sim into separate files, resolving circular dependencies
    - https://stackoverflow.com/questions/8650297/haskell-recursive-circular-module-definitions
    - https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/separate-compilation.html#mutual-recursion 
@@ -81,11 +100,14 @@ stack test --pedantic --file-watch
  - mouse look up/down (move projection plane up/down)
  - SDL dispose textures at the end
  - Example world that shows off diagonal walls, etc
+ - Console menu system at start
 
 
 ## Nice to haves
 
- - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
+ - better index for weapon animation data
+ - Bring sim runner into engine
+   - provide own implementation of extract and apply Input
  - Optimise render - a lot of calculations can be done once
  - Speed up travis. See 
    - http://rundef.com/fast-travis-ci-docker-build 

@@ -3,7 +3,7 @@ module Wolf3D.Debug.Data (loadRenderData) where
 import qualified SDL
 import qualified SDL.Font
 import Wolf3D.Debug.Display
-import qualified Wolf3D.Data as D
+import qualified Wolf3D.Loader as D
 
 loadRenderData :: SDL.Renderer -> (Int, Int) -> IO DebugRenderData
 loadRenderData r s = do

@@ -1,5 +1,5 @@
 name:                wolf3d
-version:             0.0.0.3
+version:             0.0.0.4
 -- synopsis:
 -- description:
 homepage:            https://github.com/danielholmes/wolf3d#readme
@@ -27,8 +27,9 @@ library
                      , Wolf3D.Debug.Dummy
                      , Wolf3D.Debug.Display
                      , Wolf3D.Debug.Data
-                     , Wolf3D.Data
+                     , Wolf3D.Loader
                      , Wolf3D.Utils
+                     , Wolf3D.Animation
   other-modules:       Wolf3D.Input
   build-depends:       base >= 4.7 && < 5
                      , sdl2 >= 2.3.0 && < 3

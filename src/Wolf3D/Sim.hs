@@ -6,8 +6,10 @@ Wolf3DSimItem (SIEnvItem, SIHero),
   worldEnvItemsTouching,
   updateWorldHeroActionsState,
 
-  Hero,
   Weapon (Pistol),
+  lastTimeWeaponUsed,
+
+  Hero,
   createHero,
   createOriginHero,
   heroPosition,
@@ -20,7 +22,7 @@ Wolf3DSimItem (SIEnvItem, SIHero),
   HeroActionsState,
   staticHeroActionsState,
   modifyHeroActionState,
-  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight, Shoot),
+  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight, UseWeapon),
   heroActionsStateMoveForward,
   heroActionsStateMoveBackward,
   heroActionsStateTurnLeft,
@@ -42,7 +44,6 @@ import SimEngine.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
-import Debug.Trace
 
 
 {-----------------------------------------------------------------------------------------------------------------------
@@ -65,7 +66,7 @@ worldEnvItems :: World Wolf3DSimItem -> [EnvItem]
 worldEnvItems w = map (\(SIEnvItem e) -> e) (filter (\i -> case i of (SIEnvItem _) -> True; _ -> False) (worldItems w))
 
 updateWorldHeroActionsState :: World Wolf3DSimItem -> HeroActionsState -> World Wolf3DSimItem
-updateWorldHeroActionsState w a = updateWorldHero w (\h -> updateHeroActionsState h a)
+updateWorldHeroActionsState w a = updateWorldHero w (updateHeroActionsState a)
 
 updateWorldHero :: World Wolf3DSimItem -> (Hero -> Hero) -> World Wolf3DSimItem
 updateWorldHero w op = updateWorldItems w newItems
@@ -84,35 +85,35 @@ itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
 {-----------------------------------------------------------------------------------------------------------------------
  Weapon
 -----------------------------------------------------------------------------------------------------------------------}
-type ShootingWeapon = Bool
-data Weapon = Pistol WorldTime ShootingWeapon
+type UsingWeapon = Bool
+data Weapon = Pistol (Maybe WorldTime) UsingWeapon
   deriving (Eq, Show)
 
 instance SimItem Weapon where
-  simUpdate w _ weapon
-    | isShooting weapon && canShoot w weapon = traceShow "Shoot" (shoot w weapon)
-    | otherwise                              = weapon
+  simUpdate w t weapon
+    | isUsingWeapon weapon && canUseWeapon (worldTime w) weapon = useWeapon w t weapon
+    | otherwise                                                 = weapon
 
-canShoot :: World a -> Weapon -> Bool
-canShoot w weapon@(Pistol lastShotTime _) = worldTime w - lastShotTime >= timeBetweenShots weapon
+canUseWeapon :: WorldTime -> Weapon -> Bool
+canUseWeapon t w = all (< t - timeBetweenUses w) (lastTimeWeaponUsed w)
 
-shoot :: World a -> Weapon -> Weapon
-shoot w = updateWeaponToShot (worldTime w)
+useWeapon :: World a -> Int -> Weapon -> Weapon
+useWeapon w t (Pistol _ s) = Pistol (Just (worldTime w + t)) s
 
-updateWeaponToShot :: WorldTime -> Weapon -> Weapon
-updateWeaponToShot t (Pistol _ s) = Pistol t s
+lastTimeWeaponUsed :: Weapon -> Maybe WorldTime
+lastTimeWeaponUsed (Pistol t _) = t
 
-timeBetweenShots :: Weapon -> Int
-timeBetweenShots (Pistol _ _) = 2000
+timeBetweenUses :: Weapon -> Int
+timeBetweenUses (Pistol _ _) = 600
 
-isShooting :: Weapon -> Bool
-isShooting (Pistol _ s) = s
+isUsingWeapon :: Weapon -> Bool
+isUsingWeapon (Pistol _ s) = s
 
-startShooting :: Weapon -> Weapon
-startShooting (Pistol t _) = Pistol t True
+beingUsed :: Weapon -> Weapon
+beingUsed (Pistol t _) = Pistol t True
 
-stopShooting :: Weapon -> Weapon
-stopShooting (Pistol t _) = Pistol t False
+notBeingUsed :: Weapon -> Weapon
+notBeingUsed (Pistol t _) = Pistol t False
 
 {-----------------------------------------------------------------------------------------------------------------------
  Hero
@@ -122,11 +123,11 @@ data HeroActionsState = HeroActionsState
   , heroActionsStateMoveBackward :: Bool
   , heroActionsStateTurnLeft     :: Bool
   , heroActionsStateTurnRight    :: Bool
-  , heroActionsStateShoot        :: Bool
+  , heroActionsStateUseWeapon    :: Bool
   }
   deriving (Show, Eq)
 
-data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | Shoot
+data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | UseWeapon
 
 staticHeroActionsState :: HeroActionsState
 staticHeroActionsState = HeroActionsState False False False False False
@@ -136,7 +137,7 @@ modifyHeroActionState (HeroActionsState _ d l r s) MoveForward a = HeroActionsSt
 modifyHeroActionState (HeroActionsState u _ l r s) MoveBackward a = HeroActionsState u a l r s
 modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState u d a r s
 modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
-modifyHeroActionState (HeroActionsState u d l r _) Shoot a = HeroActionsState u d l r a
+modifyHeroActionState (HeroActionsState u d l r _) UseWeapon a = HeroActionsState u d l r a
 
 type Position = Vector2
 type Rotation = Double
@@ -154,17 +155,17 @@ instance SimItem Hero where
       rotation = rotationDirection * fromIntegral t * heroRotatePerMilli
 
 updateWeapon :: World a -> Int -> Hero -> Hero
-updateWeapon w t (Hero p r has weapon) = Hero p r has (simUpdate w t (updateWeaponShooting has weapon))
+updateWeapon w t (Hero p r has weapon) = Hero p r has (simUpdate w t (updateWeaponUsed has weapon))
 
-updateWeaponShooting :: HeroActionsState -> Weapon -> Weapon
-updateWeaponShooting has w
-  | heroActionsStateShoot has && not current   = startShooting w
-  | not (heroActionsStateShoot has) && current = stopShooting w
-  | otherwise                                  = w
-  where current = isShooting w
+updateWeaponUsed :: HeroActionsState -> Weapon -> Weapon
+updateWeaponUsed has w
+  | heroActionsStateUseWeapon has && not current   = beingUsed w
+  | not (heroActionsStateUseWeapon has) && current = notBeingUsed w
+  | otherwise                                      = w
+  where current = isUsingWeapon w
 
 createHero :: Vector2 -> Hero
-createHero pos = Hero pos 0 staticHeroActionsState (Pistol 0 False)
+createHero pos = Hero pos 0 staticHeroActionsState (Pistol Nothing False)
 
 createOriginHero :: Hero
 createOriginHero = createHero (Vector2 0 0)
@@ -199,8 +200,8 @@ heroLookRay (Hero pos rot _ _) = createRay pos (Vector2 (sin rot) (cos rot))
 moveHero :: Hero -> Double -> Hero
 moveHero (Hero p r a w) m = Hero (p + (m |* angleToVector2 r)) r a w
 
-updateHeroActionsState :: Hero -> HeroActionsState -> Hero
-updateHeroActionsState (Hero p r _ w) a = Hero p r a w
+updateHeroActionsState :: HeroActionsState -> Hero -> Hero
+updateHeroActionsState a (Hero p r _ w) = Hero p r a w
 
 updateHeroMoveDirection :: HeroActionsState -> Double
 updateHeroMoveDirection s = forwardMovement + backwardMovement

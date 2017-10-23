@@ -37,19 +37,8 @@ withRenderer w op = do
   void $ op r
   SDL.destroyRenderer r
 
-
 rendererConfig :: SDL.RendererConfig
 rendererConfig = SDL.RendererConfig
   { SDL.rendererType = SDL.AcceleratedVSyncRenderer
   , SDL.rendererTargetTexture = False
   }
-
---loadTextureWithInfo :: (MonadIO m) => SDL.Renderer -> FilePath -> m (SDL.Texture, SDL.TextureInfo)
---loadTextureWithInfo r p = do
---  t <- SDL.Image.loadTexture r p
---  i <- SDL.queryTexture t
---  pure (t, i)
-
-
---mkPoint :: a -> a -> SDL.Point SDL.V2 a
---mkPoint x y = SDL.P (SDL.V2 x y)

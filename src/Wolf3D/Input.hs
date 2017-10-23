@@ -7,7 +7,6 @@ module Wolf3D.Input (
 
 import Wolf3D.Sim
 import SDL
-import Debug.Trace
 
 
 data InputState = Quit | Running HeroActionsState
@@ -18,7 +17,7 @@ inputQuit _ = False
 
 inputHeroActionsState :: InputState -> HeroActionsState
 inputHeroActionsState (Running a) = a
-inputHeroActionsState _ = error "Invalid"
+inputHeroActionsState Quit = staticHeroActionsState
 
 processInput :: HeroActionsState -> IO InputState
 processInput p = do
@@ -41,6 +40,6 @@ processKeyAction active p keySym = case keysymKeycode keySym of
   KeycodeDown   -> modifyHeroActionState p MoveBackward active
   KeycodeLeft   -> modifyHeroActionState p TurnLeft active
   KeycodeRight  -> modifyHeroActionState p TurnRight active
-  KeycodeLCtrl  -> traceShow ("Shoot press " ++ show active) (modifyHeroActionState p Shoot active)
+  KeycodeLAlt   -> modifyHeroActionState p UseWeapon active
   _             -> p
 
