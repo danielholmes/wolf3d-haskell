@@ -51,18 +51,17 @@ stack test --pedantic --file-watch
 
 ## TODO
  
- - animate shooting pistol
-   - rename shoot to useWeapon
+ - physics engine (2d top down).  wolfs is simple
+     1. Move x and y, if okay then return
+     2. move x only, if okay return
+     3. move y only, if oka return
+     4. return
+ - Pickup item
+ - move sprites forward a bit. This was fudged in original:
+   - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
  - id system for items
-   - SimItem implements Enum?
-   - change naming to SimEntity
  - static sprite targets that can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
- - physics engine (2d top down).  wolfs is simple
-    1. Move x and y, if okay then return
-    2. move x only, if okay return
-    3. move y only, if oka return
-    4. return
  - Split SDL dependency into own module
    - split Display into multiple modules
    - merge UI into display? - simplifies some things like disposing and setting up renderer

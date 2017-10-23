@@ -1,5 +1,5 @@
 module Wolf3D.Sim (
-Wolf3DSimItem (SIEnvItem, SIHero),
+Wolf3DSimEntity (SEEnvItem, SEHero),
   worldHero,
   worldHeroWeapon,
   worldEnvItems,
@@ -49,34 +49,34 @@ import Data.List (find)
 {-----------------------------------------------------------------------------------------------------------------------
  General
 -----------------------------------------------------------------------------------------------------------------------}
-data Wolf3DSimItem = SIEnvItem EnvItem | SIHero Hero
+data Wolf3DSimEntity = SEEnvItem EnvItem | SEHero Hero
   deriving (Show, Eq)
 
-instance SimItem Wolf3DSimItem where
-  simUpdate w t (SIEnvItem i) = SIEnvItem (simUpdate w t i)
-  simUpdate w t (SIHero i) = SIHero (simUpdate w t i)
+instance SimEntity Wolf3DSimEntity where
+  simUpdate w t (SEEnvItem i) = SEEnvItem (simUpdate w t i)
+  simUpdate w t (SEHero i) = SEHero (simUpdate w t i)
 
-worldHero :: World Wolf3DSimItem -> Hero
-worldHero w = fromJust (fmap (\(SIHero h) -> h) (find (\i -> case i of (SIHero _) -> True; _ -> False) (worldItems w)))
+worldHero :: World Wolf3DSimEntity -> Hero
+worldHero w = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
 
-worldHeroWeapon :: World Wolf3DSimItem -> Weapon
+worldHeroWeapon :: World Wolf3DSimEntity -> Weapon
 worldHeroWeapon = heroWeapon . worldHero
 
-worldEnvItems :: World Wolf3DSimItem -> [EnvItem]
-worldEnvItems w = map (\(SIEnvItem e) -> e) (filter (\i -> case i of (SIEnvItem _) -> True; _ -> False) (worldItems w))
+worldEnvItems :: World Wolf3DSimEntity -> [EnvItem]
+worldEnvItems w = map (\(SEEnvItem e) -> e) (filter (\i -> case i of (SEEnvItem _) -> True; _ -> False) (worldEntities w))
 
-updateWorldHeroActionsState :: World Wolf3DSimItem -> HeroActionsState -> World Wolf3DSimItem
+updateWorldHeroActionsState :: World Wolf3DSimEntity -> HeroActionsState -> World Wolf3DSimEntity
 updateWorldHeroActionsState w a = updateWorldHero w (updateHeroActionsState a)
 
-updateWorldHero :: World Wolf3DSimItem -> (Hero -> Hero) -> World Wolf3DSimItem
-updateWorldHero w op = updateWorldItems w newItems
+updateWorldHero :: World Wolf3DSimEntity -> (Hero -> Hero) -> World Wolf3DSimEntity
+updateWorldHero w op = updateWorldEntities w newItems
   where
-    newItems = foldr foldStep [] (worldItems w)
-    foldStep :: Wolf3DSimItem -> [Wolf3DSimItem] -> [Wolf3DSimItem]
-    foldStep (SIHero h) accu = SIHero (op h) : accu
+    newItems = foldr foldStep [] (worldEntities w)
+    foldStep :: Wolf3DSimEntity -> [Wolf3DSimEntity] -> [Wolf3DSimEntity]
+    foldStep (SEHero h) accu = SEHero (op h) : accu
     foldStep i accu = i : accu
 
-worldEnvItemsTouching :: Rectangle -> World Wolf3DSimItem -> [EnvItem]
+worldEnvItemsTouching :: Rectangle -> World Wolf3DSimEntity -> [EnvItem]
 worldEnvItemsTouching r w = filter (itemIsTouching r) (worldEnvItems w)
 
 itemIsTouching :: Rectangle -> EnvItem -> Bool
@@ -89,7 +89,7 @@ type UsingWeapon = Bool
 data Weapon = Pistol (Maybe WorldTime) UsingWeapon
   deriving (Eq, Show)
 
-instance SimItem Weapon where
+instance SimEntity Weapon where
   simUpdate w t weapon
     | isUsingWeapon weapon && canUseWeapon (worldTime w) weapon = useWeapon w t weapon
     | otherwise                                                 = weapon
@@ -144,7 +144,7 @@ type Rotation = Double
 data Hero = Hero Position Rotation HeroActionsState Weapon
   deriving (Show, Eq)
 
-instance SimItem Hero where
+instance SimEntity Hero where
   simUpdate w t h@(Hero _ _ has _) = updateWeapon w t (rotateHero (moveHero h movement) rotation)
     where
       rotationDirection = updateHeroRotation has
@@ -228,7 +228,7 @@ data EnvItemType = Drum | Flag | Light
 data EnvItem = EnvItem EnvItemType Vector2
  deriving (Show, Eq)
 
-instance SimItem EnvItem where
+instance SimEntity EnvItem where
  simUpdate _ _ = id
 
 itemSize :: EnvItem -> Vector2

@@ -42,7 +42,7 @@ render r d s = do
   renderWorld r d (simRunWorld s)
   SDL.present r
 
-renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
+renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do
   renderCeilingAndFloor r d
   renderWalls r d w
@@ -59,7 +59,7 @@ renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
     cHalfH = fromIntegral halfH
     cWidth = fromIntegral width
 
-renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
+renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d@RenderData {size=(width, _)} w = forM_ hits (renderWallLine r d)
   where hits = pixelWallHits w width
 
@@ -112,7 +112,7 @@ renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTe
 --wallColour Red = SDL.V4 255 0 0 255
 --wallColour Green = SDL.V4 0 255 0 255
 
-pixelWallHits :: World Wolf3DSimItem -> Int -> [(Int, WallHit, Double)]
+pixelWallHits :: World Wolf3DSimEntity -> Int -> [(Int, WallHit, Double)]
 pixelWallHits w width = foldr foldStep [] hits
   where
     pixels = [0..(width - 1)]
@@ -121,7 +121,7 @@ pixelWallHits w width = foldr foldStep [] hits
     foldStep (_, Nothing) accu = accu
     foldStep (i, Just (h, d)) accu = (i, h, d) : accu
 
-pixelWallHit :: World Wolf3DSimItem -> Int -> Int -> Maybe (WallHit, Double)
+pixelWallHit :: World Wolf3DSimEntity -> Int -> Int -> Maybe (WallHit, Double)
 pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
   where
     hero = worldHero w
@@ -131,7 +131,7 @@ pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (
     rayRotation = heroFieldOfViewSize hero * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation
 
-renderItems :: SDL.Renderer -> RenderData -> World Wolf3DSimItem -> IO ()
+renderItems :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderItems r d w = forM_ (worldEnvItems w) (renderItem r d (worldHero w))
 
 renderItem :: SDL.Renderer -> RenderData -> Hero -> EnvItem -> IO ()

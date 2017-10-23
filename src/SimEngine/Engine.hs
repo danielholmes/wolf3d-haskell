@@ -1,6 +1,7 @@
 {-# LANGUAGE GADTs #-}
 module SimEngine.Engine (
-  SimItem (simUpdate),
+  SimEntity (simUpdate),
+  StepMillis,
   World,
   WorldTime,
   Wall (Wall),
@@ -8,8 +9,8 @@ module SimEngine.Engine (
   WallHit (WallHit),
   createWorld,
   worldWalls,
-  worldItems,
-  updateWorldItems,
+  worldEntities,
+  updateWorldEntities,
   advanceWorldTime,
   worldWallsTouching,
   wallToLine,
@@ -26,7 +27,7 @@ import Data.List
 
 
 type StepMillis = Int
-class SimItem i where
+class SimEntity i where
   simUpdate :: World a -> StepMillis -> i -> i
 
 -- TODO: See if way of moving wall materials outside of engine
@@ -45,16 +46,16 @@ data WallHit = WallHit Wall HitPosition DistanceToWall
 
 type WorldTime = Int
 data World i where
-  World :: (SimItem i) => [Wall] -> [i] -> WorldTime -> World i
+  World :: (SimEntity i) => [Wall] -> [i] -> WorldTime -> World i
 
-createWorld :: (SimItem i) => [Wall] -> [i] -> World i
+createWorld :: (SimEntity i) => [Wall] -> [i] -> World i
 createWorld walls items = World walls items 0
 
 tickWorld :: Int -> World i -> World i
 tickWorld timeStep world@(World _ is _) = advanceWorldTime updatedWorld timeStep
   where
     updatedItems = map (simUpdate world timeStep) is
-    updatedWorld = updateWorldItems world updatedItems
+    updatedWorld = updateWorldEntities world updatedItems
 
 tickWorldNTimes :: World i -> Int -> Int -> Maybe (World i)
 tickWorldNTimes w f n
@@ -64,14 +65,14 @@ tickWorldNTimes w f n
       foldStep :: Int -> World i -> World i
       foldStep _ = tickWorld f
 
-updateWorldItems :: World i -> [i] -> World i
-updateWorldItems (World w _ t) i = World w i t
+updateWorldEntities :: World i -> [i] -> World i
+updateWorldEntities (World w _ t) i = World w i t
 
 worldWalls :: World i -> [Wall]
 worldWalls (World walls _ _) = walls
 
-worldItems :: (SimItem i) => World i -> [i]
-worldItems (World _ is _) = is
+worldEntities :: (SimEntity i) => World i -> [i]
+worldEntities (World _ is _) = is
 
 worldTime :: World i -> Int
 worldTime (World _ _ t) = t
