@@ -60,7 +60,8 @@ stack test --pedantic --file-watch
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
  - id system for items
- - static sprite targets that can shoot and kill
+ - multi engine approach outlined in first 60 or so slides of https://www.slideshare.net/naughty_dog/multiprocessor-game-loops-lessons-from-uncharted-2-among-thieves
+ - static sprite targets that hero can shoot and kill
  - SimItem infrastructure - Update each item to produce events, process those events which generate new events
  - Split SDL dependency into own module
    - split Display into multiple modules
@@ -113,6 +114,6 @@ stack test --pedantic --file-watch
    - https://gist.github.com/hc2p/9e284cee3d585eefbc59454e44cc247a
    - http://atodorov.org/blog/2017/08/07/faster-travis-ci-tests-with-docker-cache/
    - https://giorgos.sealabs.net/docker-cache-on-travis-and-docker-112.html
- - Try reading original data file?
+ - Try reading original data file? See carmackExpand in wolf3d-html. Or maybe just use the format from wolf3d-html
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
  
