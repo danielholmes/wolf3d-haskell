@@ -52,10 +52,18 @@ stack test --pedantic --file-watch
 ## TODO
  
  - physics engine (2d top down).  wolfs is simple
-     1. Move x and y, if okay then return
-     2. move x only, if okay return
-     3. move y only, if oka return
-     4. return
+   - general
+         1. Move x and y, if okay then return
+         2. move x only, if okay return
+         3. move y only, if oka return
+         4. return
+   - functional structure
+         - input a bunch of force events (vector2 + character)
+         - normalise to one force event per char
+         - create move to events which result from forces
+             - which apply the force and take in to account any bumping up against
+             - items should be static (cant be moved), dynamic (can be moved), virtual (move right through them)
+         - collision events between 2
  - Pickup item
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
