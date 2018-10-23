@@ -125,3 +125,14 @@ stack test --pedantic --file-watch
  - Try reading original data file? See carmackExpand in wolf3d-html. Or maybe just use the format from wolf3d-html
  - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
  
+
+## Distances Reference (found from web version)
+
+98304 distance an enemy can see at
+22272 focal length
+8192  size of an object
+98304 is distance knife can attack
+30720 is door width
+22528 is min dist
+49152 is projectile size
+16384 is the amount fudged
