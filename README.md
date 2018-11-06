@@ -8,10 +8,10 @@ optimisations. Inspired by [John Carmack's Quakecon 2013 Talk](https://youtu.be/
 
 ## Requirements
 
- - [Stack](https://www.haskellstack.org) (Tested with 1.4)
- - [SDL2 2.0.4+](https://www.libsdl.org/)
- - [SDL2 Image](https://www.libsdl.org/projects/SDL_image/)
- - [SDL2 TTF](https://www.libsdl.org/projects/SDL_ttf/)
+ - [Stack](https://www.haskellstack.org) (Tested with 1.9.1)
+ - [SDL2 2.0.4+](https://www.libsdl.org/) (tested with 2.0.8)
+ - [SDL2 Image](https://www.libsdl.org/projects/SDL_image/) (tested with 2.0.4)
+ - [SDL2 TTF](https://www.libsdl.org/projects/SDL_ttf/) (tested with 2.0.14)
 
 
 ## Setting up Development Environment
@@ -26,6 +26,13 @@ stack build --pedantic
 
 ```bash
 stack exec wolf3d
+```
+
+or
+
+
+```bash
+stack exec wolf3d-debug
 ```
 
 

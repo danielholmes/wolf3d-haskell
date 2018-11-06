@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Daniel Holmes
 maintainer:          daniel@danielholmes.org
-copyright:           2017 Daniel Holmes
+copyright:           2018 Daniel Holmes
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
