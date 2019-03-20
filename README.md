@@ -58,6 +58,7 @@ stack test --pedantic --file-watch
 
 ## TODO
  
+ - switch to stencil algorithm for rendering
  - physics engine (2d top down).  wolfs is simple
    - general
          1. Move x and y, if okay then return
