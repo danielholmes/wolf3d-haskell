@@ -1,8 +1,8 @@
 import Test.Hspec
 import Wolf3D.SimSpec
 import Wolf3D.RunnerSpec
-import SimEngine.GeomSpec
-import SimEngine.EngineSpec
+import Wolf3D.GeomSpec
+import Wolf3D.EngineSpec
 
 main :: IO ()
 main = hspec $ do

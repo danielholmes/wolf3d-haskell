@@ -1,5 +1,17 @@
 module Wolf3D.Sim (
-Wolf3DSimEntity (SEEnvItem, SEHero),
+  -- WorldData
+  HeroAction (
+      MoveForward,
+      MoveBackward,
+      TurnLeft,
+      TurnRight,
+      UseWeapon
+  ),
+  Hero (Hero),
+  EnvItemType (Drum, Light, Flag),
+  EnvItem (EnvItem),
+
+  Wolf3DSimEntity (SEEnvItem, SEHero),
   worldHero,
   worldHeroWeapon,
   worldEnvItems,
@@ -9,7 +21,6 @@ Wolf3DSimEntity (SEEnvItem, SEHero),
   Weapon (Pistol),
   lastTimeWeaponUsed,
 
-  Hero,
   createHero,
   createOriginHero,
   heroPosition,
@@ -20,38 +31,62 @@ Wolf3DSimEntity (SEEnvItem, SEHero),
   rotateHero,
   heroHeight,
   HeroActionsState,
+  heroActionsState,
   staticHeroActionsState,
   modifyHeroActionState,
-  HeroAction (MoveForward, MoveBackward, TurnLeft, TurnRight, UseWeapon),
-  heroActionsStateMoveForward,
-  heroActionsStateMoveBackward,
-  heroActionsStateTurnLeft,
-  heroActionsStateTurnRight,
   updateHeroActionsState,
-  heroActionsState,
   heroFieldOfViewSize,
   heroLookRayAtFieldOfViewRatio,
 
-  EnvItemType (Drum, Flag, Light),
-  EnvItem (EnvItem),
   itemRectangle,
   itemHeight,
   itemSize
 ) where
 
-import SimEngine.Geom
-import SimEngine.Engine
+import Wolf3D.Geom
+import Wolf3D.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
 
 
 {-----------------------------------------------------------------------------------------------------------------------
- General
------------------------------------------------------------------------------------------------------------------------}
+WorldData
+-----}
 data Wolf3DSimEntity = SEEnvItem EnvItem | SEHero Hero
   deriving (Show, Eq)
 
+type UsingWeapon = Bool
+data Weapon = Pistol (Maybe WorldTime) UsingWeapon
+  deriving (Eq, Show)
+
+data HeroActionsState = HeroActionsState
+  { heroActionsStateMoveForward  :: Bool
+  , heroActionsStateMoveBackward :: Bool
+  , heroActionsStateTurnLeft     :: Bool
+  , heroActionsStateTurnRight    :: Bool
+  , heroActionsStateUseWeapon    :: Bool
+  }
+  deriving (Show, Eq)
+
+data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | UseWeapon
+
+type Position = Vector2
+type Rotation = Double
+data Hero = Hero Position Rotation HeroActionsState Weapon
+  deriving (Show, Eq)
+
+data EnvItemType = Drum | Flag | Light
+ deriving (Show, Eq, Ord)
+
+data EnvItem = EnvItem EnvItemType Vector2
+ deriving (Show, Eq)
+
+
+
+{-----------------------------------------------------------------------------------------------------------------------
+ General
+-----------------------------------------------------------------------------------------------------------------------}
 instance SimEntity Wolf3DSimEntity where
   simUpdate w t (SEEnvItem i) = SEEnvItem (simUpdate w t i)
   simUpdate w t (SEHero i) = SEHero (simUpdate w t i)
@@ -85,10 +120,6 @@ itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
 {-----------------------------------------------------------------------------------------------------------------------
  Weapon
 -----------------------------------------------------------------------------------------------------------------------}
-type UsingWeapon = Bool
-data Weapon = Pistol (Maybe WorldTime) UsingWeapon
-  deriving (Eq, Show)
-
 instance SimEntity Weapon where
   simUpdate w t weapon
     | isUsingWeapon weapon && canUseWeapon (worldTime w) weapon = useWeapon w t weapon
@@ -118,17 +149,6 @@ notBeingUsed (Pistol t _) = Pistol t False
 {-----------------------------------------------------------------------------------------------------------------------
  Hero
 -----------------------------------------------------------------------------------------------------------------------}
-data HeroActionsState = HeroActionsState
-  { heroActionsStateMoveForward  :: Bool
-  , heroActionsStateMoveBackward :: Bool
-  , heroActionsStateTurnLeft     :: Bool
-  , heroActionsStateTurnRight    :: Bool
-  , heroActionsStateUseWeapon    :: Bool
-  }
-  deriving (Show, Eq)
-
-data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | UseWeapon
-
 staticHeroActionsState :: HeroActionsState
 staticHeroActionsState = HeroActionsState False False False False False
 
@@ -138,11 +158,6 @@ modifyHeroActionState (HeroActionsState u _ l r s) MoveBackward a = HeroActionsS
 modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState u d a r s
 modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
 modifyHeroActionState (HeroActionsState u d l r _) UseWeapon a = HeroActionsState u d l r a
-
-type Position = Vector2
-type Rotation = Double
-data Hero = Hero Position Rotation HeroActionsState Weapon
-  deriving (Show, Eq)
 
 instance SimEntity Hero where
   simUpdate w t h@(Hero _ _ has _) = updateWeapon w t (rotateHero (moveHero h movement) rotation)
@@ -222,12 +237,6 @@ rotateHero (Hero p r a w) d = Hero p (r + d) a w
 {-----------------------------------------------------------------------------------------------------------------------
  Environment
 -----------------------------------------------------------------------------------------------------------------------}
-data EnvItemType = Drum | Flag | Light
- deriving (Show, Eq, Ord)
-
-data EnvItem = EnvItem EnvItemType Vector2
- deriving (Show, Eq)
-
 instance SimEntity EnvItem where
  simUpdate _ _ = id
 

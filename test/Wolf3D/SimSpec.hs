@@ -2,7 +2,7 @@ module Wolf3D.SimSpec (simSpec) where
 
 import Test.Hspec
 import Data.Vector
-import SimEngine.Geom
+import Wolf3D.Geom
 import Wolf3D.Sim
 import Wolf3D.SpecHelp
 

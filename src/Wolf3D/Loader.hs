@@ -3,7 +3,7 @@ module Wolf3D.Loader (loadRenderData) where
 import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
-import SimEngine.Engine
+import Wolf3D.Engine
 import Wolf3D.Display
 import Wolf3D.Sim
 import Wolf3D.Animation

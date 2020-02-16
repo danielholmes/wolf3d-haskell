@@ -4,8 +4,8 @@ import qualified SDL
 import qualified SDL.Vect
 import Foreign.C.Types (CInt)
 import Data.Vector
-import SimEngine.Engine
-import SimEngine.Geom
+import Wolf3D.Engine
+import Wolf3D.Geom
 import Wolf3D.Sim
 import Wolf3D.SDLUtils
 import Data.Foldable (forM_)

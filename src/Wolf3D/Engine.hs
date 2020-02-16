@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs #-}
-module SimEngine.Engine (
+module Wolf3D.Engine (
   SimEntity (simUpdate),
   StepMillis,
   World,
@@ -21,7 +21,7 @@ module SimEngine.Engine (
   tickWorldNTimes
 ) where
 
-import SimEngine.Geom
+import Wolf3D.Geom
 import Data.Vector
 import Data.List
 

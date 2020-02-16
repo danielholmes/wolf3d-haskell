@@ -4,7 +4,7 @@ module Wolf3D.SpecHelp (
   veryCloseToDouble
 ) where
 
-import SimEngine.Geom
+import Wolf3D.Geom
 import Data.Vector
 
 

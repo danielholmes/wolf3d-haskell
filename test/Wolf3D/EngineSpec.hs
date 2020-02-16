@@ -1,8 +1,8 @@
-module SimEngine.EngineSpec (engineSpec) where
+module Wolf3D.EngineSpec (engineSpec) where
 
 import Test.Hspec
-import SimEngine.Geom
-import SimEngine.Engine
+import Wolf3D.Geom
+import Wolf3D.Engine
 import Data.Vector
 import Data.Maybe
 
@@ -14,7 +14,7 @@ instance SimEntity TestSimEntity where
 
 engineSpec :: SpecWith ()
 engineSpec =
-  describe "SimEngine.Engine" $ do
+  describe "Wolf3D.Engine" $ do
     describe "worldWallsTouching" $ do
       it "should return no walls if world has no walls" $
         let world = createWorld [] [] :: World TestSimEntity
