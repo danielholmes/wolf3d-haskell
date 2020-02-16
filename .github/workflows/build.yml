@@ -1,0 +1,20 @@
+name: Build
+
+on:
+  push:
+    branches: master
+
+jobs:
+  deploy:
+    name: Build
+
+    runs-on: ubuntu-18.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Haskell Stack
+        use: mstksg/setup-stack@v1
+      - name: "Install system deps"
+        run: "sudo apt install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev"
+      - name: "Run build"
+        run: "stack --no-terminal --skip-ghc-check test --pedantic"
