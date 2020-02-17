@@ -1,6 +1,6 @@
 # Wolfenstein 3D in Haskell
 
-[![Build Status](https://travis-ci.org/danielholmes/wolf3d-haskell.svg?branch=master)](https://travis-ci.org/danielholmes/wolf3d-haskell)
+![Build](https://github.com/danielholmes/wolf3d-haskell/workflows/Build/badge.svg)
 
 Wolfenstein 3D engine implementation in Haskell. Functionality is equivalent, but doesn't use same types of 
 optimisations. Inspired by [John Carmack's Quakecon 2013 Talk](https://youtu.be/Uooh0Y9fC_M?t=4660). This is a work in 
