@@ -13,8 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up Haskell Stack
-        use: mstksg/setup-stack@v1
+        uses: mstksg/setup-stack@v1
       - name: "Install system deps"
-        run: "sudo apt install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev"
+        run: |
+          sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu `lsb_release -sc` main universe restricted multiverse"
+          sudo apt-get update -y -qq
+          sudo apt install -y libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
       - name: "Run build"
         run: "stack --no-terminal --skip-ghc-check test --pedantic"
