@@ -4,6 +4,7 @@ import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
 import Wolf3D.Engine
+import Wolf3D.Geom
 import Wolf3D.Display
 import Wolf3D.Sim
 import Wolf3D.Animation
@@ -16,12 +17,27 @@ import Foreign.C.Types (CInt)
 tan30 :: Double
 tan30 = tan (pi / 6)
 
+hudBorderTop :: (Int, Int)
+hudBorderTop = (8, 4)
+
+hudBarHeight :: Int
+hudBarHeight = 40
+
 loadRenderData :: SDL.Renderer -> (Int, Int) -> IO RenderData
-loadRenderData r s@(width, height) = do
+loadRenderData r s@(windowWidth, windowHeight) = do
   w <- loadWallDatas r
   i <- loadEnvItemsData r
   weapons <- loadWeaponData r
-  return (RenderData s (width `div` 2, height `div` 2) (fromIntegral (width `div` 2) / tan30) w i weapons)
+  hudPlaceholder <- loadHudData r
+  let actionWidth = windowWidth - 2 * (fst hudBorderTop)
+  let actionHeight = windowHeight - 2 * (snd hudBorderTop) - hudBarHeight
+  let actionArea = IntRectangle hudBorderTop (actionWidth, actionHeight)
+  let halfSize = (actionWidth `div` 2, actionHeight `div` 2)
+  let distToProjPlane = fromIntegral (actionWidth `div` 2) / tan30
+  return (RenderData s actionArea halfSize distToProjPlane w i weapons hudPlaceholder)
+
+loadHudData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
+loadHudData r = loadTexture r "hud-placeholder.png"
 
 loadWallDatas :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (Int, Int)))
 loadWallDatas r = do

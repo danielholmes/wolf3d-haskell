@@ -2,8 +2,9 @@ module Wolf3D.Display (
   setupRenderer,
   render,
   renderWorld,
+  renderHud,
   rayLineIntersection,
-  RenderData (RenderData)
+  RenderData (RenderData, areaSize)
 ) where
 
 import Wolf3D.Geom
@@ -11,6 +12,7 @@ import Wolf3D.Sim
 import Wolf3D.Engine
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
+import Wolf3D.Display.Utils
 import Wolf3D.Animation
 import qualified SDL
 import Data.StateVar (($=))
@@ -27,20 +29,29 @@ import Foreign.C.Types (CInt)
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
 type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
 type WeaponData = M.Map String Animation
-data RenderData = RenderData { size :: (Int, Int)
-                             , halfSize :: (Int, Int)
+data RenderData = RenderData { areaSize :: (Int, Int)
+                             , actionArea :: IntRectangle
+                             , halfActionSize :: (Int, Int)
                              , distToProjPlane :: Double
                              , wallTextures :: WallMaterialData
                              , itemTextures :: EnvItemData
-                             , weaponTextures :: WeaponData}
+                             , weaponTextures :: WeaponData
+                             , hudPlaceholder :: (SDL.Texture, SDL.Rectangle CInt)}
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
 
 render :: SDL.Renderer -> RenderData -> SimRun -> IO ()
 render r d s = do
+  renderHud r d
   renderWorld r d (simRunWorld s)
   SDL.present r
+
+renderHud :: SDL.Renderer -> RenderData -> IO ()
+renderHud r (RenderData {areaSize=(width, height), hudPlaceholder=(texture, sourceRect)}) = do
+  SDL.copy r texture (Just sourceRect) (Just destRect)
+  where
+    destRect = SDL.Rectangle (SDL.P (SDL.V2 0 0)) (SDL.V2 (fromIntegral width) (fromIntegral height))
 
 renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do
@@ -50,22 +61,22 @@ renderWorld r d w = do
   renderWeapon r d (worldTime w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
-renderCeilingAndFloor r RenderData {size=(width, _), halfSize=(_, halfH)} = do
+renderCeilingAndFloor r RenderData {actionArea=(IntRectangle (x, y) (width, _)), halfActionSize=(_, halfH)} = do
   SDL.rendererDrawColor r $= SDL.V4 1 84 88 255
-  SDL.fillRect r (Just (mkSDLRect 0 0 cWidth cHalfH))
+  SDL.fillRect r (Just (mkSDLRect (fromIntegral x) (fromIntegral y) cWidth cHalfH))
   SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
-  SDL.fillRect r (Just (mkSDLRect 0 cHalfH cWidth cHalfH))
+  SDL.fillRect r (Just (mkSDLRect (fromIntegral x) cHalfH cWidth cHalfH))
   where
     cHalfH = fromIntegral halfH
     cWidth = fromIntegral width
 
 renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
-renderWalls r d@RenderData {size=(width, _)} w = forM_ hits (renderWallLine r d)
+renderWalls r d@RenderData {actionArea=(IntRectangle _ (width, _))} w = forM_ hits (renderWallLine r d)
   where hits = pixelWallHits w width
 
 renderWallLine :: SDL.Renderer -> RenderData -> (Int, WallHit, Double) -> IO ()
-renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt} (x, WallHit (Wall o _ m) hit _, distance) = do
-  SDL.copy r texture (Just sourceRect) (Just destRect)
+renderWallLine r (RenderData {actionArea=(IntRectangle a@(areaX, areaY) _), halfActionSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, distance) = do
+  copyWithActionOffset r a texture sourceRect destRect
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 darknessAlpha
   SDL.drawLine r from to
   where
@@ -75,9 +86,8 @@ renderWallLine r RenderData {halfSize=(_, halfHeight), distToProjPlane=d, wallTe
     ratio = d / distance
     projectedTop = round (fromIntegral halfHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
-    xInt = fromIntegral x
-    from = SDL.P (SDL.V2 xInt projectedTop)
-    to = SDL.P (SDL.V2 xInt (projectedTop + projectedHeight))
+    from = SDL.P (SDL.V2 (fromIntegral (x + areaX)) (fromIntegral (projectedTop + (fromIntegral areaY))))
+    to = SDL.P (SDL.V2 (fromIntegral x) (projectedTop + projectedHeight))
     darknessMultiplier = 8000
     intensity = 1 - min 1 ((1 / distance) * darknessMultiplier)
     darknessAlpha = round (255 * intensity)
@@ -141,8 +151,8 @@ renderItem r d@RenderData {itemTextures=it} hero i@(EnvItem t itemPos) =
     texture = fromJust (M.lookup t it)
 
 renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()
-renderSprite r RenderData {size=(width, _), halfSize=(_, halfHeight), distToProjPlane=d} (texture, sourceRect) hero oPos oSize =
-  SDL.copy r texture (Just sourceRect) (Just destRect)
+renderSprite r RenderData {actionArea=(IntRectangle a (width, _)), halfActionSize=(_, halfHeight), distToProjPlane=d} (texture, sourceRect) hero oPos oSize =
+  copyWithActionOffset r a texture sourceRect destRect
   --SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
   --SDL.fillRect r (Just destRect)
   where
@@ -166,8 +176,8 @@ perpendicularDistance :: Double -> WallHit -> Double
 perpendicularDistance rayRotation (WallHit _ _ d) = d * cos rayRotation
 
 renderWeapon :: SDL.Renderer -> RenderData -> WorldTime -> Weapon -> IO ()
-renderWeapon r RenderData {size=(width, height), weaponTextures=wt} t w =
-  SDL.copy r texture (Just sourceRect) (Just destRect)
+renderWeapon r RenderData {actionArea=(IntRectangle a (width, height)), weaponTextures=wt} t w =
+  copyWithActionOffset r a texture sourceRect destRect
   where
     totalAnimationTime = 400
     sinceUsed = fmap (t -) (lastTimeWeaponUsed w)

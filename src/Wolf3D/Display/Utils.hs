@@ -1,4 +1,7 @@
-module Wolf3D.Display.Utils (withViewport) where
+module Wolf3D.Display.Utils (
+  withViewport,
+  copyWithActionOffset
+) where
 
 import qualified SDL
 import Data.StateVar (($=), get)
@@ -13,3 +16,7 @@ withViewport r vp op = do
   SDL.rendererViewport r $= vp
   void op
   SDL.rendererViewport r $= oldViewport
+
+copyWithActionOffset :: (MonadIO m) => SDL.Renderer -> (Int, Int) -> SDL.Texture -> SDL.Rectangle CInt -> SDL.Rectangle CInt -> m ()
+copyWithActionOffset r _ texture sourceRect destRect = do
+  SDL.copy r texture (Just sourceRect) (Just destRect)

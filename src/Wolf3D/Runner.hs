@@ -24,6 +24,8 @@ type MaxStepsPerTick = Int
 
 data SimRun = SimRun (World Wolf3DSimEntity) FixedStepMillis MaxStepsPerTick UTCTime Bool
 
+-- Note that wolf was Indeterministic (except for when demos were running)
+-- But have set this up as deterministic, for now
 runLoop :: World Wolf3DSimEntity -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
 runLoop w f m r = do
   simRun <- startSimRun w f m

@@ -1,6 +1,7 @@
 module Wolf3D.Geom (
   Ray,
   Rectangle (Rectangle),
+  IntRectangle (IntRectangle),
   Line,
   createRay,
   rayOrigin,
@@ -28,6 +29,7 @@ import Data.Maybe
 type Line = (Vector2, Vector2)
 
 data Rectangle = Rectangle Vector2 Vector2
+data IntRectangle = IntRectangle (Int, Int) (Int, Int)
 
 data Ray = Ray Vector2 Vector2
   deriving (Show, Eq)

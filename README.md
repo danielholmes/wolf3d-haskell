@@ -59,6 +59,9 @@ stack test --pedantic --file-watch
 
 ## TODO
  
+ - https://github.com/bkaradzic/bgfx looks good for rendering
+ - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
+ - See https://github.com/jxv/sdl2-fps
  - switch to stencil algorithm for rendering
  - physics engine (2d top down).  wolfs is simple
    - general
@@ -74,7 +77,6 @@ stack test --pedantic --file-watch
              - items should be static (cant be moved), dynamic (can be moved), virtual (move right through them)
          - collision events between 2
  - Pickup item
- - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
  - id system for items
