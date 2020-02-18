@@ -5,8 +5,8 @@ import qualified SDL.Font
 import Wolf3D.Debug.Display
 import qualified Wolf3D.Loader as D
 
-loadRenderData :: SDL.Renderer -> (Int, Int) -> IO DebugRenderData
-loadRenderData r s = do
-  d <- D.loadRenderData r s
+loadRenderData :: SDL.Renderer -> IO DebugRenderData
+loadRenderData r = do
+  d <- D.loadRenderData r
   font <- SDL.Font.load "assets/Monospace.ttf" 12
   return (DebugRenderData d font)

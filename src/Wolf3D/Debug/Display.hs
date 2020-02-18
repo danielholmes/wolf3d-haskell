@@ -25,7 +25,7 @@ setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer = D.setupRenderer
 
 render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
-render r drd@(DebugRenderData rd@(D.RenderData {D.areaSize=(width, height)}) _) sr = do
+render r drd@(DebugRenderData rd _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
   withViewport r (Just (mkSDLRect 0 0 (fromIntegral miniMapWidth) (fromIntegral miniMapHeight))) $
@@ -34,8 +34,8 @@ render r drd@(DebugRenderData rd@(D.RenderData {D.areaSize=(width, height)}) _) 
   SDL.present r
   where
     w = simRunWorld sr
-    miniMapWidth = width `div` 3
-    miniMapHeight = height `div` 3
+    miniMapWidth = D.screenWidth `div` 3
+    miniMapHeight = D.screenHeight `div` 3
     runRender = do
       D.renderHud r rd
       D.renderWorld r rd w
@@ -47,12 +47,12 @@ createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
     items = [("WT", show (worldTime world `div` 1000) ++ "s"), ("Render", show tookTime ++ "ms")]
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
-drawDebugText r (DebugRenderData (D.RenderData {D.areaSize=(w, h)}) font) text =
-  withViewport r (Just (mkSDLRect 0 0 (fromIntegral w) (fromIntegral h))) $ do
+drawDebugText r (DebugRenderData _ font) text =
+  withViewport r (Just (mkSDLRect 0 0 (fromIntegral D.screenWidth) (fromIntegral D.screenHeight))) $ do
     surface <- SDL.Font.solid font (SDL.V4 255 255 255 255) (pack text)
     (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
     texture <- SDL.createTextureFromSurface r surface
-    let rect = Just (mkSDLRect 0 (fromIntegral (h - fromIntegral textH)) textW textH)
+    let rect = Just (mkSDLRect 0 (fromIntegral (D.screenHeight - fromIntegral textH)) textW textH)
     SDL.rendererDrawColor r $= SDL.V4 0 0 0 122
     SDL.fillRect r rect
     SDL.copy r texture Nothing rect

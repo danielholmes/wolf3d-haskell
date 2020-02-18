@@ -4,7 +4,6 @@ import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
 import Wolf3D.Engine
-import Wolf3D.Geom
 import Wolf3D.Display
 import Wolf3D.Sim
 import Wolf3D.Animation
@@ -14,27 +13,13 @@ import Data.Map (Map, fromList)
 import Foreign.C.Types (CInt)
 
 
-tan30 :: Double
-tan30 = tan (pi / 6)
-
-hudBorderTop :: (Int, Int)
-hudBorderTop = (8, 4)
-
-hudBarHeight :: Int
-hudBarHeight = 40
-
-loadRenderData :: SDL.Renderer -> (Int, Int) -> IO RenderData
-loadRenderData r s@(windowWidth, windowHeight) = do
+loadRenderData :: SDL.Renderer -> IO RenderData
+loadRenderData r = do
   w <- loadWallDatas r
   i <- loadEnvItemsData r
   weapons <- loadWeaponData r
   hudPlaceholder <- loadHudData r
-  let actionWidth = windowWidth - 2 * (fst hudBorderTop)
-  let actionHeight = windowHeight - 2 * (snd hudBorderTop) - hudBarHeight
-  let actionArea = IntRectangle hudBorderTop (actionWidth, actionHeight)
-  let halfSize = (actionWidth `div` 2, actionHeight `div` 2)
-  let distToProjPlane = fromIntegral (actionWidth `div` 2) / tan30
-  return (RenderData s actionArea halfSize distToProjPlane w i weapons hudPlaceholder)
+  return (RenderData w i weapons hudPlaceholder)
 
 loadHudData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
 loadHudData r = loadTexture r "hud-placeholder.png"

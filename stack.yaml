@@ -59,6 +59,9 @@ extra-deps:
   - directory-1.3.6.0
   - process-1.4.3.0
   - unix-2.7.2.2 # Guess this one probably stops it working on windows?
+  - QuickCheck-2.13.2
+  - hspec-core-2.7.1
+  - hspec-discover-2.7.1
 
 # Override default flag values for local packages and extra-deps
 flags: {}

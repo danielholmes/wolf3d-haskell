@@ -7,7 +7,7 @@ import Wolf3D.Debug.Display
 
 main :: IO ()
 main = createMain 2 dummyWorld2 $
-  \r s -> do
+  \r -> do
     setupRenderer r
-    d <- loadRenderData r s
+    d <- loadRenderData r
     return (render r d)

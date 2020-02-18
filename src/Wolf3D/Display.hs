@@ -4,7 +4,11 @@ module Wolf3D.Display (
   renderWorld,
   renderHud,
   rayLineIntersection,
-  RenderData (RenderData, areaSize)
+  RenderData (RenderData),
+  screenWidth,
+  screenHeight,
+  actionHeight,
+  actionWidth
 ) where
 
 import Wolf3D.Geom
@@ -24,19 +28,59 @@ import Control.Monad (mfilter)
 import Data.Fixed
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
+import GHC.Word (Word8)
+import Debug.Trace
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
 type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
 type WeaponData = M.Map String Animation
-data RenderData = RenderData { areaSize :: (Int, Int)
-                             , actionArea :: IntRectangle
-                             , halfActionSize :: (Int, Int)
-                             , distToProjPlane :: Double
-                             , wallTextures :: WallMaterialData
+data RenderData = RenderData {wallTextures :: WallMaterialData
                              , itemTextures :: EnvItemData
                              , weaponTextures :: WeaponData
                              , hudPlaceholder :: (SDL.Texture, SDL.Rectangle CInt)}
+
+screenWidth :: Int
+screenWidth = 320
+
+screenHeight :: Int
+screenHeight = 200
+
+hudBorderTop :: (Int, Int)
+hudBorderTop = (8, 4)
+
+hudBarHeight :: Int
+hudBarHeight = 40
+
+actionWidth :: Int
+actionWidth = screenWidth - 2 * (fst hudBorderTop)
+
+actionHeight :: Int
+actionHeight = screenHeight - 2 * (snd hudBorderTop) - hudBarHeight
+
+actionAreaY :: CInt
+actionAreaY = fromIntegral (snd hudBorderTop)
+
+actionAreaX :: CInt
+actionAreaX = fromIntegral (fst hudBorderTop)
+
+actionArea :: IntRectangle
+actionArea = IntRectangle hudBorderTop (actionWidth, actionHeight)
+
+--halfActionWidth :: Int
+--halfActionWidth = actionWidth `div` 2
+
+halfActionHeight :: CInt
+halfActionHeight = traceShow (actionHeight `div` 2) (fromIntegral (actionHeight `div` 2))
+
+distToProjPlane :: Double
+distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 6))
+
+ceilingColor :: SDL.V4 Word8
+ceilingColor = SDL.V4 1 84 88 255
+
+floorColor :: SDL.V4 Word8
+floorColor = SDL.V4 112 112 112 255
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
@@ -48,10 +92,10 @@ render r d s = do
   SDL.present r
 
 renderHud :: SDL.Renderer -> RenderData -> IO ()
-renderHud r (RenderData {areaSize=(width, height), hudPlaceholder=(texture, sourceRect)}) = do
+renderHud r (RenderData {hudPlaceholder=(texture, sourceRect)}) = do
   SDL.copy r texture (Just sourceRect) (Just destRect)
   where
-    destRect = SDL.Rectangle (SDL.P (SDL.V2 0 0)) (SDL.V2 (fromIntegral width) (fromIntegral height))
+    destRect = SDL.Rectangle (SDL.P (SDL.V2 0 0)) (SDL.V2 (fromIntegral screenWidth) (fromIntegral screenHeight))
 
 renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do
@@ -61,32 +105,32 @@ renderWorld r d w = do
   renderWeapon r d (worldTime w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
-renderCeilingAndFloor r RenderData {actionArea=(IntRectangle (x, y) (width, _)), halfActionSize=(_, halfH)} = do
-  SDL.rendererDrawColor r $= SDL.V4 1 84 88 255
-  SDL.fillRect r (Just (mkSDLRect (fromIntegral x) (fromIntegral y) cWidth cHalfH))
-  SDL.rendererDrawColor r $= SDL.V4 112 112 112 255
-  SDL.fillRect r (Just (mkSDLRect (fromIntegral x) cHalfH cWidth cHalfH))
+renderCeilingAndFloor r _ = do
+  SDL.rendererDrawColor r $= ceilingColor
+  SDL.fillRect r (Just (mkSDLRect x actionAreaY cWidth halfActionHeight))
+  SDL.rendererDrawColor r $= floorColor
+  SDL.fillRect r (Just (mkSDLRect x (actionAreaY + halfActionHeight) cWidth halfActionHeight))
   where
-    cHalfH = fromIntegral halfH
-    cWidth = fromIntegral width
+    cWidth = fromIntegral actionWidth
+    x = fromIntegral (intRectX actionArea)
 
 renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
-renderWalls r d@RenderData {actionArea=(IntRectangle _ (width, _))} w = forM_ hits (renderWallLine r d)
-  where hits = pixelWallHits w width
+renderWalls r d w = forM_ hits (renderWallLine r d)
+  where hits = pixelWallHits w actionWidth
 
 renderWallLine :: SDL.Renderer -> RenderData -> (Int, WallHit, Double) -> IO ()
-renderWallLine r (RenderData {actionArea=(IntRectangle a@(areaX, areaY) _), halfActionSize=(_, halfHeight), distToProjPlane=d, wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, distance) = do
-  copyWithActionOffset r a texture sourceRect destRect
+renderWallLine r (RenderData {wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, distance) = do
+  copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
   SDL.rendererDrawColor r $= SDL.V4 0 0 0 darknessAlpha
   SDL.drawLine r from to
   where
     (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
     hitWallX = vectorDist hit o
     hitWallTextureRatio = hitWallX `mod'` wallHeight / wallHeight
-    ratio = d / distance
-    projectedTop = round (fromIntegral halfHeight - (ratio * (wallHeight - heroHeight)))
+    ratio = distToProjPlane / distance
+    projectedTop = round (fromIntegral halfActionHeight - (ratio * (wallHeight - heroHeight)))
     projectedHeight = round (ratio * wallHeight)
-    from = SDL.P (SDL.V2 (fromIntegral (x + areaX)) (fromIntegral (projectedTop + (fromIntegral areaY))))
+    from = SDL.P (SDL.V2 (fromIntegral (x + (intRectX actionArea))) (fromIntegral (projectedTop + (fromIntegral (intRectY actionArea)))))
     to = SDL.P (SDL.V2 (fromIntegral x) (projectedTop + projectedHeight))
     darknessMultiplier = 8000
     intensity = 1 - min 1 ((1 / distance) * darknessMultiplier)
@@ -151,8 +195,8 @@ renderItem r d@RenderData {itemTextures=it} hero i@(EnvItem t itemPos) =
     texture = fromJust (M.lookup t it)
 
 renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()
-renderSprite r RenderData {actionArea=(IntRectangle a (width, _)), halfActionSize=(_, halfHeight), distToProjPlane=d} (texture, sourceRect) hero oPos oSize =
-  copyWithActionOffset r a texture sourceRect destRect
+renderSprite r _ (texture, sourceRect) hero oPos oSize =
+  copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
   --SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
   --SDL.fillRect r (Just destRect)
   where
@@ -165,19 +209,19 @@ renderSprite r RenderData {actionArea=(IntRectangle a (width, _)), halfActionSiz
 
     distance = vectorDist heroPos oPos
     -- TODO: Not sure of correct way to handle when 0 distance
-    ratio = d / max 0.01 distance
-    projectedTop = round (fromIntegral halfHeight - (ratio * (itemHeight - heroHeight)))
+    ratio = distToProjPlane / max 0.01 distance
+    projectedTop = round (fromIntegral halfActionHeight - (ratio * (itemHeight - heroHeight)))
     projectedHeight = round (ratio * itemHeight)
     projectedWidth = ratio * v2x oSize
-    x = round ((fromIntegral width * angleRatio) - (projectedWidth / 2))
+    x = round ((fromIntegral actionWidth * angleRatio) - (projectedWidth / 2))
     destRect = mkSDLRect x projectedTop (round projectedWidth) projectedHeight
 
 perpendicularDistance :: Double -> WallHit -> Double
 perpendicularDistance rayRotation (WallHit _ _ d) = d * cos rayRotation
 
 renderWeapon :: SDL.Renderer -> RenderData -> WorldTime -> Weapon -> IO ()
-renderWeapon r RenderData {actionArea=(IntRectangle a (width, height)), weaponTextures=wt} t w =
-  copyWithActionOffset r a texture sourceRect destRect
+renderWeapon r RenderData {weaponTextures=wt} t w =
+  copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
   where
     totalAnimationTime = 400
     sinceUsed = fmap (t -) (lastTimeWeaponUsed w)
@@ -186,4 +230,6 @@ renderWeapon r RenderData {actionArea=(IntRectangle a (width, height)), weaponTe
     animation = fromJust (M.lookup "Pistol" wt)
     texture = animationTexture animation
     sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getAnimationFrame animation progress
-    destRect = mkSDLRect (fromIntegral (width - fromIntegral tW) `div` 2) (fromIntegral (height - fromIntegral tH)) tW tH
+    destX = actionAreaX + (fromIntegral (actionWidth - fromIntegral tW) `div` 2)
+    destY = actionAreaY + (fromIntegral (actionHeight - fromIntegral tH))
+    destRect = mkSDLRect destX destY tW tH
