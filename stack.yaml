@@ -62,6 +62,8 @@ extra-deps:
   - QuickCheck-2.13.2
   - hspec-core-2.7.1
   - hspec-discover-2.7.1
+  - HUnit-1.6.0.0
+  - splitmix-0.0.3
 
 # Override default flag values for local packages and extra-deps
 flags: {}

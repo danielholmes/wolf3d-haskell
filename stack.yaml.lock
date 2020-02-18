@@ -151,6 +151,20 @@ packages:
       sha256: 2d1c4ccbd0c9047311d1bd24989714df844003c258964ef65d542f6627dc0fed
   original:
     hackage: hspec-discover-2.7.1
+- completed:
+    hackage: HUnit-1.6.0.0@sha256:8014b27c884becd8041214a1ab263fa92244ca62700a911aff604a1047869298,1570
+    pantry-tree:
+      size: 878
+      sha256: 270a6f8d6ef23eba3a9a1697aa244576abb168d10cb8e4736cf4add2b09eb650
+  original:
+    hackage: HUnit-1.6.0.0
+- completed:
+    hackage: splitmix-0.0.3@sha256:455de9326ae5bbe5492cbb140fefb04cf988501e25b204dabaf755ab67400d9d,4835
+    pantry-tree:
+      size: 870
+      sha256: 32f9dc84cb1845c5020bc9cb5c5c56e890d54d16b0cbf9c788825abb45165499
+  original:
+    hackage: splitmix-0.0.3
 snapshots:
 - completed:
     size: 535260
