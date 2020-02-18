@@ -19,7 +19,7 @@ fromVBlocks :: Vector2 -> Vector2
 fromVBlocks (Vector2 x y) = Vector2 (fromBlocks x) (fromBlocks y)
 
 dummyWorld :: World Wolf3DSimEntity
-dummyWorld = createWorld walls items
+dummyWorld = createWorld GreenCeiling walls items
   where
     metreWalls = [ Wall (Vector2 (-4) (-3)) (Vector2 0 7) Red
                  , Wall (Vector2 (-4) 4) (Vector2 3 0) Green
@@ -35,25 +35,25 @@ dummyWorld = createWorld walls items
             , SEHero createOriginHero ]
 
 dummyWorld2 :: World Wolf3DSimEntity
-dummyWorld2 = fromGrid [["WB1", "WB1", "WB1", "WB2", "WB2"],
-                        ["WB2", "DR",  "",    "DR",  "WB1"],
-                        ["WB1", "",    "",    "",    "WB1"],
-                        ["WB1", "",    "",    "",    "WB1"],
-                        ["WB2", "",    "",    "",    "WB1"],
-                        ["WB2", "",    "",    "",    "WB2"],
-                        ["WB1", "",    "",    "",    "WB2"],
-                        ["WB2", "",    "H",   "",    "WB2"],
-                        ["WB2", "",    "",    "",    "WB1"],
-                        ["WB1", "",    "",    "",    "WB1"],
-                        ["WB1", "",    "",    "",    "WB2"]]
+dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WB1", "WB2", "WB2"],
+                                      ["WB2", "DR",  "",    "DR",  "WB1"],
+                                      ["WB1", "",    "",    "",    "WB1"],
+                                      ["WB1", "",    "",    "",    "WB1"],
+                                      ["WB2", "",    "",    "",    "WB1"],
+                                      ["WB2", "",    "",    "",    "WB2"],
+                                      ["WB1", "",    "",    "",    "WB2"],
+                                      ["WB2", "",    "H",   "",    "WB2"],
+                                      ["WB2", "",    "",    "",    "WB1"],
+                                      ["WB1", "",    "",    "",    "WB1"],
+                                      ["WB1", "",    "",    "",    "WB2"]]
 
 dummyWorldSingleWall :: World Wolf3DSimEntity
-dummyWorldSingleWall = createWorld [wall] [SEHero createOriginHero]
+dummyWorldSingleWall = createWorld GreyCeiling [wall] [SEHero createOriginHero]
   where
     wall = Wall (Vector2 (-24000) 9000) (Vector2 44000 0) Blue
 
-fromGrid :: [[String]] -> World Wolf3DSimEntity
-fromGrid rows = createWorld ws is
+fromGrid :: Ceiling -> [[String]] -> World Wolf3DSimEntity
+fromGrid c rows = createWorld c ws is
   where
     (ws, is) = fromGridRows 0 rows
 

@@ -7,6 +7,7 @@ module Wolf3D.Engine (
   Wall (Wall),
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
+  Ceiling (GreyCeiling, GreenCeiling, PurpleCeiling, YellowCeiling),
   createWorld,
   worldWalls,
   worldEntities,
@@ -17,6 +18,7 @@ module Wolf3D.Engine (
   castRayToClosestWall,
   wallHeight,
   worldTime,
+  worldCeilingColor,
   tickWorld,
   tickWorldNTimes
 ) where
@@ -44,15 +46,18 @@ type HitPosition = Vector2
 data WallHit = WallHit Wall HitPosition DistanceToWall
   deriving (Show, Eq)
 
+data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
+  deriving (Show, Eq, Ord)
+
 type WorldTime = Int
 data World i where
-  World :: (SimEntity i) => [Wall] -> [i] -> WorldTime -> World i
+  World :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> WorldTime -> World i
 
-createWorld :: (SimEntity i) => [Wall] -> [i] -> World i
-createWorld walls items = World walls items 0
+createWorld :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> World i
+createWorld c walls items = World c walls items 0
 
 tickWorld :: Int -> World i -> World i
-tickWorld timeStep world@(World _ is _) = advanceWorldTime updatedWorld timeStep
+tickWorld timeStep world@(World _ _ is _) = advanceWorldTime updatedWorld timeStep
   where
     updatedItems = map (simUpdate world timeStep) is
     updatedWorld = updateWorldEntities world updatedItems
@@ -66,16 +71,19 @@ tickWorldNTimes w f n
       foldStep _ = tickWorld f
 
 updateWorldEntities :: World i -> [i] -> World i
-updateWorldEntities (World w _ t) i = World w i t
+updateWorldEntities (World c w _ t) i = World c w i t
 
 worldWalls :: World i -> [Wall]
-worldWalls (World walls _ _) = walls
+worldWalls (World _ walls _ _) = walls
 
 worldEntities :: (SimEntity i) => World i -> [i]
-worldEntities (World _ is _) = is
+worldEntities (World _ _ is _) = is
+
+worldCeilingColor :: World i -> Ceiling
+worldCeilingColor (World c _ _ _) = c
 
 worldTime :: World i -> Int
-worldTime (World _ _ t) = t
+worldTime (World _ _ _ t) = t
 
 worldWallsTouching :: World i -> Rectangle -> [Wall]
 worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
@@ -90,7 +98,7 @@ wallHeight :: Double
 wallHeight = 3000
 
 advanceWorldTime :: World i -> Int -> World i
-advanceWorldTime (World ws is time) step = World ws is (time + step)
+advanceWorldTime (World c ws is time) step = World c ws is (time + step)
 
 castRayToClosestWall :: World i -> Ray -> Maybe WallHit
 castRayToClosestWall w ray

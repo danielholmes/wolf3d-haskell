@@ -100,8 +100,11 @@ halfActionHeight = fromIntegral (actionHeight `div` 2)
 distToProjPlane :: Double
 distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 6))
 
-ceilingColor :: SDL.V4 Word8
-ceilingColor = SDL.V4 1 84 88 255
+ceilingColors :: M.Map Ceiling (SDL.V4 Word8)
+ceilingColors = M.fromList [(GreyCeiling, SDL.V4 55 55 55 255)
+                            , (PurpleCeiling, SDL.V4 63 2 63 255)
+                            , (GreenCeiling, SDL.V4 0 110 110 255)
+                            , (YellowCeiling, SDL.V4 87 83 2 255)]
 
 floorColor :: SDL.V4 Word8
 floorColor = SDL.V4 112 112 112 255
@@ -167,19 +170,19 @@ renderHudWeapon r (RenderData {hudWeapons=w}) = do
 
 renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do
-  renderCeilingAndFloor r d
+  renderCeilingAndFloor r d w
   renderWalls r d w
   renderItems r d w
   renderWeapon r d (worldTime w) (worldHeroWeapon w)
 
-renderCeilingAndFloor :: SDL.Renderer -> RenderData -> IO ()
-renderCeilingAndFloor r _ = do
+renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
+renderCeilingAndFloor r _ w = do
   SDL.rendererDrawColor r $= ceilingColor
-  SDL.fillRect r (Just (mkSDLRect x actionAreaY actionWidth halfActionHeight))
+  SDL.fillRect r (Just (mkSDLRect actionAreaX actionAreaY actionWidth halfActionHeight))
   SDL.rendererDrawColor r $= floorColor
-  SDL.fillRect r (Just (mkSDLRect x (actionAreaY + halfActionHeight) actionWidth halfActionHeight))
+  SDL.fillRect r (Just (mkSDLRect actionAreaX (actionAreaY + halfActionHeight) actionWidth halfActionHeight))
   where
-    x = intRectX actionArea
+    ceilingColor = fromJust (M.lookup (worldCeilingColor w) ceilingColors)
 
 renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d w = forM_ hits (renderWallLine r d)
