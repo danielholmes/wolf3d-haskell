@@ -18,11 +18,23 @@ loadRenderData r = do
   w <- loadWallDatas r
   i <- loadEnvItemsData r
   weapons <- loadWeaponData r
-  hudPlaceholder <- loadHudData r
-  return (RenderData w i weapons hudPlaceholder)
+  hudBase <- loadHudBaseData r
+  bjFace <- loadBjFace r
+  numbers <- loadNumbers r
+  hudWeapons <- loadHudWeapons r
+  return (RenderData w i weapons hudBase bjFace numbers hudWeapons)
 
-loadHudData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
-loadHudData r = loadTexture r "hud-placeholder.png"
+loadHudBaseData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
+loadHudBaseData r = loadTexture r "hud-base.png"
+
+loadBjFace :: SDL.Renderer -> IO (Animation)
+loadBjFace r = loadAnimation r "bj.png" (30, 30)
+
+loadNumbers :: SDL.Renderer -> IO (SpriteSheet)
+loadNumbers r = loadSpriteSheet r "hud-numbers.png" (8, 16)
+
+loadHudWeapons :: SDL.Renderer -> IO (SpriteSheet)
+loadHudWeapons r = loadSpriteSheet r "hud-weapons.png" (48, 24)
 
 loadWallDatas :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (Int, Int)))
 loadWallDatas r = do
@@ -62,6 +74,11 @@ loadTexture r p = do
   let w = fromIntegral (SDL.Video.Renderer.textureWidth i)
   let h = fromIntegral (SDL.Video.Renderer.textureHeight i)
   return (t, mkSDLRect 0 0 w h)
+
+loadSpriteSheet :: SDL.Renderer -> FilePath -> SpriteSize -> IO SpriteSheet
+loadSpriteSheet r p sSize = do
+  (t, SDL.Rectangle _ tSize) <- loadTexture r p
+  return (fromJust (createSpriteSheet t tSize sSize))
 
 loadAnimation :: SDL.Renderer -> FilePath -> SpriteSize -> IO Animation
 loadAnimation r p sSize = do

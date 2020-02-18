@@ -1,11 +1,14 @@
 module Wolf3D.Animation (
   SpriteSheet,
   createSpriteSheet,
+  spriteSheetTexture,
   Animation,
   SpriteSize,
   animationTexture,
   createAnimation,
-  getAnimationFrame
+  getSpriteSheetLocation,
+  getAnimationFrame,
+  SpriteSheetFrame
 ) where
 
 import qualified SDL
@@ -17,6 +20,7 @@ type SpriteSize = (Int, Int)
 type SpriteLocation = SDL.Rectangle CInt
 type SpriteIndex = Int
 data SpriteSheet = SpriteSheet SDL.Texture TextureSize [SpriteLocation]
+type SpriteSheetFrame = (SDL.Texture, SpriteLocation)
 
 type AnimationFrame = SpriteLocation
 data Animation = Animation SpriteSheet
