@@ -17,6 +17,6 @@ withViewport r vp op = do
   void op
   SDL.rendererViewport r $= oldViewport
 
-copyWithActionOffset :: (MonadIO m) => SDL.Renderer -> (Int, Int) -> SDL.Texture -> SDL.Rectangle CInt -> SDL.Rectangle CInt -> m ()
+copyWithActionOffset :: (MonadIO m) => SDL.Renderer -> (CInt, CInt) -> SDL.Texture -> SDL.Rectangle CInt -> SDL.Rectangle CInt -> m ()
 copyWithActionOffset r _ texture sourceRect destRect = do
   SDL.copy r texture (Just sourceRect) (Just destRect)

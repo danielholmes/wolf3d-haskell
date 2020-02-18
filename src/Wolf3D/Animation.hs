@@ -15,8 +15,8 @@ import qualified SDL
 import Foreign.C.Types (CInt)
 
 
-type TextureSize = (Int, Int)
-type SpriteSize = (Int, Int)
+type TextureSize = (CInt, CInt)
+type SpriteSize = (CInt, CInt)
 type SpriteLocation = SDL.Rectangle CInt
 type SpriteIndex = Int
 data SpriteSheet = SpriteSheet SDL.Texture TextureSize [SpriteLocation]
@@ -26,27 +26,25 @@ type AnimationFrame = SpriteLocation
 data Animation = Animation SpriteSheet
 
 createSpriteSheet :: SDL.Texture -> SDL.V2 CInt -> SpriteSize -> Maybe SpriteSheet
-createSpriteSheet t (SDL.V2 cW cH) sSize@(sW, sH)
-  | w `mod` sW == 0 && h `mod` sH == 0 = Just (SpriteSheet t (w, h) locations)
-  | otherwise                          = Nothing
+createSpriteSheet t cSize@(SDL.V2 cW cH) sSize@(sW, sH)
+  | cW `mod` sW == 0 && cH `mod` sH == 0 = Just (SpriteSheet t (cW, cH) locations)
+  | otherwise                            = Nothing
   where
-    w = fromIntegral cW
-    h = fromIntegral cH
-    locations = createSpriteLocations (w, h) sSize
+    locations = createSpriteLocations cSize sSize
 
-createSpriteLocations :: TextureSize -> SpriteSize -> [SpriteLocation]
-createSpriteLocations (w, h) (fW, fH) = concatMap createRowLocations rows
+createSpriteLocations :: SDL.V2 CInt -> SpriteSize -> [SpriteLocation]
+createSpriteLocations (SDL.V2 w h) (fW, fH) = concatMap createRowLocations rows
   where
     cols = [0..((w `div` fW) - 1)]
     rows = [0..((h `div` fH) - 1)]
-    sSize = SDL.V2 (fromIntegral fW) (fromIntegral fH)
+    sSize = SDL.V2 fW fH
 
-    createRowLocations :: Int -> [SpriteLocation]
+    createRowLocations :: CInt -> [SpriteLocation]
     createRowLocations row = map (createColLocation row) cols
 
-    createColLocation :: Int -> Int -> SpriteLocation
+    createColLocation :: CInt -> CInt -> SpriteLocation
     createColLocation row col = SDL.Rectangle colPos sSize
-      where colPos = SDL.P (SDL.V2 (fromIntegral (col * fW)) (fromIntegral (row * fH)))
+      where colPos = SDL.P (SDL.V2 (col * fW) (row * fH))
 
 getSpriteSheetLocation :: SpriteSheet -> SpriteIndex -> SpriteLocation
 getSpriteSheetLocation (SpriteSheet _ _ ls) i = ls !! i

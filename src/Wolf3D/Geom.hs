@@ -1,11 +1,7 @@
 module Wolf3D.Geom (
   Ray,
   Rectangle (Rectangle),
-  IntRectangle (IntRectangle),
   Line,
-  intRectPos,
-  intRectX,
-  intRectY,
   createRay,
   rayOrigin,
   rayDirection,
@@ -32,7 +28,6 @@ import Data.Maybe
 type Line = (Vector2, Vector2)
 
 data Rectangle = Rectangle Vector2 Vector2
-data IntRectangle = IntRectangle (Int, Int) (Int, Int)
 
 data Ray = Ray Vector2 Vector2
   deriving (Show, Eq)
@@ -42,15 +37,6 @@ data Ray = Ray Vector2 Vector2
 --createAngleFromCentre :: Ray -> Double -> Angle
 --createAngleFromCentre centre size = Angle (rotateRay centre (-halfSize)) (rotateRay centre halfSize) size
 --  where halfSize = size / 2
-
-intRectX :: IntRectangle -> Int
-intRectX (IntRectangle (x, _) _) = x
-
-intRectY :: IntRectangle -> Int
-intRectY (IntRectangle (_, y) _) = y
-
-intRectPos :: IntRectangle -> (Int, Int)
-intRectPos (IntRectangle pos _) = pos
 
 createRay :: Vector2 -> Vector2 -> Ray
 createRay p m

@@ -36,7 +36,7 @@ loadNumbers r = loadSpriteSheet r "hud-numbers.png" (8, 16)
 loadHudWeapons :: SDL.Renderer -> IO (SpriteSheet)
 loadHudWeapons r = loadSpriteSheet r "hud-weapons.png" (48, 24)
 
-loadWallDatas :: SDL.Renderer -> IO (Map WallMaterial (SDL.Texture, (Int, Int)))
+loadWallDatas :: SDL.Renderer -> IO (WallMaterialData)
 loadWallDatas r = do
   blue <- loadTexture r "blue.png"
   blue2 <- loadTexture r "blue2.png"
@@ -52,8 +52,8 @@ loadWallDatas r = do
                 , (Green, green)]
   return (fromList (map rectToSize entries))
   where
-    rectToSize :: (WallMaterial, (SDL.Texture, SDL.Rectangle CInt)) -> (WallMaterial, (SDL.Texture, (Int, Int)))
-    rectToSize (m, (t, SDL.Rectangle _ (SDL.V2 width height))) = (m, (t, (fromIntegral width, fromIntegral height)))
+    rectToSize :: (WallMaterial, (SDL.Texture, SDL.Rectangle CInt)) -> (WallMaterial, (SDL.Texture, (CInt, CInt)))
+    rectToSize (m, (t, SDL.Rectangle _ (SDL.V2 width height))) = (m, (t, (width, height)))
 
 loadEnvItemsData :: SDL.Renderer -> IO (Map EnvItemType (SDL.Texture, SDL.Rectangle CInt))
 loadEnvItemsData r = do
@@ -71,8 +71,8 @@ loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, SDL.Rectangle CInt)
 loadTexture r p = do
   t <- SDL.Image.loadTexture r ("assets/" ++ p)
   i <- SDL.queryTexture t
-  let w = fromIntegral (SDL.Video.Renderer.textureWidth i)
-  let h = fromIntegral (SDL.Video.Renderer.textureHeight i)
+  let w = (SDL.Video.Renderer.textureWidth i)
+  let h = (SDL.Video.Renderer.textureHeight i)
   return (t, mkSDLRect 0 0 w h)
 
 loadSpriteSheet :: SDL.Renderer -> FilePath -> SpriteSize -> IO SpriteSheet

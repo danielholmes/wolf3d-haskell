@@ -35,7 +35,7 @@ render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
 render r drd@(DebugRenderData rd _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
-  withViewport r (Just (mkSDLRect 0 0 (fromIntegral miniMapWidth) (fromIntegral miniMapHeight))) $
+  withViewport r (Just (mkSDLRect 0 0 miniMapWidth miniMapHeight)) $
     renderMiniMap r 0.009 (miniMapWidth, miniMapHeight) w
   drawDebugText r drd debugText
   SDL.present r
@@ -55,11 +55,11 @@ createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
 drawDebugText r (DebugRenderData _ font) text =
-  withViewport r (Just (mkSDLRect 0 0 (fromIntegral D.screenWidth) (fromIntegral D.screenHeight))) $ do
+  withViewport r (Just (mkSDLRect 0 0 D.screenWidth D.screenHeight)) $ do
     surface <- SDL.Font.solid font whiteColor (pack text)
     (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
     texture <- SDL.createTextureFromSurface r surface
-    let rect = Just (mkSDLRect 0 (fromIntegral (D.screenHeight - fromIntegral textH)) textW textH)
+    let rect = Just (mkSDLRect 0 (D.screenHeight - textH) textW textH)
     SDL.rendererDrawColor r $= panelColor
     SDL.fillRect r rect
     SDL.copy r texture Nothing rect

@@ -15,7 +15,7 @@ import Data.List (find)
 import GHC.Word (Word8)
 
 
-data MiniMapData = MiniMapData Double (Int, Int) Vector2 Rectangle Vector2
+data MiniMapData = MiniMapData Double (CInt, CInt) Vector2 Rectangle Vector2
 
 heroColor :: SDL.V4 Word8
 heroColor = SDL.V4 255 0 0 255
@@ -29,10 +29,10 @@ itemColor = SDL.V4 0 0 255 255
 panelColor :: SDL.V4 Word8
 panelColor = SDL.V4 0 0 0 100
 
-renderMiniMap :: SDL.Renderer -> Double -> (Int, Int) -> World Wolf3DSimEntity -> IO ()
+renderMiniMap :: SDL.Renderer -> Double -> (CInt, CInt) -> World Wolf3DSimEntity -> IO ()
 renderMiniMap r dScale size@(width, height) w = do
   SDL.rendererDrawColor r $= panelColor
-  SDL.fillRect r (Just (mkSDLRect 0 0 (fromIntegral width) (fromIntegral height)))
+  SDL.fillRect r (Just (mkSDLRect 0 0 width height))
   renderHero r mMData hero
   renderItems r mMData w
   renderWalls r mMData w
@@ -40,7 +40,7 @@ renderMiniMap r dScale size@(width, height) w = do
     hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
     mMData = createMiniMapData dScale size w
 
-createMiniMapData :: Double -> (Int, Int) -> World Wolf3DSimEntity -> MiniMapData
+createMiniMapData :: Double -> (CInt, CInt) -> World Wolf3DSimEntity -> MiniMapData
 createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize worldRect hPosition
   where
     hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))

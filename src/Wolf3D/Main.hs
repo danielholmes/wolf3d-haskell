@@ -15,7 +15,7 @@ type Scale = Int
 createMain :: Scale -> World Wolf3DSimEntity -> (SDL.Renderer -> IO (SimRun -> IO ())) -> IO ()
 createMain s initWorld createRender = do
   -- Original native size
-  let width = s * screenWidth
+  let width = (fromIntegral s) * screenWidth
   -- wolf3d was 320 x 200 on 4:3 displays, so it was scaled vertically
   let windowSize = (width, width `div` 4 * 3)
   -- On a machine with infinite resources, frame rate of Wolf3D was 70fps

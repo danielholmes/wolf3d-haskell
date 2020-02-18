@@ -7,9 +7,10 @@ import qualified SDL.Font
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.Text (Text)
+import Foreign.C.Types (CInt)
 
 
-createUI :: (MonadIO m) => (Int, Int) -> (SDL.Renderer -> m a) -> m ()
+createUI :: (MonadIO m) => (CInt, CInt) -> (SDL.Renderer -> m a) -> m ()
 createUI (width, height) op = do
   SDL.initialize []
   SDL.Image.initialize []
@@ -21,7 +22,7 @@ createUI (width, height) op = do
   SDL.Image.quit
   SDL.quit
 
-withWindow :: (MonadIO m) => Text -> (Int, Int) -> (SDL.Window -> m a) -> m ()
+withWindow :: (MonadIO m) => Text -> (CInt, CInt) -> (SDL.Window -> m a) -> m ()
 withWindow title (x, y) op = do
   w <- SDL.createWindow title p
   SDL.showWindow w
