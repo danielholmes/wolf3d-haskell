@@ -64,7 +64,7 @@ loadEnvItemsData r = do
 
 loadWeaponData :: SDL.Renderer -> IO (Map String Animation)
 loadWeaponData r = do
-  pistol <- loadAnimation r "pistol.png" (151, 151)
+  pistol <- loadAnimation r "pistol.png" (151, 70)
   return (fromList [("Pistol", pistol)])
 
 loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, SDL.Rectangle CInt)
