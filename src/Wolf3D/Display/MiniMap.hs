@@ -12,13 +12,26 @@ import Data.Foldable (forM_)
 import Data.StateVar (($=))
 import Data.Maybe (fromJust)
 import Data.List (find)
+import GHC.Word (Word8)
 
 
 data MiniMapData = MiniMapData Double (Int, Int) Vector2 Rectangle Vector2
 
+heroColor :: SDL.V4 Word8
+heroColor = SDL.V4 255 0 0 255
+
+wallColor :: SDL.V4 Word8
+wallColor = SDL.V4 0 255 0 255
+
+itemColor :: SDL.V4 Word8
+itemColor = SDL.V4 0 0 255 255
+
+panelColor :: SDL.V4 Word8
+panelColor = SDL.V4 0 0 0 100
+
 renderMiniMap :: SDL.Renderer -> Double -> (Int, Int) -> World Wolf3DSimEntity -> IO ()
 renderMiniMap r dScale size@(width, height) w = do
-  SDL.rendererDrawColor r $= SDL.V4 0 0 0 100
+  SDL.rendererDrawColor r $= panelColor
   SDL.fillRect r (Just (mkSDLRect 0 0 (fromIntegral width) (fromIntegral height)))
   renderHero r mMData hero
   renderItems r mMData w
@@ -39,7 +52,7 @@ createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize
 
 renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
 renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
-  SDL.rendererDrawColor r $= SDL.V4 255 0 0 255
+  SDL.rendererDrawColor r $= heroColor
   drawEqTriangle r (scale * heroSize) halfSize (-rotation)
   drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) rotation)
   where
@@ -48,7 +61,7 @@ renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
-  SDL.rendererDrawColor r $= SDL.V4 0 255 0 255
+  SDL.rendererDrawColor r $= wallColor
   forM_ (worldWallsTouching w worldRect) (renderWall r d)
 
 renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
@@ -85,7 +98,7 @@ drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)
 
 renderItems :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
 renderItems r d@(MiniMapData _ _ _ worldRect _) w = do
-  SDL.rendererDrawColor r $= SDL.V4 0 0 255 255
+  SDL.rendererDrawColor r $= itemColor
   forM_ (worldEnvItemsTouching worldRect w) (renderItem r d)
 
 renderItem :: SDL.Renderer -> MiniMapData -> EnvItem -> IO ()

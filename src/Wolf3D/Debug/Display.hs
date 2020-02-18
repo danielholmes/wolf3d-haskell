@@ -17,9 +17,16 @@ import Control.StopWatch
 import Data.StateVar (($=))
 import Data.Text (pack)
 import System.Clock
+import GHC.Word (Word8)
 
 
 data DebugRenderData = DebugRenderData D.RenderData SDL.Font.Font
+
+whiteColor :: SDL.V4 Word8
+whiteColor = SDL.V4 255 255 255 255
+
+panelColor :: SDL.V4 Word8
+panelColor = SDL.V4 0 0 0 100
 
 setupRenderer :: SDL.Renderer -> IO ()
 setupRenderer = D.setupRenderer
@@ -49,11 +56,11 @@ createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
 drawDebugText r (DebugRenderData _ font) text =
   withViewport r (Just (mkSDLRect 0 0 (fromIntegral D.screenWidth) (fromIntegral D.screenHeight))) $ do
-    surface <- SDL.Font.solid font (SDL.V4 255 255 255 255) (pack text)
+    surface <- SDL.Font.solid font whiteColor (pack text)
     (SDL.V2 textW textH) <- SDL.surfaceDimensions surface
     texture <- SDL.createTextureFromSurface r surface
     let rect = Just (mkSDLRect 0 (fromIntegral (D.screenHeight - fromIntegral textH)) textW textH)
-    SDL.rendererDrawColor r $= SDL.V4 0 0 0 122
+    SDL.rendererDrawColor r $= panelColor
     SDL.fillRect r rect
     SDL.copy r texture Nothing rect
     SDL.freeSurface surface

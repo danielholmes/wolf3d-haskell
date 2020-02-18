@@ -29,7 +29,6 @@ import Data.Fixed
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
-import Debug.Trace
 
 
 type WallMaterialData = M.Map WallMaterial (SDL.Texture, (Int, Int))
@@ -71,7 +70,7 @@ actionArea = IntRectangle hudBorderTop (actionWidth, actionHeight)
 --halfActionWidth = actionWidth `div` 2
 
 halfActionHeight :: CInt
-halfActionHeight = traceShow (actionHeight `div` 2) (fromIntegral (actionHeight `div` 2))
+halfActionHeight = fromIntegral (actionHeight `div` 2)
 
 distToProjPlane :: Double
 distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 6))
