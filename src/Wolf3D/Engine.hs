@@ -1,23 +1,23 @@
 {-# LANGUAGE GADTs #-}
 module Wolf3D.Engine (
   SimEntity (simUpdate),
-  StepMillis,
   World,
-  WorldTime,
+  WorldTicks,
   Wall (Wall),
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
+  TileCoord,
   Ceiling (GreyCeiling, GreenCeiling, PurpleCeiling, YellowCeiling),
   createWorld,
   worldWalls,
   worldEntities,
   updateWorldEntities,
-  advanceWorldTime,
+  ticWorldTicks,
   worldWallsTouching,
   wallToLine,
   castRayToClosestWall,
   wallHeight,
-  worldTime,
+  worldTics,
   worldCeilingColor,
   tickWorld,
   tickWorldNTimes
@@ -28,14 +28,14 @@ import Data.Vector
 import Data.List
 
 
-type StepMillis = Int
 class SimEntity i where
-  simUpdate :: World a -> StepMillis -> i -> i
+  simUpdate :: World a -> i -> i
 
 -- TODO: See if way of moving wall materials outside of engine
 data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
   deriving (Show, Eq, Ord)
 
+type TileCoord = (Int, Int)
 type WallPosition = Vector2
 type WallSize = Vector2
 data Wall = Wall WallPosition WallSize WallMaterial
@@ -49,26 +49,27 @@ data WallHit = WallHit Wall HitPosition DistanceToWall
 data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
   deriving (Show, Eq, Ord)
 
-type WorldTime = Int
+type WorldTicks = Int
+-- Tried record syntax for this and failed
 data World i where
-  World :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> WorldTime -> World i
+  World :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> WorldTicks -> World i
 
 createWorld :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> World i
 createWorld c walls items = World c walls items 0
 
-tickWorld :: Int -> World i -> World i
-tickWorld timeStep world@(World _ _ is _) = advanceWorldTime updatedWorld timeStep
+tickWorld :: World i -> World i
+tickWorld world@(World _ _ is _) = ticWorldTicks updatedWorld
   where
-    updatedItems = map (simUpdate world timeStep) is
+    updatedItems = map (simUpdate world) is
     updatedWorld = updateWorldEntities world updatedItems
 
-tickWorldNTimes :: World i -> Int -> Int -> Maybe (World i)
-tickWorldNTimes w f n
+tickWorldNTimes :: World i -> Int -> Maybe (World i)
+tickWorldNTimes w n
   | n == 0    = Nothing
   | otherwise = Just (foldr foldStep w [1..n])
     where
       foldStep :: Int -> World i -> World i
-      foldStep _ = tickWorld f
+      foldStep _ = tickWorld
 
 updateWorldEntities :: World i -> [i] -> World i
 updateWorldEntities (World c w _ t) i = World c w i t
@@ -82,8 +83,8 @@ worldEntities (World _ _ is _) = is
 worldCeilingColor :: World i -> Ceiling
 worldCeilingColor (World c _ _ _) = c
 
-worldTime :: World i -> Int
-worldTime (World _ _ _ t) = t
+worldTics :: World i -> Int
+worldTics (World _ _ _ t) = t
 
 worldWallsTouching :: World i -> Rectangle -> [Wall]
 worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
@@ -97,8 +98,8 @@ wallToLine (Wall start change _) = (start, change)
 wallHeight :: Double
 wallHeight = 3000
 
-advanceWorldTime :: World i -> Int -> World i
-advanceWorldTime (World c ws is time) step = World c ws is (time + step)
+ticWorldTicks :: World i -> World i
+ticWorldTicks (World c ws is tics) = World c ws is (tics + 1)
 
 castRayToClosestWall :: World i -> Ray -> Maybe WallHit
 castRayToClosestWall w ray

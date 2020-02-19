@@ -97,8 +97,13 @@ hudWeaponY = fromIntegral (screenHeight - 33)
 halfActionHeight :: CInt
 halfActionHeight = fromIntegral (actionHeight `div` 2)
 
+-- deprecated, not sure what it is actually
 distToProjPlane :: Double
-distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 6))
+distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 96))
+
+-- Taken from original source
+--focalLength :: Int
+--focalLength = 0x5700
 
 ceilingColors :: M.Map Ceiling (SDL.V4 Word8)
 ceilingColors = M.fromList [(GreyCeiling, SDL.V4 55 55 55 255)
@@ -173,7 +178,7 @@ renderWorld r d w = do
   renderCeilingAndFloor r d w
   renderWalls r d w
   renderItems r d w
-  renderWeapon r d (worldTime w) (worldHeroWeapon w)
+  renderWeapon r d (worldTics w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderCeilingAndFloor r _ w = do
@@ -186,12 +191,11 @@ renderCeilingAndFloor r _ w = do
 
 renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d w = forM_ hits (renderWallLine r d)
-  where hits = pixelWallHits w actionWidth
+  where hits = pixelWallHits w
 
 renderWallLine :: SDL.Renderer -> RenderData -> (CInt, WallHit, Double) -> IO ()
 renderWallLine r (RenderData {wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, distance) = do
   copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
-  SDL.rendererDrawColor r $= SDL.V4 0 0 0 darknessAlpha
   SDL.drawLine r from to
   where
     (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
@@ -202,9 +206,6 @@ renderWallLine r (RenderData {wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, 
     projectedHeight = round (ratio * wallHeight)
     from = SDL.P (SDL.V2 (x + (intRectX actionArea)) (projectedTop + (intRectY actionArea)))
     to = SDL.P (SDL.V2 x (projectedTop + projectedHeight))
-    darknessMultiplier = 8000
-    intensity = 1 - min 1 ((1 / distance) * darknessMultiplier)
-    darknessAlpha = round (255 * intensity)
     textureXDouble = hitWallTextureRatio * (fromIntegral textureWidth - 1)
     textureX = floor textureXDouble
     sourceRect = mkSDLRect textureX 0 1 textureHeight
@@ -236,23 +237,23 @@ renderWallLine r (RenderData {wallTextures=wt}) (x, WallHit (Wall o _ m) hit _, 
 --wallColour Red = SDL.V4 255 0 0 255
 --wallColour Green = SDL.V4 0 255 0 255
 
-pixelWallHits :: World Wolf3DSimEntity -> CInt -> [(CInt, WallHit, Double)]
-pixelWallHits w width = foldr foldStep [] hits
+pixelWallHits :: World Wolf3DSimEntity -> [(CInt, WallHit, Double)]
+pixelWallHits w = foldr foldStep [] hits
   where
-    pixels = [0..(width - 1)]
-    hits = map (\i -> (i, pixelWallHit w width i)) pixels
+    pixels = [0..(actionWidth - 1)]
+    hits = map (\i -> (i, pixelWallHit w i)) pixels
+
     foldStep :: (CInt, Maybe (WallHit, Double)) -> [(CInt, WallHit, Double)] -> [(CInt, WallHit, Double)]
     foldStep (_, Nothing) accu = accu
     foldStep (i, Just (h, d)) accu = (i, h, d) : accu
 
-pixelWallHit :: World Wolf3DSimEntity -> CInt -> CInt -> Maybe (WallHit, Double)
-pixelWallHit w width i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
+pixelWallHit :: World Wolf3DSimEntity -> CInt -> Maybe (WallHit, Double)
+pixelWallHit w i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
   where
     hero = worldHero w
     hRay = heroLookRay hero
-    widthI = fromIntegral width
-    ratio = fromIntegral i / widthI
-    rayRotation = heroFieldOfViewSize hero * (ratio - 0.5)
+    ratio = fromIntegral i / fromIntegral actionWidth
+    rayRotation = pi / 3 * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation
 
 renderItems :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
@@ -270,11 +271,11 @@ renderSprite r _ (texture, sourceRect) hero oPos oSize =
   --SDL.rendererDrawColor r $= SDL.V4 255 0 0 50
   --SDL.fillRect r (Just destRect)
   where
-    heroPos = heroPosition hero
+    heroPos = position hero
     heroLookAngle = rayAngle (heroLookRay hero)
     itemAngle = vector2ToAngle (oPos - heroPos)
     projectionAngle = itemAngle - heroLookAngle
-    fieldOfViewSize = heroFieldOfViewSize hero
+    fieldOfViewSize = pi / 3
     angleRatio = ((fieldOfViewSize / 2) + projectionAngle) / fieldOfViewSize
 
     distance = vectorDist heroPos oPos
@@ -289,7 +290,7 @@ renderSprite r _ (texture, sourceRect) hero oPos oSize =
 perpendicularDistance :: Double -> WallHit -> Double
 perpendicularDistance rayRotation (WallHit _ _ d) = d * cos rayRotation
 
-renderWeapon :: SDL.Renderer -> RenderData -> WorldTime -> Weapon -> IO ()
+renderWeapon :: SDL.Renderer -> RenderData -> WorldTicks -> Weapon -> IO ()
 renderWeapon r RenderData {weaponTextures=wt} t w =
   copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
   where

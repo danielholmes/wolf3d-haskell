@@ -14,40 +14,75 @@ simSpec :: SpecWith ()
 simSpec =
   describe "Wolf3D.Sim" $ do
     describe "heroLookRay" $ do
-      it "should return correct length 1 for straight" $
+      it "should return correct length 1 for east" $
         let
           hero = createHero (Vector2 0 0)
         in
-          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 1))
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 1 0))
 
-      it "should return correct for looking backward" $
+      it "should return correct for looking west" $
         let
-          hero = rotateHero (createHero (Vector2 0 0)) pi
+          hero = rotateHero (createHero (Vector2 0 0)) (180 * 20) -- angleScale
         in
-          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 0 (-1)))
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 (-1) 0))
 
-      it "should return correct for looking 45 right" $
+      it "should return correct for looking 45 NE" $
         let
-          hero = rotateHero (createHero (Vector2 0 0)) (pi / 4)
+          hero = rotateHero (createHero (Vector2 0 0)) (45 * 20) -- angleScale
+        in
+          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 vec2Unit45 (-vec2Unit45)))
+
+      it "should return correct for looking 45 SE" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (315 * 20) -- angleScale
         in
           heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 vec2Unit45 vec2Unit45))
 
-      it "should return correct for looking 45 left" $
-        let
-          hero = rotateHero (createHero (Vector2 0 0)) (-pi / 4)
-        in
-          heroLookRay hero `shouldSatisfy` veryCloseToRay (createRay (Vector2 0 0) (Vector2 (-vec2Unit45) vec2Unit45))
-
     describe "moveHero" $ do
-      it "should move correctly if facing forward" $
+      it "should move forward correctly if facing north" $
         let
-          hero = createHero (Vector2 0 0)
+          hero = rotateHero (createHero (Vector2 0 0)) (90 * 20) -- angleScale
         in
-          heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
+          position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
 
-      it "should move correctly if facing backward" $
+      it "should move forward correctly if facing south" $
         let
-          hero = rotateHero (createHero (Vector2 0 0)) pi
+          hero = rotateHero (createHero (Vector2 0 0)) (270 * 20) -- angleScale
         in
-          heroPosition (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
+          position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
+      
+      it "should move backward correctly if facing north" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (90 * 20) -- angleScale
+        in
+          position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
 
+      it "should move backward correctly if facing south" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (270 * 20) -- angleScale
+        in
+          position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
+      
+      it "should move forward correctly if facing east" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (0 * 20) -- angleScale
+        in
+          position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 1 0)
+      
+      it "should move backward correctly if facing east" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (0 * 20) -- angleScale
+        in
+          position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 (-1) 0)
+      
+      it "should move forward correctly if facing west" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (180 * 20) -- angleScale
+        in
+          position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 (-1) 0)
+      
+      it "should move backward correctly if facing west" $
+        let
+          hero = rotateHero (createHero (Vector2 0 0)) (180 * 20) -- angleScale
+        in
+          position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 1 0)

@@ -18,7 +18,8 @@ module Wolf3D.Geom (
   rectangleSides,
   rectangleOverlapsRectangle,
   rectMult,
-  rectAdd
+  rectAdd,
+  deg2Rad
 ) where
 
 import Data.Vector
@@ -37,6 +38,9 @@ data Ray = Ray Vector2 Vector2
 --createAngleFromCentre :: Ray -> Double -> Angle
 --createAngleFromCentre centre size = Angle (rotateRay centre (-halfSize)) (rotateRay centre halfSize) size
 --  where halfSize = size / 2
+
+deg2Rad :: Double
+deg2Rad = pi / 180
 
 createRay :: Vector2 -> Vector2 -> Ray
 createRay p m

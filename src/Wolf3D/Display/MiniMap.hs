@@ -44,7 +44,7 @@ createMiniMapData :: Double -> (CInt, CInt) -> World Wolf3DSimEntity -> MiniMapD
 createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize worldRect hPosition
   where
     hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
-    hPosition = heroPosition hero
+    hPosition = position hero
     halfSize = Vector2 (fromIntegral (width `div` 2)) (fromIntegral (height `div` 2))
     worldSize = Vector2 (fromIntegral width) (fromIntegral height) *| (1 / scale)
     worldHalfSize = worldSize *| 0.5
@@ -53,11 +53,14 @@ createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize
 renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
 renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
   SDL.rendererDrawColor r $= heroColor
-  drawEqTriangle r (scale * heroSize) halfSize (-rotation)
-  drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) rotation)
+  drawEqTriangle r (scale * heroSize) halfSize alignedRot
+  drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) (-alignedRot))
   where
-    heroSize = 1000
-    rotation = heroRotation h
+    -- TODO: Take something from sim about this
+    heroSize = 10000
+    rotation = snappedRotation h
+    rotationRads = deg2Rad * (fromIntegral rotation)
+    alignedRot = rotationRads - pi / 2
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
@@ -79,7 +82,7 @@ cos60 :: Double
 cos60 = cos (pi / 3)
 
 drawEqTriangle :: SDL.Renderer -> Double -> Vector2 -> Double -> IO ()
-drawEqTriangle r s pos rot = do
+drawEqTriangle r s pos rotRads = do
   SDL.drawLine r top right
   SDL.drawLine r right left
   SDL.drawLine r left top
@@ -89,9 +92,9 @@ drawEqTriangle r s pos rot = do
     topY = -halfHeight
     rightX = halfHeight
     leftX = -halfHeight
-    top = roundToSDLP (pos + rotateVector2 (Vector2 0 topY) rot)
-    right = roundToSDLP (pos + rotateVector2 (Vector2 rightX bottomY) rot)
-    left = roundToSDLP (pos + rotateVector2 (Vector2 leftX bottomY) rot)
+    top = roundToSDLP (pos + rotateVector2 (Vector2 0 topY) rotRads)
+    right = roundToSDLP (pos + rotateVector2 (Vector2 rightX bottomY) rotRads)
+    left = roundToSDLP (pos + rotateVector2 (Vector2 leftX bottomY) rotRads)
 
 drawRectangle :: SDL.Renderer -> MiniMapData -> Rectangle -> IO ()
 drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)

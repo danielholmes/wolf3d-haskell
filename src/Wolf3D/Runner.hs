@@ -65,11 +65,11 @@ timerTick render run@(SimRun world fixedStep maxStepsPerTick previousTime _) = d
   now <- getCurrentTime
   let (TimerTickSpec numSteps updatedTime) = calculateTimerTickSpec previousTime fixedStep maxStepsPerTick now
 
-  currentInput <- processInput (heroActionsState (worldHero world))
+  currentInput <- processInput (actionsState (worldHero world))
   let runWithInput = applyInput run currentInput
   let preTickWorld = simRunWorld runWithInput
 
-  let ranWorld = tickWorldNTimes preTickWorld fixedStep numSteps
+  let ranWorld = tickWorldNTimes preTickWorld numSteps
 
   --TODO: Discard extra time IF frame rate running too slow. i.e. if numSteps == maxSteps then updatedTime should be now
   --SDL.delay 1000

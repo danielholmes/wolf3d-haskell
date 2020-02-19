@@ -2,14 +2,19 @@
 
 ![Build](https://github.com/danielholmes/wolf3d-haskell/workflows/Build/badge.svg)
 
-Wolfenstein 3D engine implementation in Haskell. Functionality is equivalent, but doesn't use same types of 
-optimisations. Inspired by [John Carmack's Quakecon 2013 Talk](https://youtu.be/Uooh0Y9fC_M?t=4660). This is a work in 
-progress and is still in early stages.
+Wolfenstein 3D in Haskell. Inspired by [John Carmack's Quakecon 2013 Talk](https://youtu.be/Uooh0Y9fC_M?t=4660) and
+mentions of trying to implement games (and Wolf3D in particular) in functional programming/Haskell.
+
+The implementation aims to use similar runtime data structures to the original source. I want to get a better 
+understanding of how the original works and also reap the performance rewards (my naive attempts at a ray caster before
+performed badly). Also I hope this helps getting the same feel as the original.
+
+This is a work in progress and is still in early stages.
 
 
 ## Requirements
 
- - [Stack](https://www.haskellstack.org) (Tested with 1.9.1-1.9.3)
+ - [Stack](https://www.haskellstack.org) (tested with 1.9.1-1.9.3)
  - [SDL2](https://www.libsdl.org/) (tested with 2.0.8-2.0.9)
  - [SDL2 Image](https://www.libsdl.org/projects/SDL_image/) (tested with 2.0.4)
  - [SDL2 TTF](https://www.libsdl.org/projects/SDL_ttf/) (tested with 2.0.14)

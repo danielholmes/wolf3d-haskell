@@ -10,7 +10,7 @@ import Data.Maybe
 data TestSimEntity
 
 instance SimEntity TestSimEntity where
-  simUpdate _ _ i = i
+  simUpdate _ i = i
 
 engineSpec :: SpecWith ()
 engineSpec =

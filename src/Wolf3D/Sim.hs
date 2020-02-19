@@ -7,7 +7,7 @@ module Wolf3D.Sim (
       TurnRight,
       UseWeapon
   ),
-  Hero (Hero),
+  Hero (position, snappedRotation, actionsState, weapon),
   EnvItemType (Drum, Light, Flag),
   EnvItem (EnvItem),
 
@@ -22,21 +22,17 @@ module Wolf3D.Sim (
   lastTimeWeaponUsed,
 
   createHero,
-  createOriginHero,
-  heroPosition,
-  heroRotation,
-  heroWeapon,
+  createHeroFromTilePosition,
   heroLookRay,
   moveHero,
   rotateHero,
   heroHeight,
   HeroActionsState,
-  heroActionsState,
   staticHeroActionsState,
   modifyHeroActionState,
   updateHeroActionsState,
-  heroFieldOfViewSize,
-  heroLookRayAtFieldOfViewRatio,
+  tileCoordToGlobalPos,
+  tileCoordToCentreGlobalPos,
 
   itemRectangle,
   itemHeight,
@@ -48,6 +44,7 @@ import Wolf3D.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
+import Data.Bits
 
 
 {-----------------------------------------------------------------------------------------------------------------------
@@ -57,7 +54,7 @@ data Wolf3DSimEntity = SEEnvItem EnvItem | SEHero Hero
   deriving (Show, Eq)
 
 type UsingWeapon = Bool
-data Weapon = Pistol (Maybe WorldTime) UsingWeapon
+data Weapon = Pistol (Maybe WorldTicks) UsingWeapon
   deriving (Eq, Show)
 
 data HeroActionsState = HeroActionsState
@@ -72,8 +69,13 @@ data HeroActionsState = HeroActionsState
 data HeroAction = MoveForward | MoveBackward | TurnLeft | TurnRight | UseWeapon
 
 type Position = Vector2
-type Rotation = Double
-data Hero = Hero Position Rotation HeroActionsState Weapon
+type SnappedRotation = Int
+type RotationRemainder = Int
+data Hero = Hero {position :: Position
+                 , snappedRotation :: SnappedRotation
+                 , rotationRemainder :: RotationRemainder
+                 , actionsState :: HeroActionsState
+                 , weapon :: Weapon}
   deriving (Show, Eq)
 
 data EnvItemType = Drum | Flag | Light
@@ -82,20 +84,36 @@ data EnvItemType = Drum | Flag | Light
 data EnvItem = EnvItem EnvItemType Vector2
  deriving (Show, Eq)
 
+angles :: Int
+angles = 360
 
+angleScale :: Int
+angleScale = 20
+
+moveScale :: Int
+moveScale = 150
+
+backMoveScale :: Int
+backMoveScale = 100
+
+heroBaseMovePerFrame :: Int
+heroBaseMovePerFrame = 35
+
+minDist :: Int
+minDist = 0x5800
 
 {-----------------------------------------------------------------------------------------------------------------------
  General
 -----------------------------------------------------------------------------------------------------------------------}
 instance SimEntity Wolf3DSimEntity where
-  simUpdate w t (SEEnvItem i) = SEEnvItem (simUpdate w t i)
-  simUpdate w t (SEHero i) = SEHero (simUpdate w t i)
+  simUpdate w (SEEnvItem i) = SEEnvItem (simUpdate w i)
+  simUpdate w (SEHero i) = SEHero (simUpdate w i)
 
 worldHero :: World Wolf3DSimEntity -> Hero
 worldHero w = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
 
 worldHeroWeapon :: World Wolf3DSimEntity -> Weapon
-worldHeroWeapon = heroWeapon . worldHero
+worldHeroWeapon = weapon . worldHero
 
 worldEnvItems :: World Wolf3DSimEntity -> [EnvItem]
 worldEnvItems w = map (\(SEEnvItem e) -> e) (filter (\i -> case i of (SEEnvItem _) -> True; _ -> False) (worldEntities w))
@@ -121,17 +139,17 @@ itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
  Weapon
 -----------------------------------------------------------------------------------------------------------------------}
 instance SimEntity Weapon where
-  simUpdate w t weapon
-    | isUsingWeapon weapon && canUseWeapon (worldTime w) weapon = useWeapon w t weapon
-    | otherwise                                                 = weapon
+  simUpdate w wn
+    | isUsingWeapon wn && canUseWeapon (worldTics w) wn = useWeapon w wn
+    | otherwise                                         = wn
 
-canUseWeapon :: WorldTime -> Weapon -> Bool
+canUseWeapon :: WorldTicks -> Weapon -> Bool
 canUseWeapon t w = all (< t - timeBetweenUses w) (lastTimeWeaponUsed w)
 
-useWeapon :: World a -> Int -> Weapon -> Weapon
-useWeapon w t (Pistol _ s) = Pistol (Just (worldTime w + t)) s
+useWeapon :: World a -> Weapon -> Weapon
+useWeapon w (Pistol _ s) = Pistol (Just (worldTics w + 1)) s
 
-lastTimeWeaponUsed :: Weapon -> Maybe WorldTime
+lastTimeWeaponUsed :: Weapon -> Maybe WorldTicks
 lastTimeWeaponUsed (Pistol t _) = t
 
 timeBetweenUses :: Weapon -> Int
@@ -160,17 +178,27 @@ modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsStat
 modifyHeroActionState (HeroActionsState u d l r _) UseWeapon a = HeroActionsState u d l r a
 
 instance SimEntity Hero where
-  simUpdate w t h@(Hero _ _ has _) = updateWeapon w t (rotateHero (moveHero h movement) rotation)
+  simUpdate w h@(Hero {actionsState=has}) = h3
     where
-      rotationDirection = updateHeroRotation has
-      direction = updateHeroMoveDirection has
-      heroMoveMetresPerSec = 8
-      movement = direction * fromIntegral (t * heroMoveMetresPerSec)
-      heroRotatePerMilli = 0.002
-      rotation = rotationDirection * fromIntegral t * heroRotatePerMilli
+      rotationDelta = heroRotationDelta has
+      h1 = rotateHero h rotationDelta
 
-updateWeapon :: World a -> Int -> Hero -> Hero
-updateWeapon w t (Hero p r has weapon) = Hero p r has (simUpdate w t (updateWeaponUsed has weapon))
+      movementDelta = heroMoveDelta has
+      movementScale = if movementDelta < 0 then backMoveScale else moveScale
+      -- TODO: set a thrustspeed for AI to use later
+      -- thrustspeed += speed;
+      velocity = movementScale * movementDelta
+      -- TODO
+      -- ClipMove(player,xmove,ymove);
+      -- player->tilex = player->x >> TILESHIFT;    // scale to tile values
+      -- player->tiley = player->y >> TILESHIFT;
+      -- offset = farmapylookup[player->tiley]+player->tilex;
+      -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;
+      h2 = moveHero h1 velocity
+      h3 = updateWeapon w h2
+
+updateWeapon :: World a -> Hero -> Hero
+updateWeapon w h@(Hero {actionsState=has, weapon=wn}) = h { weapon = simUpdate w (updateWeaponUsed has wn) }
 
 updateWeaponUsed :: HeroActionsState -> Weapon -> Weapon
 updateWeaponUsed has w
@@ -179,66 +207,97 @@ updateWeaponUsed has w
   | otherwise                                      = w
   where current = isUsingWeapon w
 
+tileGlobalSize :: Int
+tileGlobalSize = 1 `shiftL` 16
+
+tileToGlobalShift :: Int
+tileToGlobalShift =  16
+
+tileCentreGlobalOffset :: Vector2
+tileCentreGlobalOffset = Vector2 (fromIntegral (tileGlobalSize `div` 2)) (fromIntegral (tileGlobalSize `div` 2))
+
+tileCoordToCentreGlobalPos :: TileCoord -> Vector2
+tileCoordToCentreGlobalPos p = (tileCoordToGlobalPos p) + tileCentreGlobalOffset
+
+tileCoordToGlobalPos :: TileCoord -> Vector2
+tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegral worldY)
+  where
+    worldX = tileX `shiftL` tileToGlobalShift
+    worldY = tileY `shiftL` tileToGlobalShift
+    -- #define GLOBAL1    (1l<<16)
+    -- #define TILEGLOBAL  GLOBAL1
+    -- #define PIXGLOBAL  (GLOBAL1/64)
+    -- #define TILESHIFT    16l
+    --  SpawnPlayer(x,y,NORTH+tile-19);
+    -- player->obclass = playerobj;
+    -- player->active = true;
+    -- player->tilex = tilex;
+    -- player->tiley = tiley;
+    -- player->areanumber =
+    --        *(mapsegs[0] + farmapylookup[player->tiley]+player->tilex);
+    -- player->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
+    -- player->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
+
 createHero :: Vector2 -> Hero
-createHero pos = Hero pos 0 staticHeroActionsState (Pistol Nothing False)
+createHero pos = Hero pos 0 0 staticHeroActionsState (Pistol Nothing False)
 
-createOriginHero :: Hero
-createOriginHero = createHero (Vector2 0 0)
-
-heroPosition :: Hero -> Vector2
-heroPosition (Hero p _ _ _) = p
+createHeroFromTilePosition :: TileCoord -> Hero
+createHeroFromTilePosition p = createHero (tileCoordToCentreGlobalPos p)
 
 heroHeight :: Double
 heroHeight = 1500
 
-heroRotation :: Hero -> Double
-heroRotation (Hero _ r _ _) = r
-
-heroActionsState :: Hero -> HeroActionsState
-heroActionsState (Hero _ _ a _) = a
-
-heroWeapon :: Hero -> Weapon
-heroWeapon (Hero _ _ _ w) = w
-
-heroFieldOfViewSize :: Hero -> Double
-heroFieldOfViewSize _ = pi / 3
-
-heroLookRayAtFieldOfViewRatio :: Hero -> Double -> Ray
-heroLookRayAtFieldOfViewRatio hero ratio = rotateRay (heroLookRay hero) rayRotation
-  where
-    fieldOfViewSize = heroFieldOfViewSize hero
-    rayRotation = fieldOfViewSize * (ratio - 0.5)
-
 heroLookRay :: Hero -> Ray
-heroLookRay (Hero pos rot _ _) = createRay pos (Vector2 (sin rot) (cos rot))
+heroLookRay (Hero pos sr _ _ _) = createRay pos (Vector2 (sin dRot) (cos dRot))
+  -- the + pi / 2 is a bit of a hack, but i think this method will disappear in refactor
+  where dRot = (fromIntegral (-sr)) * deg2Rad + pi / 2
 
-moveHero :: Hero -> Double -> Hero
-moveHero (Hero p r a w) m = Hero (p + (m |* angleToVector2 r)) r a w
+moveHero :: Hero -> Int -> Hero
+moveHero h 0 = h
+moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos}
+  where
+    speed = abs velocity
+    moveAngle = if velocity < 0 then bindAngle (sr + (angles `div` 2)) else sr
+    boundSpeed = if speed >= minDist * 2 then minDist * 2 - 1 else speed
+    rotRad = (fromIntegral moveAngle) * deg2Rad
+    dSpeed = fromIntegral boundSpeed
+    newPos = p + Vector2 (dSpeed * (cos rotRad)) (dSpeed * (sin rotRad))
 
 updateHeroActionsState :: HeroActionsState -> Hero -> Hero
-updateHeroActionsState a (Hero p r _ w) = Hero p r a w
+updateHeroActionsState a (Hero p sr rr _ w) = Hero p sr rr a w
 
-updateHeroMoveDirection :: HeroActionsState -> Double
-updateHeroMoveDirection s = forwardMovement + backwardMovement
+heroMoveDelta :: HeroActionsState -> Int
+heroMoveDelta s = forwardMovement + backwardMovement
   where
-    forwardMovement = if heroActionsStateMoveForward s then 1 else 0
-    backwardMovement = if heroActionsStateMoveBackward s then (-1) else 0
+    forwardMovement = if heroActionsStateMoveForward s then heroBaseMovePerFrame else 0
+    backwardMovement = if heroActionsStateMoveBackward s then (-heroBaseMovePerFrame) else 0
 
-updateHeroRotation :: HeroActionsState -> Double
-updateHeroRotation has = leftRotation + rightRotation
+heroRotationDelta :: HeroActionsState -> Int
+heroRotationDelta has = leftRotation + rightRotation
   where
-    leftRotation = if heroActionsStateTurnLeft has then (-1) else 0
-    rightRotation = if heroActionsStateTurnRight has then 1 else 0
+    leftRotation = if heroActionsStateTurnLeft has then (-heroBaseMovePerFrame) else 0
+    rightRotation = if heroActionsStateTurnRight has then heroBaseMovePerFrame else 0
 
--- TODO: Bound to (-pi) - pi
-rotateHero :: Hero -> Double -> Hero
-rotateHero (Hero p r a w) d = Hero p (r + d) a w
+-- Bound to 0-360
+rotateHero :: Hero -> Int -> Hero
+rotateHero h@(Hero {snappedRotation=sr, rotationRemainder=rr}) d = h {snappedRotation=(bindAngle newAngle), rotationRemainder=newRealRot}
+  where
+    newRotDelta = rr + d
+    angleUnits = newRotDelta `div` angleScale
+    newRealRot = newRotDelta - (angleUnits * angleScale)
+    newAngle = sr - angleUnits
+
+bindAngle :: Int -> Int
+bindAngle a
+  | a > angles = a - angles
+  | a < 0      = a + angles
+  | otherwise  = a
 
 {-----------------------------------------------------------------------------------------------------------------------
  Environment
 -----------------------------------------------------------------------------------------------------------------------}
 instance SimEntity EnvItem where
- simUpdate _ _ = id
+ simUpdate _ = id
 
 itemSize :: EnvItem -> Vector2
 itemSize _ = Vector2 3000 3000

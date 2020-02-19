@@ -14,7 +14,7 @@ import Wolf3D.Display.Utils
 import qualified SDL
 import qualified SDL.Font
 import Control.StopWatch
-import Data.StateVar (($=))
+import Data.StateVar (($=), get)
 import Data.Text (pack)
 import System.Clock
 import GHC.Word (Word8)
@@ -35,14 +35,18 @@ render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
 render r drd@(DebugRenderData rd _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
-  withViewport r (Just (mkSDLRect 0 0 miniMapWidth miniMapHeight)) $
-    renderMiniMap r 0.009 (miniMapWidth, miniMapHeight) w
+  
+  -- This is a bit of a hack - relies on knowing that the window size is scale * screenSize
+  (SDL.V2 sX sY) <- get (SDL.rendererScale r)
+  let miniMapWidth = round (((fromIntegral D.screenWidth) * sX) / 3)
+  let miniMapHeight = round (((fromIntegral D.screenHeight) * sY) / 3)
+  withScale r (SDL.V2 1.0 1.0) $
+    withViewport r (Just (mkSDLRect 0 0 miniMapWidth miniMapHeight)) $
+      renderMiniMap r 0.001 (miniMapWidth, miniMapHeight) w
   drawDebugText r drd debugText
   SDL.present r
   where
     w = simRunWorld sr
-    miniMapWidth = D.screenWidth `div` 3
-    miniMapHeight = D.screenHeight `div` 3
     runRender = do
       D.renderHud r rd
       D.renderWorld r rd w
@@ -51,7 +55,7 @@ createDebugText :: SimRun -> Integer -> String
 createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
   where
     world = simRunWorld sr
-    items = [("WT", show (worldTime world `div` 1000) ++ "s"), ("Render", show tookTime ++ "ms")]
+    items = [("WT", show (worldTics world `div` 70) ++ "s"), ("Render", show tookTime ++ "ms")]
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
 drawDebugText r (DebugRenderData _ font) text =
