@@ -18,6 +18,7 @@ import Wolf3D.Engine
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Display.Utils
+import Wolf3D.Display.Hud
 import Wolf3D.Animation
 import qualified SDL
 import Data.StateVar (($=))
@@ -25,77 +26,12 @@ import Data.Vector
 import Data.Foldable
 import Data.Maybe
 import Control.Monad (mfilter)
---import Data.Word (Word8)
 import Data.Fixed
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
-import Control.Monad (void)
+import Wolf3D.Display.Data
 
-
-type WallMaterialData = M.Map WallMaterial (SDL.Texture, (CInt, CInt))
-type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
-type WeaponData = M.Map String Animation
-data RenderData = RenderData {wallTextures :: WallMaterialData
-                             , itemTextures :: EnvItemData
-                             , weaponTextures :: WeaponData
-                             , hudBase :: (SDL.Texture, SDL.Rectangle CInt)
-                             , bjFace :: Animation
-                             , numbers :: SpriteSheet
-                             , hudWeapons :: SpriteSheet }
-
-data CIntRectangle = CIntRectangle (CInt, CInt) (CInt, CInt)
-
-intRectX :: CIntRectangle -> CInt
-intRectX (CIntRectangle (x, _) _) = x
-
-intRectY :: CIntRectangle -> CInt
-intRectY (CIntRectangle (_, y) _) = y
-
-intRectPos :: CIntRectangle -> (CInt, CInt)
-intRectPos (CIntRectangle pos _) = pos
-
-screenWidth :: CInt
-screenWidth = 320 :: CInt
-
-screenHeight :: CInt
-screenHeight = 200 :: CInt
-
-hudBorderTop :: (CInt, CInt)
-hudBorderTop = (8, 4)
-
-hudBarHeight :: CInt
-hudBarHeight = 40
-
-actionWidth :: CInt
-actionWidth = screenWidth - 2 * (fst hudBorderTop)
-
-actionHeight :: CInt
-actionHeight = screenHeight - 2 * (snd hudBorderTop) - hudBarHeight
-
-actionAreaY :: CInt
-actionAreaY = snd hudBorderTop
-
-actionAreaX :: CInt
-actionAreaX = fst hudBorderTop
-
-actionArea :: CIntRectangle
-actionArea = CIntRectangle hudBorderTop (actionWidth, actionHeight)
-
-bjFaceX :: CInt
-bjFaceX = 134
-
-bjFaceY :: CInt
-bjFaceY = fromIntegral (screenHeight - 35)
-
-hudWeaponX :: CInt
-hudWeaponX = 254
-
-hudWeaponY :: CInt
-hudWeaponY = fromIntegral (screenHeight - 33)
-
-halfActionHeight :: CInt
-halfActionHeight = fromIntegral (actionHeight `div` 2)
 
 -- deprecated, not sure what it is actually
 distToProjPlane :: Double
@@ -122,56 +58,6 @@ render r d s = do
   renderHud r d
   renderWorld r d (simRunWorld s)
   SDL.present r
-
-renderHud :: SDL.Renderer -> RenderData -> IO ()
-renderHud r d = do
-  let textY = 176
-  renderHudBase r d
-  renderHudFace r d
-  renderHudNum r d (34, textY) 1 -- Floor
-  renderHudNum r d (120, textY) 3 -- Lives
-  renderHudNum r d (96, textY) 0 -- Score
-  renderHudNum r d (192, textY) 100 -- Health
-  renderHudNum r d (232, textY) 8 -- Ammo
-  renderHudWeapon r d
-
-renderHudBase :: SDL.Renderer -> RenderData -> IO ()
-renderHudBase r (RenderData {hudBase=(baseTexture, sourceRect)}) = do
-  SDL.copy r baseTexture (Just sourceRect) (Just destRect)
-  where
-    destPos = SDL.P (SDL.V2 0 0)
-    destSize = SDL.V2 screenWidth screenHeight
-    destRect = SDL.Rectangle destPos destSize
-
-renderHudNum :: SDL.Renderer -> RenderData -> (CInt, CInt) -> Int -> IO ()
-renderHudNum r d (x, y) num = do
-  SDL.copy r (spriteSheetTexture numsSheet) (Just from) (Just destRect)
-  case length start of 0 -> return ()
-                       _ -> void (renderHudNum r d (x - width, y) ((read start) :: Int))
-  where
-    numStr = show num
-    (start, lastChar) = splitAt ((length numStr) - 1) numStr
-    lastNum = (read lastChar) :: Int
-    numsSheet = numbers d
-    from@(SDL.Rectangle _ (SDL.V2 width height)) = getSpriteSheetLocation numsSheet lastNum
-    destRect = mkSDLRect (x - width) y width height
-
-renderHudFace :: SDL.Renderer -> RenderData -> IO ()
-renderHudFace r (RenderData {bjFace=a}) = do
-  SDL.copy r texture (Just sourceRect) (Just destRect)
-  where
-    texture = animationTexture a
-    sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getAnimationFrame a 0
-    destRect = mkSDLRect bjFaceX bjFaceY tW tH
-
-renderHudWeapon :: SDL.Renderer -> RenderData -> IO ()
-renderHudWeapon r (RenderData {hudWeapons=w}) = do
-  SDL.copy r texture (Just sourceRect) (Just destRect)
-  where
-    texture = spriteSheetTexture w
-    -- TODO: Use current weapon
-    sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getSpriteSheetLocation w 1
-    destRect = mkSDLRect hudWeaponX hudWeaponY tW tH
 
 renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do

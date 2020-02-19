@@ -21,6 +21,8 @@ library
                      , Wolf3D.Sim
                      , Wolf3D.Runner
                      , Wolf3D.Display
+                     , Wolf3D.Display.Data
+                     , Wolf3D.Display.Hud
                      , Wolf3D.Display.Utils
                      , Wolf3D.Display.MiniMap
                      , Wolf3D.UI
