@@ -37,13 +37,13 @@ dummyWorld = createWorld GreenCeiling walls items
 
 dummyWorld2 :: World Wolf3DSimEntity
 dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WB1", "WB2", "WB2"],
-                                      ["WB2", "DR",  "",    "DR",  "WB1"],
+                                      ["WB2", "",    "DR",  "DR",  "WB1"],
                                       ["WB1", "",    "",    "",    "WB1"],
                                       ["WB1", "",    "",    "",    "WB1"],
                                       ["WB2", "",    "",    "",    "WB1"],
                                       ["WB2", "",    "",    "",    "WB2"],
                                       ["WB1", "",    "",    "",    "WB2"],
-                                      ["WB2", "",    "H",   "",    "WB2"],
+                                      ["WB2", "H",   "",    "",    "WB2"],
                                       ["WB2", "",    "",    "",    "WB1"],
                                       ["WB1", "",    "",    "",    "WB1"],
                                       ["WB1", "",    "",    "",    "WB2"]]
@@ -63,7 +63,7 @@ fromGridRows _ [] = ([], [])
 fromGridRows y (r:rs) = (rowWs ++ nextWs, rowIs ++ nextIs)
   where
     (rowWs, rowIs) = fromGridRow (0, y) r
-    (nextWs, nextIs) = fromGridRows (y-1) rs
+    (nextWs, nextIs) = fromGridRows (y + 1) rs
 
 fromGridRow :: (Int, Int) -> [String] -> ([Wall], [Wolf3DSimEntity])
 fromGridRow _ [] = ([], [])
@@ -86,6 +86,6 @@ createWalls :: TileCoord -> WallMaterial -> [Wall]
 createWalls pos@(x, y) m = [top, right, bottom, left]
   where
     top = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (1, 0)) m
-    right = Wall (tileCoordToGlobalPos (x + 1, y)) (tileCoordToGlobalPos (0, (-1))) m
-    bottom = Wall (tileCoordToGlobalPos (x, y - 1)) (tileCoordToGlobalPos (1, 0)) m
-    left = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (0, (-1))) m
+    right = Wall (tileCoordToGlobalPos (x + 1, y)) (tileCoordToGlobalPos (0, 1)) m
+    bottom = Wall (tileCoordToGlobalPos (x, y + 1)) (tileCoordToGlobalPos (1, 0)) m
+    left = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (0, 1)) m

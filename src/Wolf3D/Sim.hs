@@ -31,8 +31,6 @@ module Wolf3D.Sim (
   staticHeroActionsState,
   modifyHeroActionState,
   updateHeroActionsState,
-  tileCoordToGlobalPos,
-  tileCoordToCentreGlobalPos,
 
   itemRectangle,
   itemHeight,
@@ -44,7 +42,6 @@ import Wolf3D.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
-import Data.Bits
 
 
 {-----------------------------------------------------------------------------------------------------------------------
@@ -184,7 +181,7 @@ instance SimEntity Hero where
       h1 = rotateHero h rotationDelta
 
       movementDelta = heroMoveDelta has
-      movementScale = if movementDelta < 0 then backMoveScale else moveScale
+      movementScale = if movementDelta < 0 then moveScale else backMoveScale
       -- TODO: set a thrustspeed for AI to use later
       -- thrustspeed += speed;
       velocity = movementScale * movementDelta
@@ -207,37 +204,6 @@ updateWeaponUsed has w
   | otherwise                                      = w
   where current = isUsingWeapon w
 
-tileGlobalSize :: Int
-tileGlobalSize = 1 `shiftL` 16
-
-tileToGlobalShift :: Int
-tileToGlobalShift =  16
-
-tileCentreGlobalOffset :: Vector2
-tileCentreGlobalOffset = Vector2 (fromIntegral (tileGlobalSize `div` 2)) (fromIntegral (tileGlobalSize `div` 2))
-
-tileCoordToCentreGlobalPos :: TileCoord -> Vector2
-tileCoordToCentreGlobalPos p = (tileCoordToGlobalPos p) + tileCentreGlobalOffset
-
-tileCoordToGlobalPos :: TileCoord -> Vector2
-tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegral worldY)
-  where
-    worldX = tileX `shiftL` tileToGlobalShift
-    worldY = tileY `shiftL` tileToGlobalShift
-    -- #define GLOBAL1    (1l<<16)
-    -- #define TILEGLOBAL  GLOBAL1
-    -- #define PIXGLOBAL  (GLOBAL1/64)
-    -- #define TILESHIFT    16l
-    --  SpawnPlayer(x,y,NORTH+tile-19);
-    -- player->obclass = playerobj;
-    -- player->active = true;
-    -- player->tilex = tilex;
-    -- player->tiley = tiley;
-    -- player->areanumber =
-    --        *(mapsegs[0] + farmapylookup[player->tiley]+player->tilex);
-    -- player->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
-    -- player->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
-
 createHero :: Vector2 -> Hero
 createHero pos = Hero pos 0 0 staticHeroActionsState (Pistol Nothing False)
 
@@ -248,20 +214,22 @@ heroHeight :: Double
 heroHeight = 1500
 
 heroLookRay :: Hero -> Ray
-heroLookRay (Hero pos sr _ _ _) = createRay pos (Vector2 (sin dRot) (cos dRot))
+heroLookRay (Hero pos sr _ _ _) = createRay pos (Vector2 (-(sin dRot)) (cos dRot))
   -- the + pi / 2 is a bit of a hack, but i think this method will disappear in refactor
-  where dRot = (fromIntegral (-sr)) * deg2Rad + pi / 2
+  where dRot = ((fromIntegral (-sr)) * deg2Rad) - pi / 2
 
 moveHero :: Hero -> Int -> Hero
 moveHero h 0 = h
 moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos}
   where
     speed = abs velocity
-    moveAngle = if velocity < 0 then bindAngle (sr + (angles `div` 2)) else sr
+    moveAngle = if velocity < 0 then sr else bindAngle (sr + (angles `div` 2))
     boundSpeed = if speed >= minDist * 2 then minDist * 2 - 1 else speed
     rotRad = (fromIntegral moveAngle) * deg2Rad
     dSpeed = fromIntegral boundSpeed
-    newPos = p + Vector2 (dSpeed * (cos rotRad)) (dSpeed * (sin rotRad))
+--    xmove = FixedByFrac(speed,costable[angle]);
+--    	ymove = -FixedByFrac(speed,sintable[angle]);
+    newPos = p + Vector2 (dSpeed * (cos rotRad)) (-(dSpeed * (sin rotRad)))
 
 updateHeroActionsState :: HeroActionsState -> Hero -> Hero
 updateHeroActionsState a (Hero p sr rr _ w) = Hero p sr rr a w
@@ -269,8 +237,8 @@ updateHeroActionsState a (Hero p sr rr _ w) = Hero p sr rr a w
 heroMoveDelta :: HeroActionsState -> Int
 heroMoveDelta s = forwardMovement + backwardMovement
   where
-    forwardMovement = if heroActionsStateMoveForward s then heroBaseMovePerFrame else 0
-    backwardMovement = if heroActionsStateMoveBackward s then (-heroBaseMovePerFrame) else 0
+    forwardMovement = if heroActionsStateMoveForward s then (-heroBaseMovePerFrame) else 0
+    backwardMovement = if heroActionsStateMoveBackward s then heroBaseMovePerFrame else 0
 
 heroRotationDelta :: HeroActionsState -> Int
 heroRotationDelta has = leftRotation + rightRotation

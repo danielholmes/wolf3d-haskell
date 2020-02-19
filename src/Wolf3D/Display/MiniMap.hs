@@ -20,6 +20,9 @@ data MiniMapData = MiniMapData Double (CInt, CInt) Vector2 Rectangle Vector2
 heroColor :: SDL.V4 Word8
 heroColor = SDL.V4 255 0 0 255
 
+originColor :: SDL.V4 Word8
+originColor = SDL.V4 255 255 0 255
+
 wallColor :: SDL.V4 Word8
 wallColor = SDL.V4 0 255 0 255
 
@@ -36,6 +39,7 @@ renderMiniMap r dScale size@(width, height) w = do
   renderHero r mMData hero
   renderItems r mMData w
   renderWalls r mMData w
+  renderOrigin r mMData
   where
     hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
     mMData = createMiniMapData dScale size w
@@ -53,14 +57,15 @@ createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize
 renderHero :: SDL.Renderer -> MiniMapData -> Hero -> IO ()
 renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
   SDL.rendererDrawColor r $= heroColor
-  drawEqTriangle r (scale * heroSize) halfSize alignedRot
-  drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) (-alignedRot))
+  drawEqTriangle r (scale * heroSize) halfSize alignedRot1
+  drawMiniMapLine r d (heroPos, rotateVector2 (Vector2 0 heroSize / 2) alignedRot2)
   where
     -- TODO: Take something from sim about this
-    heroSize = 10000
+    heroSize = 40000
     rotation = snappedRotation h
     rotationRads = deg2Rad * (fromIntegral rotation)
-    alignedRot = rotationRads - pi / 2
+    alignedRot1 = rotationRads - pi / 2
+    alignedRot2 = rotationRads + pi / 2
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
@@ -70,13 +75,18 @@ renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
 renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
 renderWall r d (Wall o s _) = drawMiniMapLine r d (o, s)
 
+renderOrigin :: SDL.Renderer -> MiniMapData -> IO ()
+renderOrigin r d = do
+  SDL.rendererDrawColor r $= originColor
+  let halfTileGlobalSize = fromIntegral (tileGlobalSize `div` 2)
+  drawMiniMapLine r d (Vector2 (-halfTileGlobalSize) 0, Vector2 (fromIntegral tileGlobalSize) 0)
+  drawMiniMapLine r d (Vector2 0 (-halfTileGlobalSize), Vector2 0 (fromIntegral tileGlobalSize))
+
 drawMiniMapLine :: SDL.Renderer -> MiniMapData -> Line -> IO ()
 drawMiniMapLine r d (o, s) = SDL.drawLine r (toMiniMapP d o) (toMiniMapP d (o + s))
 
 toMiniMapP :: MiniMapData -> Vector2 -> SDL.Vect.Point SDL.Vect.V2 CInt
-toMiniMapP (MiniMapData scale _ halfSize _ heroPos) v = roundToSDLP (halfSize + (flipY * (v - heroPos) *| scale))
-  where
-    flipY = Vector2 1 (-1)
+toMiniMapP (MiniMapData scale _ halfSize _ heroPos) v = roundToSDLP (halfSize + (v - heroPos) *| scale)
 
 cos60 :: Double
 cos60 = cos (pi / 3)

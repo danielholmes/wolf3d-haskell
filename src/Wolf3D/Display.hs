@@ -138,7 +138,7 @@ pixelWallHit w i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRa
   where
     hero = worldHero w
     hRay = heroLookRay hero
-    ratio = fromIntegral i / fromIntegral actionWidth
+    ratio = fromIntegral (actionWidth - i) / fromIntegral actionWidth
     rayRotation = pi / 3 * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation
 
@@ -162,7 +162,7 @@ renderSprite r _ (texture, sourceRect) hero oPos oSize =
     itemAngle = vector2ToAngle (oPos - heroPos)
     projectionAngle = itemAngle - heroLookAngle
     fieldOfViewSize = pi / 3
-    angleRatio = ((fieldOfViewSize / 2) + projectionAngle) / fieldOfViewSize
+    angleRatio = (fieldOfViewSize - ((fieldOfViewSize / 2) + projectionAngle)) / fieldOfViewSize
 
     distance = vectorDist heroPos oPos
     -- TODO: Not sure of correct way to handle when 0 distance

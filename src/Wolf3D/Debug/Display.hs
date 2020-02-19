@@ -35,7 +35,7 @@ render :: SDL.Renderer -> DebugRenderData -> SimRun -> IO ()
 render r drd@(DebugRenderData rd _) sr = do
   (_, tookTime) <- stopWatch runRender
   let debugText = createDebugText sr (toNanoSecs tookTime `div` 1000000)
-  
+
   -- This is a bit of a hack - relies on knowing that the window size is scale * screenSize
   (SDL.V2 sX sY) <- get (SDL.rendererScale r)
   let miniMapWidth = round (((fromIntegral D.screenWidth) * sX) / 3)

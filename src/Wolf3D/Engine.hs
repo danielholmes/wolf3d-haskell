@@ -3,6 +3,7 @@ module Wolf3D.Engine (
   SimEntity (simUpdate),
   World,
   WorldTicks,
+  WallMap,
   Wall (Wall),
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
   WallHit (WallHit),
@@ -17,15 +18,21 @@ module Wolf3D.Engine (
   wallToLine,
   castRayToClosestWall,
   wallHeight,
+  emptyWallMap,
   worldTics,
   worldCeilingColor,
   tickWorld,
-  tickWorldNTimes
+  tickWorldNTimes,
+
+  tileCoordToGlobalPos,
+  tileCoordToCentreGlobalPos,
+  tileGlobalSize
 ) where
 
 import Wolf3D.Geom
 import Data.Vector
 import Data.List
+import Data.Bits
 
 
 class SimEntity i where
@@ -50,14 +57,68 @@ data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
   deriving (Show, Eq, Ord)
 
 type WorldTicks = Int
+type WallMap = [[Maybe WallMaterial]]
 -- Tried record syntax for this and failed
 data World i where
-  World :: (SimEntity i) => Ceiling -> [Wall] -> [[Maybe WallMaterial]] -> [i] -> WorldTicks -> World i
+  World :: (SimEntity i) => Ceiling -> [Wall] -> WallMap -> [i] -> WorldTicks -> World i
+
+tileGlobalSize :: Int
+tileGlobalSize = 1 `shiftL` 16
+
+tileToGlobalShift :: Int
+tileToGlobalShift =  16
+
+tileCentreGlobalOffset :: Vector2
+tileCentreGlobalOffset = Vector2 (fromIntegral (tileGlobalSize `div` 2)) (fromIntegral (tileGlobalSize `div` 2))
+
+tileCoordToCentreGlobalPos :: TileCoord -> Vector2
+tileCoordToCentreGlobalPos p = (tileCoordToGlobalPos p) + tileCentreGlobalOffset
+
+tileCoordToGlobalPos :: TileCoord -> Vector2
+tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegral worldY)
+  where
+    worldX = tileX `shiftL` tileToGlobalShift
+    worldY = tileY `shiftL` tileToGlobalShift
+    -- #define GLOBAL1    (1l<<16)
+    -- #define TILEGLOBAL  GLOBAL1
+    -- #define PIXGLOBAL  (GLOBAL1/64)
+    -- #define TILESHIFT    16l
+    --  SpawnPlayer(x,y,NORTH+tile-19);
+    -- player->obclass = playerobj;
+    -- player->active = true;
+    -- player->tilex = tilex;
+    -- player->tiley = tiley;
+    -- player->areanumber =
+    --        *(mapsegs[0] + farmapylookup[player->tiley]+player->tilex);
+    -- player->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
+    -- player->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
+
+globalSizeToTileCoord :: Double -> Int
+globalSizeToTileCoord s = (round s) `shiftR` tileToGlobalShift
+
+globalPosToTileCoord :: Vector2 -> TileCoord
+globalPosToTileCoord (Vector2 x y) = (globalSizeToTileCoord x, globalSizeToTileCoord y)
+
+emptyWallMap :: Int -> Int -> WallMap
+emptyWallMap w h = replicate h $ replicate w Nothing
 
 createWorld :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> World i
-createWorld c ws is = World c ws wm is 0
+createWorld c ws is = World c ws createWM is 0
   where
-    wm = []
+    mapSet :: WallMap -> TileCoord -> WallMaterial -> WallMap
+    mapSet wm (x, y) w = colsBefore ++ [newCol] ++ colsAfter
+      where
+        (colsBefore, col:colsAfter) = splitAt x wm
+        (cellsBefore, _:cellsAfter) = splitAt y col
+        newCol = cellsBefore ++ [Just w] ++ cellsAfter
+
+    foldStep :: Wall -> WallMap -> WallMap
+    foldStep (Wall p _ m) accu = mapSet accu (globalPosToTileCoord p) m
+
+    numRows = (globalSizeToTileCoord (maximum (map (\(Wall (Vector2 x _) _ _) -> x) ws))) + 1
+    numCols = (globalSizeToTileCoord (maximum (map (\(Wall (Vector2 _ y) _ _) -> y) ws))) + 1
+
+    createWM = foldr foldStep (emptyWallMap numCols numRows) ws
 
 tickWorld :: World i -> World i
 tickWorld world@(World _ _ _ is _) = ticWorldTicks updatedWorld
