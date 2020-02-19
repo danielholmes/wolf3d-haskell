@@ -21,6 +21,7 @@ module Wolf3D.Engine (
   emptyWallMap,
   worldTics,
   worldCeilingColor,
+  worldWallMap,
   tickWorld,
   tickWorldNTimes,
 
@@ -93,32 +94,28 @@ tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegra
     -- player->x = ((long)tilex<<TILESHIFT)+TILEGLOBAL/2;
     -- player->y = ((long)tiley<<TILESHIFT)+TILEGLOBAL/2;
 
-globalSizeToTileCoord :: Double -> Int
-globalSizeToTileCoord s = (round s) `shiftR` tileToGlobalShift
-
-globalPosToTileCoord :: Vector2 -> TileCoord
-globalPosToTileCoord (Vector2 x y) = (globalSizeToTileCoord x, globalSizeToTileCoord y)
+--globalSizeToTileCoord :: Double -> Int
+--globalSizeToTileCoord s = (round s) `shiftR` tileToGlobalShift
+--
+--globalPosToTileCoord :: Vector2 -> TileCoord
+--globalPosToTileCoord (Vector2 x y) = (globalSizeToTileCoord x, globalSizeToTileCoord y)
 
 emptyWallMap :: Int -> Int -> WallMap
 emptyWallMap w h = replicate h $ replicate w Nothing
 
-createWorld :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> World i
-createWorld c ws is = World c ws createWM is 0
+createWorld :: (SimEntity i) => Ceiling -> WallMap -> [i] -> World i
+createWorld c wm is = World c ws wm is 0
   where
-    mapSet :: WallMap -> TileCoord -> WallMaterial -> WallMap
-    mapSet wm (x, y) w = colsBefore ++ [newCol] ++ colsAfter
+    ws = concat (map (\(x, col) -> concat (map (\(y, cell) -> createWalls (x, y) cell) (zip [0..] col))) (zip [0..] wm))
+    
+    createWalls :: TileCoord -> Maybe WallMaterial -> [Wall]
+    createWalls _ Nothing = []
+    createWalls pos@(x, y) (Just m) = [top, right, bottom, left]
       where
-        (colsBefore, col:colsAfter) = splitAt x wm
-        (cellsBefore, _:cellsAfter) = splitAt y col
-        newCol = cellsBefore ++ [Just w] ++ cellsAfter
-
-    foldStep :: Wall -> WallMap -> WallMap
-    foldStep (Wall p _ m) accu = mapSet accu (globalPosToTileCoord p) m
-
-    numRows = (globalSizeToTileCoord (maximum (map (\(Wall (Vector2 x _) _ _) -> x) ws))) + 1
-    numCols = (globalSizeToTileCoord (maximum (map (\(Wall (Vector2 _ y) _ _) -> y) ws))) + 1
-
-    createWM = foldr foldStep (emptyWallMap numCols numRows) ws
+        top = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (1, 0)) m
+        right = Wall (tileCoordToGlobalPos (x + 1, y)) (tileCoordToGlobalPos (0, 1)) m
+        bottom = Wall (tileCoordToGlobalPos (x, y + 1)) (tileCoordToGlobalPos (1, 0)) m
+        left = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (0, 1)) m
 
 tickWorld :: World i -> World i
 tickWorld world@(World _ _ _ is _) = ticWorldTicks updatedWorld
@@ -140,6 +137,9 @@ updateWorldEntities (World c w wm _ t) i = World c w wm i t
 worldWalls :: World i -> [Wall]
 worldWalls (World _ ws _ _ _) = ws
 
+worldWallMap :: World i -> WallMap
+worldWallMap (World _ _ wm _ _) = wm
+
 worldEntities :: (SimEntity i) => World i -> [i]
 worldEntities (World _ _ _ is _) = is
 
@@ -149,6 +149,7 @@ worldCeilingColor (World c _ _ _ _) = c
 worldTics :: World i -> Int
 worldTics (World _ _ _ _ t) = t
 
+-- TODO: Remove, was used in mini map
 worldWallsTouching :: World i -> Rectangle -> [Wall]
 worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
 

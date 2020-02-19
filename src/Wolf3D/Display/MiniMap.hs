@@ -36,9 +36,9 @@ renderMiniMap :: SDL.Renderer -> Double -> (CInt, CInt) -> World Wolf3DSimEntity
 renderMiniMap r dScale size@(width, height) w = do
   SDL.rendererDrawColor r $= panelColor
   SDL.fillRect r (Just (mkSDLRect 0 0 width height))
-  renderHero r mMData hero
-  renderItems r mMData w
   renderWalls r mMData w
+  renderItems r mMData w
+  renderHero r mMData hero
   renderOrigin r mMData
   where
     hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
@@ -68,12 +68,35 @@ renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
     alignedRot2 = rotationRads + pi / 2
 
 renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
-renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
+renderWalls r d w = do
   SDL.rendererDrawColor r $= wallColor
-  forM_ (worldWallsTouching w worldRect) (renderWall r d)
+  let wm = worldWallMap w
+  forM_ (zip [0..] wm) (renderWallCol r d)
 
-renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
-renderWall r d (Wall o s _) = drawMiniMapLine r d (o, s)
+renderWallCol :: SDL.Renderer -> MiniMapData -> (Int, [Maybe WallMaterial]) -> IO ()
+renderWallCol r d (x, col) = forM_ (zip [0..] col) (renderWall r d x)
+
+-- TODO: Don't render if not touching worldRect
+renderWall :: SDL.Renderer -> MiniMapData -> Int -> (Int, Maybe WallMaterial) -> IO ()
+renderWall _ _ _ (_, Nothing) = return ()
+renderWall r d x (y, Just _) = drawMiniMapTile r d (x, y)
+
+drawMiniMapTile :: SDL.Renderer -> MiniMapData -> TileCoord -> IO ()
+drawMiniMapTile r d c = do
+  let globalPos = tileCoordToGlobalPos c
+  let iTileGlobalSize = fromIntegral tileGlobalSize
+  drawMiniMapLine r d (globalPos, Vector2 iTileGlobalSize 0)
+  drawMiniMapLine r d (globalPos, Vector2 0 iTileGlobalSize)
+  drawMiniMapLine r d (globalPos + (Vector2 iTileGlobalSize 0), Vector2 0 iTileGlobalSize)
+  drawMiniMapLine r d (globalPos + (Vector2 0 iTileGlobalSize), Vector2 iTileGlobalSize 0)
+
+--renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
+--renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
+--  SDL.rendererDrawColor r $= wallColor
+--  forM_ (worldWallsTouching w worldRect) (renderWall r d)
+--
+--renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
+--renderWall r d (Wall o s _) = drawMiniMapLine r d (o, s)
 
 renderOrigin :: SDL.Renderer -> MiniMapData -> IO ()
 renderOrigin r d = do
