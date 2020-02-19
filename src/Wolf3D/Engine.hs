@@ -52,13 +52,15 @@ data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
 type WorldTicks = Int
 -- Tried record syntax for this and failed
 data World i where
-  World :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> WorldTicks -> World i
+  World :: (SimEntity i) => Ceiling -> [Wall] -> [[Maybe WallMaterial]] -> [i] -> WorldTicks -> World i
 
 createWorld :: (SimEntity i) => Ceiling -> [Wall] -> [i] -> World i
-createWorld c walls items = World c walls items 0
+createWorld c ws is = World c ws wm is 0
+  where
+    wm = []
 
 tickWorld :: World i -> World i
-tickWorld world@(World _ _ is _) = ticWorldTicks updatedWorld
+tickWorld world@(World _ _ _ is _) = ticWorldTicks updatedWorld
   where
     updatedItems = map (simUpdate world) is
     updatedWorld = updateWorldEntities world updatedItems
@@ -72,19 +74,19 @@ tickWorldNTimes w n
       foldStep _ = tickWorld
 
 updateWorldEntities :: World i -> [i] -> World i
-updateWorldEntities (World c w _ t) i = World c w i t
+updateWorldEntities (World c w wm _ t) i = World c w wm i t
 
 worldWalls :: World i -> [Wall]
-worldWalls (World _ walls _ _) = walls
+worldWalls (World _ ws _ _ _) = ws
 
 worldEntities :: (SimEntity i) => World i -> [i]
-worldEntities (World _ _ is _) = is
+worldEntities (World _ _ _ is _) = is
 
 worldCeilingColor :: World i -> Ceiling
-worldCeilingColor (World c _ _ _) = c
+worldCeilingColor (World c _ _ _ _) = c
 
 worldTics :: World i -> Int
-worldTics (World _ _ _ t) = t
+worldTics (World _ _ _ _ t) = t
 
 worldWallsTouching :: World i -> Rectangle -> [Wall]
 worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
@@ -99,7 +101,7 @@ wallHeight :: Double
 wallHeight = 3000
 
 ticWorldTicks :: World i -> World i
-ticWorldTicks (World c ws is tics) = World c ws is (tics + 1)
+ticWorldTicks (World c ws wm is ticks) = World c ws wm is (ticks + 1)
 
 castRayToClosestWall :: World i -> Ray -> Maybe WallHit
 castRayToClosestWall w ray

@@ -50,7 +50,7 @@ simSpec =
           hero = rotateHero (createHero (Vector2 0 0)) (270 * 20) -- angleScale
         in
           position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 0 1)
-      
+
       it "should move backward correctly if facing north" $
         let
           hero = rotateHero (createHero (Vector2 0 0)) (90 * 20) -- angleScale
@@ -62,25 +62,25 @@ simSpec =
           hero = rotateHero (createHero (Vector2 0 0)) (270 * 20) -- angleScale
         in
           position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 0 (-1))
-      
+
       it "should move forward correctly if facing east" $
         let
           hero = rotateHero (createHero (Vector2 0 0)) (0 * 20) -- angleScale
         in
           position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 1 0)
-      
+
       it "should move backward correctly if facing east" $
         let
           hero = rotateHero (createHero (Vector2 0 0)) (0 * 20) -- angleScale
         in
           position (moveHero hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 (-1) 0)
-      
+
       it "should move forward correctly if facing west" $
         let
           hero = rotateHero (createHero (Vector2 0 0)) (180 * 20) -- angleScale
         in
           position (moveHero hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 (-1) 0)
-      
+
       it "should move backward correctly if facing west" $
         let
           hero = rotateHero (createHero (Vector2 0 0)) (180 * 20) -- angleScale

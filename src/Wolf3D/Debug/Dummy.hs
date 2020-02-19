@@ -74,7 +74,7 @@ fromGridRow (x, y) (c:cs) = (cellWs ++ nextWs, cellIs ++ nextIs)
 
 fromGridCell :: TileCoord -> String -> ([Wall], [Wolf3DSimEntity])
 fromGridCell _ "" = ([], [])
-fromGridCell t "H" = ([], [SEHero (createHeroFromTilePosition t)])
+fromGridCell t "H" = ([], [SEHero (rotateHero (createHeroFromTilePosition t) ((-90) * 20))])
 fromGridCell pos "DR" = ([], [SEEnvItem (EnvItem Drum (tileCoordToCentreGlobalPos pos))])
 fromGridCell t "WB1" = (createWalls t Blue, [])
 fromGridCell t "WB2" = (createWalls t Blue2, [])

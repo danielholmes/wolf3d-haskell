@@ -299,8 +299,9 @@ bindAngle a
 instance SimEntity EnvItem where
  simUpdate _ = id
 
+-- 0.005 a hack until change rendering
 itemSize :: EnvItem -> Vector2
-itemSize _ = Vector2 3000 3000
+itemSize _ = Vector2 ((fromIntegral tileGlobalSize) * 0.05) ((fromIntegral tileGlobalSize) * 0.05)
 
 itemHeight :: Double
 itemHeight = 3000
