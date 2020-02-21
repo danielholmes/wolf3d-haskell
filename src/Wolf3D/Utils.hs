@@ -1,6 +1,4 @@
-module Wolf3D.Utils (
-  diffUTCTimeMillis
-) where
+module Wolf3D.Utils (diffUTCTimeMillis) where
 
 import Data.Time.Clock
 

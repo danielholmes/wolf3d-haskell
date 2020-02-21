@@ -3,6 +3,7 @@ import Wolf3D.SimSpec
 import Wolf3D.RunnerSpec
 import Wolf3D.GeomSpec
 import Wolf3D.EngineSpec
+import Wolf3D.Display.RaySpec
 
 main :: IO ()
 main = hspec $ do
@@ -10,3 +11,4 @@ main = hspec $ do
   runnerSpec
   geomSpec
   engineSpec
+  raySpec

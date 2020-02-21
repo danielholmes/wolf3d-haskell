@@ -8,6 +8,7 @@ module Wolf3D.Sim (
       UseWeapon
   ),
   Hero (position, snappedRotation, actionsState, weapon),
+  SnappedRotation,
   EnvItemType (Drum, Light, Flag),
   EnvItem (EnvItem),
 

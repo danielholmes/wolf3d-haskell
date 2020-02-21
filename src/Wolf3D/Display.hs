@@ -37,10 +37,6 @@ import Wolf3D.Display.Data
 distToProjPlane :: Double
 distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 96))
 
--- Taken from original source
---focalLength :: Int
---focalLength = 0x5700
-
 ceilingColors :: M.Map Ceiling (SDL.V4 Word8)
 ceilingColors = M.fromList [(GreyCeiling, SDL.V4 55 55 55 255)
                             , (PurpleCeiling, SDL.V4 63 2 63 255)

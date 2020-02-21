@@ -47,6 +47,7 @@ extra-deps:
   - "extra-1.6.20"
   - "monad-loops-0.4.3"
   - "hspec-2.7.1"
+  - "hlint-2.2.11"
   - "StateVar-1.1.1.1"
   - "AC-Vector-1.2.2"
   - "vector-0.12.1.2"

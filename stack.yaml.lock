@@ -54,6 +54,13 @@ packages:
   original:
     hackage: hspec-2.7.1
 - completed:
+    hackage: hlint-2.2.11@sha256:f4eef0d718264824254bf375a85a91a8756b20c4f7d2a4854ffe4e69e8bd1679,4069
+    pantry-tree:
+      size: 5014
+      sha256: f75f1e4185337aa32610ec7710d12e5d2b9c79292fa8a08348580861c99c6826
+  original:
+    hackage: hlint-2.2.11
+- completed:
     hackage: StateVar-1.1.1.1@sha256:cd3b516a49faf0627ea31885e012611e63600824976dcb276bcb2e92cdb0790f,1417
     pantry-tree:
       size: 314

@@ -104,6 +104,7 @@ stack test --pedantic --file-watch
        - check RAM vs render time tradeoff
  
  - Hold multiple weapons and change between them with key presses
+ - read levels from shareware files (see https://devinsmith.net/backups/bruce/wolf3d.html)
  - shoot Uzi
  - animate Uzi
  - difference for pistol and uzi - auto vs semi auto

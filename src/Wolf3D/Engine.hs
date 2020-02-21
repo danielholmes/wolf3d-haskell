@@ -14,7 +14,6 @@ module Wolf3D.Engine (
   worldEntities,
   updateWorldEntities,
   ticWorldTicks,
-  worldWallsTouching,
   wallToLine,
   castRayToClosestWall,
   wallHeight,
@@ -27,7 +26,8 @@ module Wolf3D.Engine (
 
   tileCoordToGlobalPos,
   tileCoordToCentreGlobalPos,
-  tileGlobalSize
+  tileGlobalSize,
+  tileToGlobalShift
 ) where
 
 import Wolf3D.Geom
@@ -103,6 +103,7 @@ tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegra
 emptyWallMap :: Int -> Int -> WallMap
 emptyWallMap w h = replicate h $ replicate w Nothing
 
+-- TODO: Test throws error if non equal map dims
 createWorld :: (SimEntity i) => Ceiling -> WallMap -> [i] -> World i
 createWorld c wm is = World c ws wm is 0
   where
@@ -148,13 +149,6 @@ worldCeilingColor (World c _ _ _ _) = c
 
 worldTics :: World i -> Int
 worldTics (World _ _ _ _ t) = t
-
--- TODO: Remove, was used in mini map
-worldWallsTouching :: World i -> Rectangle -> [Wall]
-worldWallsTouching w r = filter (wallIsTouching r) (worldWalls w)
-
-wallIsTouching :: Rectangle -> Wall -> Bool
-wallIsTouching r w = rectangleTouchesLine r (wallToLine w)
 
 wallToLine :: Wall -> Line
 wallToLine (Wall start change _) = (start, change)
