@@ -22,7 +22,7 @@ raySpec =
 --          angle = 90
 --        in
 --          castRay wm pos angle `shouldBe` Nothing
---      
+--
 --      it "should return hit for straight east" $
 --        let
 --          wm = transpose [[Nothing, Nothing, Just Red]
@@ -32,7 +32,7 @@ raySpec =
 --          angle = 0
 --        in
 --          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
---      
+--
 --      it "should return hit for straight west" $
 --        let
 --          wm = transpose [[Just Red, Nothing, Nothing]
@@ -42,7 +42,7 @@ raySpec =
 --          angle = 180
 --        in
 --          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
---      
+--
 --      it "should return hit for straight north" $
 --        let
 --          wm = transpose [[Just Red, Just Blue, Just Blue]
@@ -52,7 +52,7 @@ raySpec =
 --          angle = 90
 --        in
 --          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
---      
+--
 --      it "should return hit for straight south" $
 --        let
 --          wm = transpose [[Nothing, Nothing, Nothing]
@@ -62,8 +62,8 @@ raySpec =
 --          angle = 270
 --        in
 --          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
-      
-      it "should return hit for NE / 0-90" $
+
+      it "should return hit for NE / 0-89" $
         let
           wm = transpose [[Nothing, Nothing, Just Red]
                         , [Nothing, Nothing, Nothing]
@@ -72,13 +72,70 @@ raySpec =
           angle = 45
         in
           castRay wm pos angle `shouldBe` Just (Hit {material=Red})
-      
---      it "should return hit for NW / 90-180" $
+
+      it "should return hit for NWish / 90-179" $
+        let
+          wm = transpose [[Nothing, Nothing, Nothing]
+                        , [Just Red, Nothing, Nothing]
+                        , [Nothing, Nothing, Nothing]]
+          pos = Vector2 (2.5 * fromIntegral tileGlobalSize) (3.0 * fromIntegral tileGlobalSize)
+          angle = 150
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+
+      it "should return hit for SW / 180-269" $
+        let
+          wm = transpose [[Nothing, Nothing, Nothing]
+                        , [Nothing, Nothing, Nothing]
+                        , [Just Red, Nothing, Nothing]]
+          pos = Vector2 (3.0 * fromIntegral tileGlobalSize) halfTileGlobalSize
+          angle = 225
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+
+--      it "should return hit for SEish / 270-359" $
 --        let
---          wm = transpose [[Just Red, Nothing, Nothing]
+--          wm = transpose [[Nothing, Nothing, Nothing]
 --                        , [Nothing, Nothing, Nothing]
---                        , [Nothing, Nothing, Nothing]]
---          pos = Vector2 (2.5 * fromIntegral tileGlobalSize) (3.0 * fromIntegral tileGlobalSize)
---          angle = 135
+--                        , [Nothing, Nothing, Just Red]]
+--          pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
+--          angle = 300
 --        in
 --          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+      
+      it "should return hit for straight East / 0" $
+        let
+          wm = transpose [[Nothing, Nothing, Just Red]
+                        , [Nothing, Nothing, Nothing]]
+          pos = Vector2 0 halfTileGlobalSize
+          angle = 0
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+      
+      it "should return hit for straight West / 180" $
+        let
+          wm = transpose [[Just Red, Nothing, Nothing]
+                        , [Nothing, Nothing, Nothing]]
+          pos = Vector2 (2 * fromIntegral tileGlobalSize) halfTileGlobalSize
+          angle = 180
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+      
+      it "should return hit for straight North / 90" $
+        let
+          wm = transpose [[Nothing, Just Red]
+                        , [Nothing, Nothing]]
+          pos = Vector2 (1.5 * fromIntegral tileGlobalSize) (2 * fromIntegral tileGlobalSize)
+          angle = 90
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+      
+      it "should return hit for straight South / 270" $
+        let
+          wm = transpose [[Nothing, Nothing]
+                        , [Nothing, Just Red]]
+          pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
+          angle = 270
+        in
+          castRay wm pos angle `shouldBe` Just (Hit {material=Red})
+
