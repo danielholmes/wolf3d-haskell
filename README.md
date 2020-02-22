@@ -64,11 +64,12 @@ stack test --pedantic --file-watch
 
 ## TODO
  
+ - use data.array for worldmap instead - better performance accessing by index
+ - use sin, cos, tan lookup tables
  - https://github.com/bkaradzic/bgfx looks good for rendering
  - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
  - See https://github.com/jxv/sdl2-fps
- - switch to stencil algorithm for rendering
- - physics engine (2d top down).  wolfs is simple
+ - physics engine (2d top down). wolfs is simple
    - general
          1. Move x and y, if okay then return
          2. move x only, if okay return
@@ -81,7 +82,6 @@ stack test --pedantic --file-watch
              - which apply the force and take in to account any bumping up against
              - items should be static (cant be moved), dynamic (can be moved), virtual (move right through them)
          - collision events between 2
- - Pickup item
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
  - id system for items
@@ -132,25 +132,5 @@ stack test --pedantic --file-watch
 ## Nice to haves
 
  - better index for weapon animation data
- - Bring sim runner into engine
-   - provide own implementation of extract and apply Input
  - Optimise render - a lot of calculations can be done once
- - Speed up travis. See 
-   - http://rundef.com/fast-travis-ci-docker-build 
-   - https://gist.github.com/hc2p/9e284cee3d585eefbc59454e44cc247a
-   - http://atodorov.org/blog/2017/08/07/faster-travis-ci-tests-with-docker-cache/
-   - https://giorgos.sealabs.net/docker-cache-on-travis-and-docker-112.html
  - Try reading original data file? See carmackExpand in wolf3d-html. Or maybe just use the format from wolf3d-html
- - Compare to real implementation - http://fabiensanglard.net/Game_Engine_Black_Book_Release_Date/index.php
- 
-
-## Distances Reference (found from web version)
-
-98304 distance an enemy can see at
-22272 focal length
-8192  size of an object
-98304 is distance knife can attack
-30720 is door width
-22528 is min dist
-49152 is projectile size
-16384 is the amount fudged
