@@ -30,9 +30,35 @@ raySpec =
                                         , tilePosition=32767
                                         , direction=Horizontal
                                         , intercept=(163839, tileGlobalSize)}
-
-      -- NOTE:!! Check  this, not searching correctly, doing  2 hor in a row, no verts
-      -- setup test to show error
+      
+      it "should return hit for NE / 0-89 expressed as minus" $
+        let
+          wm = transpose [[Nothing, Nothing, Just Red]
+                        , [Nothing, Nothing, Nothing]
+                        , [Nothing, Nothing, Nothing]]
+          pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
+          angle = normalToFineAngle (45 - 360)
+          result = castRayToWalls wm pos angle
+        in
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=32767
+                                        , direction=Horizontal
+                                        , intercept=(163839, tileGlobalSize)}
+      
+      it "should return hit for NE / 0-89 expressed as over 360" $
+        let
+          wm = transpose [[Nothing, Nothing, Just Red]
+                        , [Nothing, Nothing, Nothing]
+                        , [Nothing, Nothing, Nothing]]
+          pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
+          angle = normalToFineAngle (45 + 360)
+          result = castRayToWalls wm pos angle
+        in
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=32767
+                                        , direction=Horizontal
+                                        , intercept=(163839, tileGlobalSize)}
+      
       it "should return hit for NWish / 90-179" $
         let
           wm = transpose [[Nothing, Nothing, Nothing]

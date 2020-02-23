@@ -15,7 +15,6 @@ module Wolf3D.Engine (
   updateWorldEntities,
   ticWorldTicks,
   wallToLine,
-  castRayToClosestWall,
   wallHeight,
   emptyWallMap,
   worldTics,
@@ -32,7 +31,6 @@ module Wolf3D.Engine (
 
 import Wolf3D.Geom
 import Data.Vector
-import Data.List
 import Data.Bits
 
 
@@ -158,21 +156,3 @@ wallHeight = 3000
 
 ticWorldTicks :: World i -> World i
 ticWorldTicks (World c ws wm is ticks) = World c ws wm is (ticks + 1)
-
-castRayToClosestWall :: World i -> Ray -> Maybe WallHit
-castRayToClosestWall w ray
-  | null allHits = Nothing
-  | otherwise    = Just (minimumBy compareHits allHits)
-  where
-    allHits = castRayToAllWalls w ray
-    compareHits :: WallHit -> WallHit -> Ordering
-    compareHits (WallHit _ _ d1) (WallHit _ _ d2) = d1 `compare` d2
-
-castRayToAllWalls :: World i -> Ray -> [WallHit]
-castRayToAllWalls world ray = foldr foldStep [] (worldWalls world)
-  where
-    rStart = rayOrigin ray
-    foldStep :: Wall -> [WallHit] -> [WallHit]
-    foldStep wall accu = case rayLineIntersection ray (wallToLine wall) of
-      Nothing -> accu
-      Just pos -> WallHit wall pos (vectorDist rStart pos) : accu

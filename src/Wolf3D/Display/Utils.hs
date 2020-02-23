@@ -25,6 +25,7 @@ withScale r s op = do
   void op
   SDL.rendererScale r $= oldScale
 
+-- TODO: Not impl yet
 copyWithActionOffset :: (MonadIO m) => SDL.Renderer -> (CInt, CInt) -> SDL.Texture -> SDL.Rectangle CInt -> SDL.Rectangle CInt -> m ()
 copyWithActionOffset r _ texture sourceRect destRect = do
   SDL.copy r texture (Just sourceRect) (Just destRect)

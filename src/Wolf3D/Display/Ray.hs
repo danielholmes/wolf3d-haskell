@@ -60,7 +60,7 @@ data RayData = DiagonalRayData {horInterceptYTile :: Int
 
 -- Note, needs to be fine angles
 fineViewAngleOffsets :: [FineAngle]
-fineViewAngleOffsets = [-halfActionWidth..(halfActionWidth - 1)]
+fineViewAngleOffsets = reverse [-halfActionWidth..(halfActionWidth - 1)]
   where
     halfActionWidth = fromIntegral actionWidth `div` 2
 --  where
@@ -88,7 +88,7 @@ castRayToWalls wm pos fineViewAngle = nextRayCheck wm focal rd
   where (focal, rd) = createRayData pos fineViewAngle
 
 createRayData :: Vector2 -> FineAngle -> ((Int, Int), RayData)
-createRayData (Vector2 x y) fineViewAngle
+createRayData pos@(Vector2 x y) fineViewAngle
   | fineViewAngle == 0 || fineViewAngle == fine180  = (focal
                                                             , HorizontalRayData {interceptY=focalYI
                                                               , interceptXTile=verInterceptXTile1
@@ -161,7 +161,9 @@ createRayData (Vector2 x y) fineViewAngle
                                       , yTileStep=yTileStep1
                                       , xStep=(round (fromIntegral tileGlobalSize * tanTheta))
                                       , yStep=(round (fromIntegral tileGlobalSize * tanTable!(fine360 - fineViewAngle)))})
-  | otherwise                           = error "Angle must be >= 0 < 360"
+  | fineViewAngle < 0                   = createRayData pos (fineViewAngle + fine360) 
+  | fineViewAngle >= fine360            = createRayData pos (fineViewAngle - fine360) 
+  | otherwise                           = error "Shouldn't be able to match this"
   where
     viewSin = focalSinTable!fineViewAngle
     viewCos = focalCosTable!fineViewAngle

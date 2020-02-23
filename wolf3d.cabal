@@ -82,7 +82,6 @@ test-suite wolf3d-test
                      , Wolf3D.GeomSpec
                      , Wolf3D.SimSpec
                      , Wolf3D.RunnerSpec
-                     , Wolf3D.EngineSpec
                      , Wolf3D.Display.RaySpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
