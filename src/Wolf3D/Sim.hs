@@ -23,6 +23,11 @@ module Wolf3D.Sim (
   lastTimeWeaponUsed,
 
   angles,
+  fineAngles,
+  Angle,
+  FineAngle,
+  normalToFineAngle,
+  fineToNormalAngle,
   createHero,
   createHeroFromTilePosition,
   heroLookRay,
@@ -83,8 +88,20 @@ data EnvItemType = Drum | Flag | Light
 data EnvItem = EnvItem EnvItemType Vector2
  deriving (Show, Eq)
 
-angles :: Int
+type FineAngle = Int
+type Angle = Int
+
+angles :: Angle
 angles = 360
+
+fineAngles :: FineAngle
+fineAngles = 3600
+
+normalToFineAngle :: Int -> Int
+normalToFineAngle a = fineAngles `div` angles * a
+
+fineToNormalAngle :: Int -> Double
+fineToNormalAngle f = fromIntegral f * fromIntegral angles / fromIntegral fineAngles
 
 angleScale :: Int
 angleScale = 20

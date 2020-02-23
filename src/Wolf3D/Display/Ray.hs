@@ -26,16 +26,17 @@ data WallRayHit = WallRayHit {material :: WallMaterial
 focalLength :: Double
 focalLength = 0x5700
 
-anglesList :: [Int]
-anglesList = [0..(angles - 1)]
+allFineAngles :: [FineAngle]
+allFineAngles = [0..(fineAngles - 1)]
 
-sinTable :: Array Int Double
-sinTable = array (0, angles - 1) [(i, sin (fromIntegral i * deg2Rad)) | i <- anglesList]
+focalSinTable :: Array Angle Double
+focalSinTable = array (0, fineAngles - 1) [(i, focalLength * sin (fineToNormalAngle i * deg2Rad)) | i <- allFineAngles]
 
-cosTable :: Array Int Double
-cosTable = array (0, angles - 1) [(i, cos (fromIntegral i * deg2Rad)) | i <- anglesList]
+focalCosTable :: Array Angle Double
+focalCosTable = array (0, fineAngles - 1) [(i, focalLength * cos (fineToNormalAngle i * deg2Rad)) | i <- allFineAngles]
 
--- TODO: fineangle tan
+tanTable :: Array FineAngle Double
+tanTable = array (0, fineAngles - 1) [(i, tan (fineToNormalAngle i * deg2Rad)) | i <- allFineAngles]
 
 -- TODO: checks for double hor/ver remove need for separate  hor/ver data. Trial it
 data RayData = DiagonalRayData {horInterceptYTile :: Int
@@ -54,106 +55,118 @@ data RayData = DiagonalRayData {horInterceptYTile :: Int
                                 , tileStep :: Int}
   deriving (Show)
 
-fieldOfView :: Double
-fieldOfView = pi / 3
+--fieldOfView :: Double
+--fieldOfView = pi / 3
 
 -- Note, needs to be fine angles
-viewAngleOffsets :: [Int]
-viewAngleOffsets = map (\i -> round (fromIntegral i * angleDiff)) [0..(actionWidth - 1)]
+fineViewAngleOffsets :: [FineAngle]
+fineViewAngleOffsets = [-halfActionWidth..(halfActionWidth - 1)]
   where
-    angleDiff = fieldOfView / fromIntegral actionWidth
+    halfActionWidth = fromIntegral actionWidth `div` 2
+--  where
+--    angleDiff = fieldOfView / fromIntegral actionWidth
 
-castRaysToWalls :: WallMap -> Vector2 -> SnappedRotation -> [WallRayHit]
-castRaysToWalls wm pos midAngle = map (\a -> castRayToWalls wm pos a) rayAngles
+fine270 :: Int
+fine270 = normalToFineAngle 270
+
+fine90 :: Int
+fine90 = normalToFineAngle 90
+
+fine180 :: Int
+fine180 = normalToFineAngle 180
+
+fine360 :: Int
+fine360 = normalToFineAngle 360
+
+castRaysToWalls :: WallMap -> Vector2 -> FineAngle -> [WallRayHit]
+castRaysToWalls wm pos fineMidAngle = map (\a -> castRayToWalls wm pos a) rayAngles
   where
-    angleStart = round (fromIntegral midAngle - fieldOfView / 2)
-    rayAngles = map (\i -> angleStart + i) viewAngleOffsets
+    rayAngles = map (\i -> fineMidAngle + i) fineViewAngleOffsets
 
-castRayToWalls :: WallMap -> Vector2 -> SnappedRotation -> WallRayHit
-castRayToWalls wm pos viewAngle = nextRayCheck wm focal rd
-  where (focal, rd) = createRayData pos viewAngle
+castRayToWalls :: WallMap -> Vector2 -> FineAngle -> WallRayHit
+castRayToWalls wm pos fineViewAngle = nextRayCheck wm focal rd
+  where (focal, rd) = createRayData pos fineViewAngle
 
-createRayData :: Vector2 -> SnappedRotation -> ((Int, Int), RayData)
-createRayData (Vector2 x y) viewAngle
-  | viewAngle == 0 || viewAngle == 180  = (focal
-                                          , HorizontalRayData {interceptY=focalYI
+createRayData :: Vector2 -> FineAngle -> ((Int, Int), RayData)
+createRayData (Vector2 x y) fineViewAngle
+  | fineViewAngle == 0 || fineViewAngle == fine180  = (focal
+                                                            , HorizontalRayData {interceptY=focalYI
                                                               , interceptXTile=verInterceptXTile1
                                                               , tileStep=xTileStep1})
-  | viewAngle == 90 || viewAngle == 270 = (focal
-                                          , VerticalRayData {interceptX=focalXI
+  | fineViewAngle == fine90 || fineViewAngle == fine270 = (focal
+                                                            , VerticalRayData {interceptX=focalXI
                                                             , interceptYTile=horInterceptYTile1
                                                             , tileStep=yTileStep1})
-  | viewAngle > 0 && viewAngle < 90     = let
-                                            tanTheta = tan angleRad
-                                            -- aX = focalXI + round (fromIntegral (focalYI - focalTileY * tileGlobalSize) * tanTheta)
-                                            aX = focalXI + yPartial
-                                            -- TODO: Use focalXI shift instead, or partial?
-                                            bYX = fromIntegral (focalXI - (focalTileX * tileGlobalSize))
-                                            bY = focalYI - round (bYX / tanTheta)
-                                          in
-                                            (focal
-                                            , DiagonalRayData {horNextIntercept=(aX, (horInterceptYTile1 + 1) * tileGlobalSize)
-                                                             , verNextIntercept=((focalTileX + xTileStep1) * tileGlobalSize, bY)
-                                                             , horInterceptYTile=horInterceptYTile1
-                                                             , verInterceptXTile=focalTileX + xTileStep1
-                                                             , xTileStep=xTileStep1
-                                                             , yTileStep=yTileStep1
-                                                             , xStep=(round (fromIntegral tileGlobalSize * tan (pi / 2 - angleRad)))
-                                                             , yStep=(-round (fromIntegral tileGlobalSize * tan angleRad))})
-  | viewAngle > 90 && viewAngle < 180   = let
-                                            tanTheta = tan (angleRad - pi / 2)
-                                            aY = focalTileY * tileGlobalSize
-                                            aX = focalXI - round (fromIntegral (focalYI - aY) * tanTheta)
-                                            -- TODO: Use focalXI shift instead
-                                            bX = fromIntegral (focalXI - focalTileX * tileGlobalSize)
-                                            bY = round (focalY - bX / tanTheta)
-                                          in
-                                            (focal
-                                            , DiagonalRayData {horNextIntercept=(aX, (horInterceptYTile1 + 1) * tileGlobalSize)
-                                                              , verNextIntercept=(focalTileX * tileGlobalSize, bY)
-                                                              , horInterceptYTile=horInterceptYTile1
-                                                              , verInterceptXTile=focalTileX + xTileStep1
-                                                              , xTileStep=xTileStep1
-                                                              , yTileStep=yTileStep1
-                                                              , xStep=(-round (fromIntegral tileGlobalSize * tanTheta))
-                                                              , yStep=(-round (fromIntegral tileGlobalSize / tanTheta))})
-  | viewAngle > 180 && viewAngle < 270  = let
-                                            tanTheta = tan (3/2 * pi - angleRad)
-                                            aX = focalXI - round (fromIntegral (((focalTileY + yTileStep1) * tileGlobalSize) - focalYI) * tanTheta)
-                                            -- TODO: Use focalXI shift instead
-                                            bYX = fromIntegral (focalXI - (focalTileX * tileGlobalSize))
-                                            bY = focalYI + round (bYX / tanTheta)
-                                          in
-                                            (focal
-                                            , DiagonalRayData {horNextIntercept=(aX, horInterceptYTile1 * tileGlobalSize)
-                                                              , verNextIntercept=(focalTileX * tileGlobalSize, bY)
-                                                              , horInterceptYTile=horInterceptYTile1
-                                                              , verInterceptXTile=focalTileX + xTileStep1
-                                                              , xTileStep=xTileStep1
-                                                              , yTileStep=yTileStep1
-                                                              , xStep=(- round (fromIntegral tileGlobalSize * tanTheta))
-                                                              , yStep=(round (fromIntegral tileGlobalSize * tan (angleRad - pi)))})
-  | viewAngle > 270 && viewAngle < 360  = let
-                                            tanTheta = tan (angleRad - 3/2 * pi)
-                                            aX = focalXI + round (fromIntegral (((focalTileY + yTileStep1) * tileGlobalSize) - focalYI) * tanTheta)
-                                            bY = focalYI + round (fromIntegral (((focalTileX + xTileStep1) * tileGlobalSize) - focalXI) / tanTheta)
-                                          in
-                                            (focal
-                                            , DiagonalRayData {horNextIntercept=(aX, horInterceptYTile1 * tileGlobalSize)
-                                                              , verNextIntercept=((focalTileX + xTileStep1) * tileGlobalSize, bY)
-                                                              , horInterceptYTile=horInterceptYTile1
-                                                              , verInterceptXTile=focalTileX + xTileStep1
-                                                              , xTileStep=xTileStep1
-                                                              , yTileStep=yTileStep1
-                                                              , xStep=(round (fromIntegral tileGlobalSize * tanTheta))
-                                                              , yStep=(round (fromIntegral tileGlobalSize * tan (2 * pi - angleRad)))})
+  | is0To89     = let
+                    tanTheta = tanTable!fineViewAngle
+                    -- aX = focalXI + round (fromIntegral (focalYI - focalTileY * tileGlobalSize) * tanTheta)
+                    aX = focalXI + yPartial
+                    -- TODO: Use focalXI shift instead, or partial?
+                    bYX = fromIntegral (focalXI - (focalTileX * tileGlobalSize))
+                    bY = focalYI - round (bYX / tanTheta)
+                  in
+                    (focal
+                    , DiagonalRayData {horNextIntercept=(aX, (horInterceptYTile1 + 1) * tileGlobalSize)
+                                     , verNextIntercept=((focalTileX + xTileStep1) * tileGlobalSize, bY)
+                                     , horInterceptYTile=horInterceptYTile1
+                                     , verInterceptXTile=focalTileX + xTileStep1
+                                     , xTileStep=xTileStep1
+                                     , yTileStep=yTileStep1
+                                     , xStep=(round (fromIntegral tileGlobalSize * tanTable!(fine90 - fineViewAngle)))
+                                     , yStep=(-round (fromIntegral tileGlobalSize * tanTheta))})
+  | is90To179   = let
+                    tanTheta = tanTable!(fineViewAngle - fine90)
+                    aY = focalTileY * tileGlobalSize
+                    aX = focalXI - round (fromIntegral (focalYI - aY) * tanTheta)
+                    -- TODO: Use focalXI shift instead
+                    bX = fromIntegral (focalXI - focalTileX * tileGlobalSize)
+                    bY = round (focalY - bX / tanTheta)
+                  in
+                    (focal
+                    , DiagonalRayData {horNextIntercept=(aX, (horInterceptYTile1 + 1) * tileGlobalSize)
+                                      , verNextIntercept=(focalTileX * tileGlobalSize, bY)
+                                      , horInterceptYTile=horInterceptYTile1
+                                      , verInterceptXTile=focalTileX + xTileStep1
+                                      , xTileStep=xTileStep1
+                                      , yTileStep=yTileStep1
+                                      , xStep=(-round (fromIntegral tileGlobalSize * tanTheta))
+                                      , yStep=(-round (fromIntegral tileGlobalSize / tanTheta))})
+  | is180To269  = let
+                    tanTheta = tanTable!(fine270 - fineViewAngle)
+                    aX = focalXI - round (fromIntegral (((focalTileY + yTileStep1) * tileGlobalSize) - focalYI) * tanTheta)
+                    -- TODO: Use focalXI shift instead
+                    bYX = fromIntegral (focalXI - (focalTileX * tileGlobalSize))
+                    bY = focalYI + round (bYX / tanTheta)
+                  in
+                    (focal
+                    , DiagonalRayData {horNextIntercept=(aX, horInterceptYTile1 * tileGlobalSize)
+                                      , verNextIntercept=(focalTileX * tileGlobalSize, bY)
+                                      , horInterceptYTile=horInterceptYTile1
+                                      , verInterceptXTile=focalTileX + xTileStep1
+                                      , xTileStep=xTileStep1
+                                      , yTileStep=yTileStep1
+                                      , xStep=(- round (fromIntegral tileGlobalSize * tanTheta))
+                                      , yStep=(round (fromIntegral tileGlobalSize * tanTable!(fineViewAngle - fine180)))})
+  | is270To359  = let
+                    tanTheta = tanTable!(fineViewAngle - fine270)
+                    aX = focalXI + round (fromIntegral (((focalTileY + yTileStep1) * tileGlobalSize) - focalYI) * tanTheta)
+                    bY = focalYI + round (fromIntegral (((focalTileX + xTileStep1) * tileGlobalSize) - focalXI) / tanTheta)
+                  in
+                    (focal
+                    , DiagonalRayData {horNextIntercept=(aX, horInterceptYTile1 * tileGlobalSize)
+                                      , verNextIntercept=((focalTileX + xTileStep1) * tileGlobalSize, bY)
+                                      , horInterceptYTile=horInterceptYTile1
+                                      , verInterceptXTile=focalTileX + xTileStep1
+                                      , xTileStep=xTileStep1
+                                      , yTileStep=yTileStep1
+                                      , xStep=(round (fromIntegral tileGlobalSize * tanTheta))
+                                      , yStep=(round (fromIntegral tileGlobalSize * tanTable!(fine360 - fineViewAngle)))})
   | otherwise                           = error "Angle must be >= 0 < 360"
   where
-    angleRad = fromIntegral viewAngle * deg2Rad
-    viewSin = sinTable!viewAngle -- skip a * tileGlobalSize, seems like sizes are correct w/o
-    viewCos = cosTable!viewAngle -- skip a * tileGlobalSize, seems like sizes are correct w/o
-    focalX = x - (focalLength * viewCos)
-    focalY = y + (focalLength * viewSin)
+    viewSin = focalSinTable!fineViewAngle
+    viewCos = focalCosTable!fineViewAngle
+    focalX = x - viewCos
+    focalY = y + viewSin
     focalXI :: Int
     focalXI = floor focalX
     focalYI :: Int
@@ -166,12 +179,11 @@ createRayData (Vector2 x y) viewAngle
     yPartialDown = focalYI .&. (tileGlobalSize - 1)
     yPartialUp = tileGlobalSize - yPartialDown
 
-    -- This is for 0-89deg, 90-179
     -- Taken directly from source, find a better way
-    is0To89 = viewAngle >= 0 && viewAngle < 90
---    is90To179 = viewAngle >= 90 && viewAngle < 180
-    is180To269 = viewAngle >= 180 && viewAngle < 270
-    is270To359 = viewAngle >= 270 && viewAngle < 360
+    is0To89 = fineViewAngle >= 0 && fineViewAngle < fine90
+    is90To179 = fineViewAngle >= fine90 && fineViewAngle < fine180
+    is180To269 = fineViewAngle >= fine180 && fineViewAngle < fine270
+    is270To359 = fineViewAngle >= fine270 && fineViewAngle < fine360
 
     xTileStep1 = if is0To89 || is270To359 then 1 else -1 :: Int
     yTileStep1 = if is180To269 || is270To359 then 1 else -1 :: Int
@@ -209,11 +221,11 @@ verRayCheck wm d@DiagonalRayData {verInterceptXTile=vIXTile
     -- intXTile = if xTileS == -1 then vIXTile + 1 else vIXTile
     hitting = wm!!vIXTile!!vIYTile
     -- vIntercept = (intXTile * tileGlobalSize, vIY)
-    
+
     vInterceptNext = (x + xTileS * tileGlobalSize, y + dy)
     nextD = d{verInterceptXTile=(vIXTile + xTileS)
               , verNextIntercept=vInterceptNext}
-    
+
 verRayCheck wm d@HorizontalRayData {interceptY=vIY
                                   , interceptXTile=vIXTile
                                   , tileStep=xTileS} = case hitting of

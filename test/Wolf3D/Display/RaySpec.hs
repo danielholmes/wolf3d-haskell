@@ -2,6 +2,7 @@ module Wolf3D.Display.RaySpec (raySpec) where
 
 import Test.Hspec
 import Wolf3D.Display.Ray
+import Wolf3D.Sim
 import Wolf3D.Engine
 import Data.Vector
 import Data.List
@@ -22,7 +23,7 @@ raySpec =
                         , [Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
-          angle = 45
+          angle = normalToFineAngle 45
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -38,7 +39,7 @@ raySpec =
                         , [Nothing, Nothing, Nothing]
                         , [Just Red, Nothing, Nothing]]
           pos = Vector2 (2.5 * fromIntegral tileGlobalSize) (3.0 * fromIntegral tileGlobalSize)
-          angle = 150
+          angle = normalToFineAngle 150
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -52,7 +53,7 @@ raySpec =
                         , [Nothing, Nothing, Nothing]
                         , [Just Red, Nothing, Nothing]]
           pos = Vector2 (3.0 * fromIntegral tileGlobalSize) halfTileGlobalSize
-          angle = 225
+          angle = normalToFineAngle 225
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -66,7 +67,7 @@ raySpec =
                         , [Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Just Red]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
-          angle = 300
+          angle = normalToFineAngle 300
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -79,7 +80,7 @@ raySpec =
           wm = transpose [[Nothing, Nothing, Just Red]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 0 halfTileGlobalSize
-          angle = 0
+          angle = normalToFineAngle 0
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -92,7 +93,7 @@ raySpec =
           wm = transpose [[Just Red, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 (2 * fromIntegral tileGlobalSize) halfTileGlobalSize
-          angle = 180
+          angle = normalToFineAngle 180
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -105,7 +106,7 @@ raySpec =
           wm = transpose [[Nothing, Just Red]
                         , [Nothing, Nothing]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) (2 * fromIntegral tileGlobalSize)
-          angle = 90
+          angle = normalToFineAngle 90
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
@@ -118,7 +119,7 @@ raySpec =
           wm = transpose [[Nothing, Nothing]
                         , [Nothing, Just Red]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
-          angle = 270
+          angle = normalToFineAngle 270
           result = castRayToWalls wm pos angle
         in
           result `shouldBe` WallRayHit {material=Red
