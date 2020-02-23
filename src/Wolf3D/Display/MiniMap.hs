@@ -90,14 +90,6 @@ drawMiniMapTile r d c = do
   drawMiniMapLine r d (globalPos + (Vector2 iTileGlobalSize 0), Vector2 0 iTileGlobalSize)
   drawMiniMapLine r d (globalPos + (Vector2 0 iTileGlobalSize), Vector2 iTileGlobalSize 0)
 
---renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
---renderWalls r d@(MiniMapData _ _ _ worldRect _) w = do
---  SDL.rendererDrawColor r $= wallColor
---  forM_ (worldWallsTouching w worldRect) (renderWall r d)
---
---renderWall :: SDL.Renderer -> MiniMapData -> Wall -> IO ()
---renderWall r d (Wall o s _) = drawMiniMapLine r d (o, s)
-
 renderOrigin :: SDL.Renderer -> MiniMapData -> IO ()
 renderOrigin r d = do
   SDL.rendererDrawColor r $= originColor

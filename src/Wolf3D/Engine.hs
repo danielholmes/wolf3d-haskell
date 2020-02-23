@@ -4,17 +4,13 @@ module Wolf3D.Engine (
   World,
   WorldTicks,
   WallMap,
-  Wall (Wall),
   WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
-  WallHit (WallHit),
   TileCoord,
   Ceiling (GreyCeiling, GreenCeiling, PurpleCeiling, YellowCeiling),
   createWorld,
-  worldWalls,
   worldEntities,
   updateWorldEntities,
   ticWorldTicks,
-  wallToLine,
   wallHeight,
   emptyWallMap,
   worldTics,
@@ -29,7 +25,6 @@ module Wolf3D.Engine (
   tileToGlobalShift
 ) where
 
-import Wolf3D.Geom
 import Data.Vector
 import Data.Bits
 
@@ -42,15 +37,6 @@ data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
   deriving (Show, Eq, Ord)
 
 type TileCoord = (Int, Int)
-type WallPosition = Vector2
-type WallSize = Vector2
-data Wall = Wall WallPosition WallSize WallMaterial
-  deriving (Show, Eq)
-
-type DistanceToWall = Double
-type HitPosition = Vector2
-data WallHit = WallHit Wall HitPosition DistanceToWall
-  deriving (Show, Eq)
 
 data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
   deriving (Show, Eq, Ord)
@@ -59,7 +45,7 @@ type WorldTicks = Int
 type WallMap = [[Maybe WallMaterial]]
 -- Tried record syntax for this and failed
 data World i where
-  World :: (SimEntity i) => Ceiling -> [Wall] -> WallMap -> [i] -> WorldTicks -> World i
+  World :: (SimEntity i) => Ceiling -> WallMap -> [i] -> WorldTicks -> World i
 
 tileGlobalSize :: Int
 tileGlobalSize = 1 `shiftL` 16
@@ -103,21 +89,10 @@ emptyWallMap w h = replicate h $ replicate w Nothing
 
 -- TODO: Test throws error if non equal map dims
 createWorld :: (SimEntity i) => Ceiling -> WallMap -> [i] -> World i
-createWorld c wm is = World c ws wm is 0
-  where
-    ws = concat (map (\(x, col) -> concat (map (\(y, cell) -> createWalls (x, y) cell) (zip [0..] col))) (zip [0..] wm))
-    
-    createWalls :: TileCoord -> Maybe WallMaterial -> [Wall]
-    createWalls _ Nothing = []
-    createWalls pos@(x, y) (Just m) = [top, right, bottom, left]
-      where
-        top = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (1, 0)) m
-        right = Wall (tileCoordToGlobalPos (x + 1, y)) (tileCoordToGlobalPos (0, 1)) m
-        bottom = Wall (tileCoordToGlobalPos (x, y + 1)) (tileCoordToGlobalPos (1, 0)) m
-        left = Wall (tileCoordToGlobalPos pos) (tileCoordToGlobalPos (0, 1)) m
+createWorld c wm is = World c wm is 0
 
 tickWorld :: World i -> World i
-tickWorld world@(World _ _ _ is _) = ticWorldTicks updatedWorld
+tickWorld world@(World _ _ is _) = ticWorldTicks updatedWorld
   where
     updatedItems = map (simUpdate world) is
     updatedWorld = updateWorldEntities world updatedItems
@@ -131,28 +106,23 @@ tickWorldNTimes w n
       foldStep _ = tickWorld
 
 updateWorldEntities :: World i -> [i] -> World i
-updateWorldEntities (World c w wm _ t) i = World c w wm i t
-
-worldWalls :: World i -> [Wall]
-worldWalls (World _ ws _ _ _) = ws
+updateWorldEntities (World c wm _ t) i = World c wm i t
 
 worldWallMap :: World i -> WallMap
-worldWallMap (World _ _ wm _ _) = wm
+worldWallMap (World _ wm _ _) = wm
 
 worldEntities :: (SimEntity i) => World i -> [i]
-worldEntities (World _ _ _ is _) = is
+worldEntities (World _ _ is _) = is
 
 worldCeilingColor :: World i -> Ceiling
-worldCeilingColor (World c _ _ _ _) = c
+worldCeilingColor (World c _ _ _) = c
 
 worldTics :: World i -> Int
-worldTics (World _ _ _ _ t) = t
+worldTics (World _ _ _ t) = t
 
-wallToLine :: Wall -> Line
-wallToLine (Wall start change _) = (start, change)
-
+-- deprecated
 wallHeight :: Double
 wallHeight = 3000
 
 ticWorldTicks :: World i -> World i
-ticWorldTicks (World c ws wm is ticks) = World c ws wm is (ticks + 1)
+ticWorldTicks (World c wm is ticks) = World c wm is (ticks + 1)

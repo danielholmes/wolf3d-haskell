@@ -30,7 +30,6 @@ module Wolf3D.Sim (
   fineToNormalAngle,
   createHero,
   createHeroFromTilePosition,
-  heroLookRay,
   moveHero,
   rotateHero,
   heroHeight,
@@ -232,11 +231,6 @@ createHeroFromTilePosition p = createHero (tileCoordToCentreGlobalPos p)
 heroHeight :: Double
 heroHeight = 1500
 
-heroLookRay :: Hero -> Ray
-heroLookRay (Hero pos sr _ _ _) = createRay pos (Vector2 (-(sin dRot)) (cos dRot))
-  -- the + pi / 2 is a bit of a hack, but i think this method will disappear in refactor
-  where dRot = ((fromIntegral (-sr)) * deg2Rad) - pi / 2
-
 moveHero :: Hero -> Int -> Hero
 moveHero h 0 = h
 moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos}
@@ -246,8 +240,6 @@ moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos
     boundSpeed = if speed >= minDist * 2 then minDist * 2 - 1 else speed
     rotRad = (fromIntegral moveAngle) * deg2Rad
     dSpeed = fromIntegral boundSpeed
---    xmove = FixedByFrac(speed,costable[angle]);
---    	ymove = -FixedByFrac(speed,sintable[angle]);
     newPos = p + Vector2 (dSpeed * (cos rotRad)) (-(dSpeed * (sin rotRad)))
 
 updateHeroActionsState :: HeroActionsState -> Hero -> Hero

@@ -3,7 +3,6 @@ module Wolf3D.Display (
   render,
   renderWorld,
   renderHud,
-  rayLineIntersection,
   RenderData (RenderData),
   WallMaterialData,
   screenWidth,
@@ -12,7 +11,6 @@ module Wolf3D.Display (
   actionWidth
 ) where
 
-import Wolf3D.Geom
 import Wolf3D.Sim
 import Wolf3D.Engine
 import Wolf3D.Runner
@@ -83,9 +81,13 @@ renderWallLine r (RenderData {wallTextures=wt}) hero (pixel, WallRayHit {materia
   where
     (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
     hitWallTextureRatio = (fromIntegral tilePos / fromIntegral tileGlobalSize) :: Double
-    distance = vectorDist (position hero) (Vector2 (fromIntegral x) (fromIntegral y))
+    
     -- TODO: Remove this, check orig source
+    vectorDist :: Vector2 -> Vector2 -> Double
+    vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2))
+    distance = vectorDist (position hero) (Vector2 (fromIntegral x) (fromIntegral y))
     ratio = distToProjPlane / distance
+    
     projectedTop = round (fromIntegral halfActionHeight - (ratio * (wallHeight - heroHeight))) :: CInt
     projectedHeight = round (ratio * wallHeight) :: CInt
     actionY = projectedTop + (intRectY actionArea) :: CInt
