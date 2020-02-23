@@ -19,6 +19,7 @@ import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Display.Utils
 import Wolf3D.Display.Hud
+import Wolf3D.Display.Ray
 import Wolf3D.Animation
 import qualified SDL
 import Data.StateVar (($=))
@@ -31,6 +32,7 @@ import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
 import Wolf3D.Display.Data
+import Debug.Trace
 
 
 -- deprecated, not sure what it is actually
@@ -133,7 +135,8 @@ pixelWallHit :: World Wolf3DSimEntity -> CInt -> Maybe (WallHit, Double)
 pixelWallHit w i = fmap (\h -> (h, perpendicularDistance rayRotation h)) (castRayToClosestWall w rotatedRay)
   where
     hero = worldHero w
-    hRay = heroLookRay hero
+    hit = castRayToWalls (worldWallMap w) (position hero) (snappedRotation hero)
+    hRay = traceShow ("hit", hit) (heroLookRay hero)
     ratio = fromIntegral (actionWidth - i) / fromIntegral actionWidth
     rayRotation = pi / 3 * (ratio - 0.5)
     rotatedRay = rotateRay hRay rayRotation

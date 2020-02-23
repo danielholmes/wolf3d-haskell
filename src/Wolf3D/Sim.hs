@@ -22,6 +22,7 @@ module Wolf3D.Sim (
   Weapon (Pistol),
   lastTimeWeaponUsed,
 
+  angles,
   createHero,
   createHeroFromTilePosition,
   heroLookRay,

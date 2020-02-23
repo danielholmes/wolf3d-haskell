@@ -65,7 +65,8 @@ stack test --pedantic --file-watch
 ## TODO
  
  - use data.array for worldmap instead - better performance accessing by index
- - use sin, cos, tan lookup tables
+ - use tan lookup tables
+ - have press m to toggle map for debug
  - https://github.com/bkaradzic/bgfx looks good for rendering
  - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
  - See https://github.com/jxv/sdl2-fps

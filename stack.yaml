@@ -55,6 +55,7 @@ extra-deps:
   - "sdl2-ttf-2.1.0"
   - "stopwatch-0.1.0.6"
   - "clock-0.8"
+  - "array-0.5.4.0"
   # Fixes a bug recently showed up in compiling. These recommended by stack
   - binary-0.8.8.0
   - directory-1.3.6.0
@@ -65,6 +66,9 @@ extra-deps:
   - hspec-discover-2.7.1
   - HUnit-1.6.0.0
   - splitmix-0.0.3
+  - bytestring-0.10.10.0
+  - deepseq-1.4.4.0
+  - pretty-1.1.3.6
 
 # Override default flag values for local packages and extra-deps
 flags: {}

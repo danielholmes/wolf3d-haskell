@@ -15,7 +15,7 @@ halfTileGlobalSize = fromIntegral halfTileGlobalSizeI
 raySpec :: SpecWith ()
 raySpec =
   describe "Wolf3D.Display.Ray" $ do
-    describe "castRay" $ do
+    describe "castRayToWalls" $ do
       it "should return hit for NE / 0-89" $
         let
           wm = transpose [[Nothing, Nothing, Just Red]
@@ -23,10 +23,12 @@ raySpec =
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
           angle = 45
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Horizontal
-                                                    , intercept=(163839, tileGlobalSize)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=32767
+                                        , direction=Horizontal
+                                        , intercept=(163839, tileGlobalSize)}
 
       -- NOTE:!! Check  this, not searching correctly, doing  2 hor in a row, no verts
       -- setup test to show error
@@ -37,10 +39,12 @@ raySpec =
                         , [Just Red, Nothing, Nothing]]
           pos = Vector2 (2.5 * fromIntegral tileGlobalSize) (3.0 * fromIntegral tileGlobalSize)
           angle = 150
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Vertical
-                                                    , intercept=(tileGlobalSize, 139852)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=8780
+                                        , direction=Vertical
+                                        , intercept=(tileGlobalSize, 139852)}
 
       it "should return hit for SW / 180-269" $
         let
@@ -49,10 +53,12 @@ raySpec =
                         , [Just Red, Nothing, Nothing]]
           pos = Vector2 (3.0 * fromIntegral tileGlobalSize) halfTileGlobalSize
           angle = 225
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Vertical
-                                                    , intercept=(tileGlobalSize, 163839)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=32767
+                                        , direction=Vertical
+                                        , intercept=(tileGlobalSize, 163839)}
 
       it "should return hit for SEish / 270-359" $
         let
@@ -61,10 +67,12 @@ raySpec =
                         , [Nothing, Nothing, Just Red]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
           angle = 300
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Horizontal
-                                                    , intercept=(173979, 131072)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=42907
+                                        , direction=Horizontal
+                                        , intercept=(173979, 131072)}
 
       it "should return hit for straight East / 0" $
         let
@@ -72,10 +80,12 @@ raySpec =
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 0 halfTileGlobalSize
           angle = 0
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Vertical
-                                                    , intercept=(2 * tileGlobalSize, halfTileGlobalSizeI)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=halfTileGlobalSizeI
+                                        , direction=Vertical
+                                        , intercept=(2 * tileGlobalSize, halfTileGlobalSizeI)}
 
       it "should return hit for straight West / 180" $
         let
@@ -83,10 +93,12 @@ raySpec =
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 (2 * fromIntegral tileGlobalSize) halfTileGlobalSize
           angle = 180
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Vertical
-                                                    , intercept=(tileGlobalSize, halfTileGlobalSizeI)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=halfTileGlobalSizeI
+                                        , direction=Vertical
+                                        , intercept=(tileGlobalSize, halfTileGlobalSizeI)}
 
       it "should return hit for straight North / 90" $
         let
@@ -94,10 +106,12 @@ raySpec =
                         , [Nothing, Nothing]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) (2 * fromIntegral tileGlobalSize)
           angle = 90
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Horizontal
-                                                    , intercept=(tileGlobalSize + halfTileGlobalSizeI, tileGlobalSize)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=halfTileGlobalSizeI
+                                        , direction=Horizontal
+                                        , intercept=(tileGlobalSize + halfTileGlobalSizeI, tileGlobalSize)}
 
       it "should return hit for straight South / 270" $
         let
@@ -105,7 +119,9 @@ raySpec =
                         , [Nothing, Just Red]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
           angle = 270
+          result = castRayToWalls wm pos angle
         in
-          castRay wm pos angle `shouldBe` Just (Hit {material=Red
-                                                    , direction=Horizontal
-                                                    , intercept=(tileGlobalSize + halfTileGlobalSizeI, tileGlobalSize)})
+          result `shouldBe` WallRayHit {material=Red
+                                        , tilePosition=halfTileGlobalSizeI
+                                        , direction=Horizontal
+                                        , intercept=(tileGlobalSize + halfTileGlobalSizeI, tileGlobalSize)}
