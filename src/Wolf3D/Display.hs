@@ -59,7 +59,6 @@ renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
 renderWorld r d w = do
   renderCeilingAndFloor r d w
   renderWalls r d w
-  renderItems r d w
   renderWeapon r d (worldTics w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
@@ -95,34 +94,25 @@ renderWallLine r (RenderData {wallTextures=wt}) hero (pixel, WallRayHit {materia
     sourceRect = Just (mkSDLRect textureX 0 1 textureHeight)
     destRect = Just (mkSDLRect (pixel + actionAreaX) (actionY + actionAreaY) 1 projectedHeight)
 
-renderItems :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
-renderItems r d w = forM_ (worldEnvItems w) (renderItem r d (worldHero w))
-
-renderItem :: SDL.Renderer -> RenderData -> Hero -> EnvItem -> IO ()
-renderItem r d@RenderData {itemTextures=it} hero i@(EnvItem t itemPos) =
-  renderSprite r d texture hero itemPos (itemSize i)
-  where
-    texture = fromJust (M.lookup t it)
-
-renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()
-renderSprite r _ (texture, sourceRect) hero oPos oSize =
-  copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
-  where
-    heroPos = position hero
-    heroLookAngle = rayAngle (heroLookRay hero)
-    itemAngle = vector2ToAngle (oPos - heroPos)
-    projectionAngle = itemAngle - heroLookAngle
-    fieldOfViewSize = pi / 3
-    angleRatio = (fieldOfViewSize - ((fieldOfViewSize / 2) + projectionAngle)) / fieldOfViewSize
-
-    distance = vectorDist heroPos oPos
-    -- TODO: Not sure of correct way to handle when 0 distance
-    ratio = distToProjPlane / max 0.01 distance
-    projectedTop = round (fromIntegral halfActionHeight - (ratio * (itemHeight - heroHeight)))
-    projectedHeight = round (ratio * itemHeight)
-    projectedWidth = ratio * v2x oSize
-    x = round ((fromIntegral actionWidth * angleRatio) - (projectedWidth / 2))
-    destRect = mkSDLRect x projectedTop (round projectedWidth) projectedHeight
+--renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()
+--renderSprite r _ (texture, sourceRect) hero oPos oSize =
+--  copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
+--  where
+--    heroPos = position hero
+--    heroLookAngle = rayAngle (heroLookRay hero)
+--    itemAngle = vector2ToAngle (oPos - heroPos)
+--    projectionAngle = itemAngle - heroLookAngle
+--    fieldOfViewSize = pi / 3
+--    angleRatio = (fieldOfViewSize - ((fieldOfViewSize / 2) + projectionAngle)) / fieldOfViewSize
+--
+--    distance = vectorDist heroPos oPos
+--    -- TODO: Not sure of correct way to handle when 0 distance
+--    ratio = distToProjPlane / max 0.01 distance
+--    projectedTop = round (fromIntegral halfActionHeight - (ratio * (itemHeight - heroHeight)))
+--    projectedHeight = round (ratio * itemHeight)
+--    projectedWidth = ratio * v2x oSize
+--    x = round ((fromIntegral actionWidth * angleRatio) - (projectedWidth / 2))
+--    destRect = mkSDLRect x projectedTop (round projectedWidth) projectedHeight
 
 renderWeapon :: SDL.Renderer -> RenderData -> WorldTicks -> Weapon -> IO ()
 renderWeapon r RenderData {weaponTextures=wt} t w =

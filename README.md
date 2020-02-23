@@ -64,8 +64,9 @@ stack test --pedantic --file-watch
 
 ## TODO
  
+ - render initial room perspective correctly
+ 
  - use data.array for worldmap instead - better performance accessing by index
- - use tan lookup tables
  - have press m to toggle map for debug
  - https://github.com/bkaradzic/bgfx looks good for rendering
  - OpenGL renderer - https://hackage.haskell.org/package/OpenGL

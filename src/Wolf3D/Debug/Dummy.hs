@@ -39,16 +39,11 @@ dummyWorld = createWorld GreenCeiling wm items
 
 dummyWorld2 :: World Wolf3DSimEntity
 dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WB1", "WB2", "WB2"],
-                                      ["WB2", "",    "DR",  "DR",  "WB1"],
+                                      ["WB2", "DR",  "",    "DR",  "WB1"],
                                       ["WB1", "",    "",    "",    "WB1"],
-                                      ["WB1", "",    "",    "",    "WB1"],
-                                      ["WB2", "",    "",    "",    "WB1"],
-                                      ["WB4", "",    "",    "",    "WB2"],
+                                      ["WB4", "",    "H",   "",    "WB2"],
                                       ["WB1", "",    "",    "",    "WB2"],
-                                      ["WB2", "H",   "",    "",    "WB2"],
-                                      ["WB2", "",    "",    "",    "WB1"],
-                                      ["WB1", "",    "",    "",    "WB1"],
-                                      ["WB1", "",    "",    "",    "WB2"]]
+                                      ["WB2", "WB1", "WB1", "WB1", "WB2"]]
 
 dummyWorldSingleWall :: World Wolf3DSimEntity
 dummyWorldSingleWall = createWorld GreyCeiling [] [SEHero (createHeroFromTilePosition (1, 1))]
