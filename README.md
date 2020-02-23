@@ -65,12 +65,8 @@ stack test --pedantic --file-watch
 ## TODO
  
  - render initial room perspective correctly
- 
  - use data.array for worldmap instead - better performance accessing by index
- - have press m to toggle map for debug
- - https://github.com/bkaradzic/bgfx looks good for rendering
- - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
- - See https://github.com/jxv/sdl2-fps
+ 
  - physics engine (2d top down). wolfs is simple
    - general
          1. Move x and y, if okay then return
@@ -84,6 +80,8 @@ stack test --pedantic --file-watch
              - which apply the force and take in to account any bumping up against
              - items should be static (cant be moved), dynamic (can be moved), virtual (move right through them)
          - collision events between 2
+ 
+ - have press m to toggle map for debug
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
  - id system for items
@@ -94,16 +92,14 @@ stack test --pedantic --file-watch
    - split Display into multiple modules
    - merge UI into display? - simplifies some things like disposing and setting up renderer
  
- - optimise rendering
+ - rendering alternatives
+   - https://github.com/bkaradzic/bgfx looks good for rendering
+   - OpenGL renderer - https://hackage.haskell.org/package/OpenGL
+   - See https://github.com/jxv/sdl2-fps
    - SoftwareRenderer provides much better performance (in createRenderer)
    - try using SDL.opengl ?
-   - rendering solid colur instead of textures improves from ~30ms - ~5ms
    - do some research on spritesheets, is it faster?
      - abstract textures into class - TextureSource, AnimatedTextureSource, etc.
-   - Can cache wall slices? i.e. abstract away Texture source, then cache
-     - 6 materials x 128 cols x 128 possible sizes
-       - Maybe a lazy list, so only generates as needed, then cached
-       - check RAM vs render time tradeoff
  
  - Hold multiple weapons and change between them with key presses
  - read levels from shareware files (see https://devinsmith.net/backups/bruce/wolf3d.html)
