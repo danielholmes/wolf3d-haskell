@@ -23,10 +23,10 @@ createMain s initWorld createRender = do
   createUI windowSize $
     \r -> do
       render <- createRender r
-      let fWindowWidth = (fromIntegral (fst windowSize))
-      let fWindowHeight = (fromIntegral (snd windowSize))
-      let fScreenWidth = (fromIntegral screenWidth)
-      let fScreenHeight = (fromIntegral screenHeight)
+      let fWindowWidth = fromIntegral (fst windowSize)
+      let fWindowHeight = fromIntegral (snd windowSize)
+      let fScreenWidth = fromIntegral screenWidth
+      let fScreenHeight = fromIntegral screenHeight
       let scaleX = fWindowWidth / fScreenWidth
       let scaleY = fWindowHeight / fScreenHeight
       SDL.rendererScale r $= (SDL.V2 scaleX scaleY)

@@ -29,8 +29,8 @@ withWindow title (x, y) op = do
   void $ op w
   SDL.destroyWindow w
     where
-      p = SDL.defaultWindow { SDL.windowInitialSize = z }
-      z = SDL.V2 (fromIntegral x) (fromIntegral y)
+      p = SDL.defaultWindow { SDL.windowInitialSize = size }
+      size = SDL.V2 (fromIntegral x) (fromIntegral y)
 
 withRenderer :: (MonadIO m) => SDL.Window -> (SDL.Renderer -> m a) -> m ()
 withRenderer w op = do

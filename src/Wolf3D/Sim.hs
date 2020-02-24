@@ -32,7 +32,6 @@ module Wolf3D.Sim (
   createHeroFromTilePosition,
   moveHero,
   rotateHero,
-  heroHeight,
   HeroActionsState,
   staticHeroActionsState,
   modifyHeroActionState,
@@ -227,9 +226,6 @@ createHero pos = Hero pos 0 0 staticHeroActionsState (Pistol Nothing False)
 
 createHeroFromTilePosition :: TileCoord -> Hero
 createHeroFromTilePosition p = createHero (tileCoordToCentreGlobalPos p)
-
-heroHeight :: Double
-heroHeight = 1500
 
 moveHero :: Hero -> Int -> Hero
 moveHero h 0 = h

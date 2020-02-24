@@ -30,7 +30,6 @@ import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
 import Wolf3D.Display.Data
-import Debug.Trace
 
 
 ceilingColors :: M.Map Ceiling (SDL.V4 Word8)
@@ -92,10 +91,10 @@ renderWallLine r (RenderData {wallTextures=wt}) (pixel, WallRayHit {material=m, 
     projectedHeight = min actionHeight proposedProjectedHeight
     heightRatio = (fromIntegral projectedHeight / fromIntegral proposedProjectedHeight) :: Double
     scaledTextureHeight = round (fromIntegral tH * heightRatio)
-    scaledTY = tY + tH - (scaledTextureHeight `div` 2)
+    scaledTY = tY + tH `div` 2 - (scaledTextureHeight `div` 2)
     actionY = fromIntegral (fromIntegral halfActionHeight - (projectedHeight `div` 2))
     textureXDouble = hitWallTextureRatio * (fromIntegral tW - 1)
-    textureX = traceShow ("dist", distRatio, tH, max 1 (1 / distRatio), scaledTextureHeight) (tX + floor textureXDouble)
+    textureX = tX + floor textureXDouble
     sourceRect = Just (mkSDLRect textureX scaledTY 1 scaledTextureHeight)
     destRect = Just (mkSDLRect (pixel + actionAreaX) (actionY + actionAreaY) 1 projectedHeight)
 

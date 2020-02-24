@@ -1,49 +1,19 @@
 module Wolf3D.Debug.Dummy (
   dummyWorld,
-  dummyWorld2,
   dummyWorldSingleWall
 ) where
 
 import Wolf3D.Engine
 import Wolf3D.Sim
-import Data.Vector
 import Data.Maybe
 
-
-fromMetres :: Double -> Double
-fromMetres m = m * 10000
-
-fromBlocks :: Double -> Double
-fromBlocks i = fromMetres (i * 3)
-
-fromVBlocks :: Vector2 -> Vector2
-fromVBlocks (Vector2 x y) = Vector2 (fromBlocks x) (fromBlocks y)
-
 dummyWorld :: World Wolf3DSimEntity
-dummyWorld = createWorld GreenCeiling wm items
-  where
---    metreWalls = [ Wall (Vector2 0 0) (Vector2 0 7) Red
---                 , Wall (Vector2 (-4) 4) (Vector2 3 0) Green
---                 , Wall (Vector2 (-1) 4) (Vector2 0 6) Blue
---                 , Wall (Vector2 (-1) 10) (Vector2 2 0) Red
---                 , Wall (Vector2 1 10) (Vector2 0 (-6)) Green
---                 , Wall (Vector2 1 4) (Vector2 3 0) Blue
---                 , Wall (Vector2 4 4) (Vector2 0 (-7)) Red]
---    walls = map (\(Wall o s m) -> Wall (fromVBlocks o) (fromVBlocks s) m) metreWalls
-    wm = []
-    heroPos = (5, 5)
-    items = [ SEEnvItem (EnvItem Drum (fromVBlocks (Vector2 (-3.5) 3.5)))
-            , SEEnvItem (EnvItem Light (fromVBlocks (Vector2 0 2)))
-            , SEEnvItem (EnvItem Flag (fromVBlocks (Vector2 3.5 3.5)))
-            , SEHero (createHeroFromTilePosition heroPos) ]
-
-dummyWorld2 :: World Wolf3DSimEntity
-dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WG1", "WB1", "WB1"],
-                                      ["WB1", "DR",  "",    "DR",  "WB1"],
-                                      ["WB1", "",    "",    "",    "WB1"],
-                                      ["WB2", "",    "H",   "",    "WB2"],
-                                      ["WB2", "",    "",    "",    "WB2"],
-                                      ["WB2", "WB2", "WB2", "WB2", "WB2"]]
+dummyWorld = fromGrid GreyCeiling [["WB1", "WB1", "WG1", "WB1", "WB1"],
+                                    ["WB1", "DR",  "",    "DR",  "WB1"],
+                                    ["WB1", "",    "",    "",    "WB1"],
+                                    ["WB2", "",    "H",   "",    "WB2"],
+                                    ["WB2", "",    "",    "",    "WB2"],
+                                    ["WB2", "WB2", "WB2", "WB2", "WB2"]]
 
 dummyWorldSingleWall :: World Wolf3DSimEntity
 dummyWorldSingleWall = createWorld GreyCeiling [] [SEHero (createHeroFromTilePosition (1, 1))]

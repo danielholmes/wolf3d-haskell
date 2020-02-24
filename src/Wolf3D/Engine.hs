@@ -11,7 +11,6 @@ module Wolf3D.Engine (
   worldEntities,
   updateWorldEntities,
   ticWorldTicks,
-  wallHeight,
   emptyWallMap,
   worldTics,
   worldCeilingColor,
@@ -119,10 +118,6 @@ worldCeilingColor (World c _ _ _) = c
 
 worldTics :: World i -> Int
 worldTics (World _ _ _ t) = t
-
--- deprecated
-wallHeight :: Double
-wallHeight = 3000
 
 ticWorldTicks :: World i -> World i
 ticWorldTicks (World c wm is ticks) = World c wm is (ticks + 1)
