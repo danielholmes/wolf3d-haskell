@@ -4,7 +4,7 @@ module Wolf3D.Engine (
   World,
   WorldTicks,
   WallMap,
-  WallMaterial (Red, Green, Blue, Blue2, Blue3, Blue4),
+  WallMaterial (Grey1, Grey2, Blue1, Blue2),
   TileCoord,
   Ceiling (GreyCeiling, GreenCeiling, PurpleCeiling, YellowCeiling),
   createWorld,
@@ -33,7 +33,7 @@ class SimEntity i where
   simUpdate :: World a -> i -> i
 
 -- TODO: See if way of moving wall materials outside of engine
-data WallMaterial = Red | Green | Blue | Blue2 | Blue3 | Blue4
+data WallMaterial = Grey1 | Grey2 | Blue1 | Blue2
   deriving (Show, Eq, Ord)
 
 type TileCoord = (Int, Int)

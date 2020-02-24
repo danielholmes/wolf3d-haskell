@@ -63,7 +63,7 @@ renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
     -- TODO: Take something from sim about this
     heroSize = 40000
     rotation = snappedRotation h
-    rotationRads = deg2Rad * (fromIntegral rotation)
+    rotationRads = degToRad * (fromIntegral rotation)
     alignedRot1 = rotationRads - pi / 2
     alignedRot2 = rotationRads + pi / 2
 

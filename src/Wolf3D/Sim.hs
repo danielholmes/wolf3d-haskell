@@ -238,7 +238,7 @@ moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos
     speed = abs velocity
     moveAngle = if velocity < 0 then sr else bindAngle (sr + (angles `div` 2))
     boundSpeed = if speed >= minDist * 2 then minDist * 2 - 1 else speed
-    rotRad = (fromIntegral moveAngle) * deg2Rad
+    rotRad = (fromIntegral moveAngle) * degToRad
     dSpeed = fromIntegral boundSpeed
     newPos = p + Vector2 (dSpeed * (cos rotRad)) (-(dSpeed * (sin rotRad)))
 

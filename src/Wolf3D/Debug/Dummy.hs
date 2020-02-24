@@ -38,12 +38,12 @@ dummyWorld = createWorld GreenCeiling wm items
             , SEHero (createHeroFromTilePosition heroPos) ]
 
 dummyWorld2 :: World Wolf3DSimEntity
-dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WB1", "WB2", "WB2"],
-                                      ["WB2", "DR",  "",    "DR",  "WB1"],
+dummyWorld2 = fromGrid YellowCeiling [["WB1", "WB1", "WG1", "WB1", "WB1"],
+                                      ["WB1", "DR",  "",    "DR",  "WB1"],
                                       ["WB1", "",    "",    "",    "WB1"],
-                                      ["WB4", "",    "H",   "",    "WB2"],
-                                      ["WB1", "",    "",    "",    "WB2"],
-                                      ["WB2", "WB1", "WB1", "WB1", "WB2"]]
+                                      ["WB2", "",    "H",   "",    "WB2"],
+                                      ["WB2", "",    "",    "",    "WB2"],
+                                      ["WB2", "WB2", "WB2", "WB2", "WB2"]]
 
 dummyWorldSingleWall :: World Wolf3DSimEntity
 dummyWorldSingleWall = createWorld GreyCeiling [] [SEHero (createHeroFromTilePosition (1, 1))]
@@ -89,10 +89,10 @@ fromGridCell :: WallMap -> TileCoord -> String -> (WallMap, Maybe Wolf3DSimEntit
 fromGridCell wm _ "" = (wm, Nothing)
 fromGridCell wm pos "H" = (wm, Just (SEHero (rotateHero (createHeroFromTilePosition pos) ((-90) * 20))))
 fromGridCell wm pos "DR" = (wm, Just (SEEnvItem (EnvItem Drum (tileCoordToCentreGlobalPos pos))))
-fromGridCell wm t "WB1" = (mapSet wm t Blue, Nothing)
+fromGridCell wm t "WB1" = (mapSet wm t Blue1, Nothing)
 fromGridCell wm t "WB2" = (mapSet wm t Blue2, Nothing)
-fromGridCell wm t "WB3" = (mapSet wm t Blue3, Nothing)
-fromGridCell wm t "WB4" = (mapSet wm t Blue4, Nothing)
+fromGridCell wm t "WG1" = (mapSet wm t Grey1, Nothing)
+fromGridCell wm t "WG2" = (mapSet wm t Grey2, Nothing)
 fromGridCell _ _ c = error ("Unknown cell '" ++ c ++ "'")
 
 --createWalls :: TileCoord -> WallMaterial -> [Wall]

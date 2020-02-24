@@ -15,25 +15,23 @@ import Wolf3D.Sim
 import Wolf3D.Engine
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
+import Wolf3D.Geom
 import Wolf3D.Display.Utils
 import Wolf3D.Display.Hud
 import Wolf3D.Display.Ray
 import Wolf3D.Animation
 import qualified SDL
 import Data.StateVar (($=))
-import Data.Vector
 import Data.Foldable
 import Data.Maybe
+import Data.Bits
 import Control.Monad (mfilter)
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
 import Wolf3D.Display.Data
+import Debug.Trace
 
-
--- deprecated, not sure what it is actually
-distToProjPlane :: Double
-distToProjPlane = fromIntegral (actionWidth `div` 2) / (tan (pi / 96))
 
 ceilingColors :: M.Map Ceiling (SDL.V4 Word8)
 ceilingColors = M.fromList [(GreyCeiling, SDL.V4 55 55 55 255)
@@ -69,31 +67,36 @@ renderCeilingAndFloor r _ w = do
     ceilingColor = fromJust (M.lookup (worldCeilingColor w) ceilingColors)
 
 renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
-renderWalls r d w = forM_ (zip [0..] hits) (renderWallLine r d hero)
+renderWalls r d w = forM_ (zip [0..] hits) (renderWallLine r d)
   where
     hero = worldHero w
     heroFineAngle = normalToFineAngle (snappedRotation hero)
     hits = castRaysToWalls (worldWallMap w) (position hero) heroFineAngle
 
-renderWallLine :: SDL.Renderer -> RenderData -> Hero -> (CInt, WallRayHit) -> IO ()
-renderWallLine r (RenderData {wallTextures=wt}) hero (pixel, WallRayHit {material=m, tilePosition=tilePos, intercept=(x, y)}) = do
+viewDist :: Int
+viewDist = round (fromIntegral halfActionWidth / tan (fromIntegral fieldOfView * degToRad * 0.5))
+
+renderWallLine :: SDL.Renderer -> RenderData -> (CInt, WallRayHit) -> IO ()
+renderWallLine r (RenderData {wallTextures=wt}) (pixel, WallRayHit {material=m, distance=dist, direction=d, tilePosition=tilePos}) = do
   SDL.copy r texture sourceRect destRect
   where
-    (texture, (textureWidth, textureHeight)) = fromJust (M.lookup m wt)
+    wallSheet = fromJust (M.lookup m wt)
+    shadingIndex = if d == Horizontal then 1 else 0
+    (SDL.Rectangle (SDL.P (SDL.V2 tX tY)) (SDL.V2 tW tH)) = getSpriteSheetLocation wallSheet shadingIndex
+    texture = spriteSheetTexture wallSheet
     hitWallTextureRatio = (fromIntegral tilePos / fromIntegral tileGlobalSize) :: Double
-    
-    -- TODO: Remove this, check orig source
-    vectorDist :: Vector2 -> Vector2 -> Double
-    vectorDist (Vector2 x1 y1) (Vector2 x2 y2) = sqrt (((x1 - x2) ** 2) + ((y1 - y2) ** 2))
-    distance = vectorDist (position hero) (Vector2 (fromIntegral x) (fromIntegral y))
-    ratio = distToProjPlane / distance
-    
-    projectedTop = round (fromIntegral halfActionHeight - (ratio * (wallHeight - heroHeight))) :: CInt
-    projectedHeight = round (ratio * wallHeight) :: CInt
-    actionY = projectedTop + (intRectY actionArea) :: CInt
-    textureXDouble = hitWallTextureRatio * (fromIntegral textureWidth - 1)
-    textureX = floor textureXDouble
-    sourceRect = Just (mkSDLRect textureX 0 1 textureHeight)
+
+    distRatio = (fromIntegral viewDist / fromIntegral dist) :: Double
+    globalDist = (round (distRatio * fromIntegral tileGlobalSize)) :: CInt
+    proposedProjectedHeight = globalDist `shiftR` 0
+    projectedHeight = min actionHeight proposedProjectedHeight
+    heightRatio = (fromIntegral projectedHeight / fromIntegral proposedProjectedHeight) :: Double
+    scaledTextureHeight = round (fromIntegral tH * heightRatio)
+    scaledTY = tY + tH - (scaledTextureHeight `div` 2)
+    actionY = fromIntegral (fromIntegral halfActionHeight - (projectedHeight `div` 2))
+    textureXDouble = hitWallTextureRatio * (fromIntegral tW - 1)
+    textureX = traceShow ("dist", distRatio, tH, max 1 (1 / distRatio), scaledTextureHeight) (tX + floor textureXDouble)
+    sourceRect = Just (mkSDLRect textureX scaledTY 1 scaledTextureHeight)
     destRect = Just (mkSDLRect (pixel + actionAreaX) (actionY + actionAreaY) 1 projectedHeight)
 
 --renderSprite :: SDL.Renderer -> RenderData -> (SDL.Texture, SDL.Rectangle CInt) -> Hero -> Vector2 -> Vector2 -> IO ()

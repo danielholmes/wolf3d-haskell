@@ -4,7 +4,7 @@ module Wolf3D.Geom (
   rotateVector2,
   rectangleSides,
   rectangleOverlapsRectangle,
-  deg2Rad
+  degToRad
 ) where
 
 import Data.Vector
@@ -14,8 +14,8 @@ type Line = (Vector2, Vector2)
 
 data Rectangle = Rectangle Vector2 Vector2
 
-deg2Rad :: Double
-deg2Rad = pi / 180
+degToRad :: Double
+degToRad = pi / 180
 
 rotateVector2 :: Vector2 -> Double -> Vector2
 rotateVector2 (Vector2 x y) r = Vector2 newX newY
