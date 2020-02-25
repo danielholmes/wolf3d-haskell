@@ -1,10 +1,32 @@
-module Wolf3D.Display.Data where
+module Wolf3D.Display.Data (
+  RenderData (..),
+  WallRayHit (..),
+  WallData,
+  HitDirection (..),
+  CIntRectangle,
+  
+  fieldOfView,
+  
+  screenHeight,
+  screenWidth,
+  
+  actionAreaX,
+  actionAreaY,
+  actionWidth,
+  actionHeight,
+  halfActionWidth,
+  halfActionHeight,
+  actionArea,
+  intRectPos,
+  intRectX,
+  intRectY
+) where
 
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import qualified SDL
 import Wolf3D.Animation
-import Wolf3D.Sim
+import Wolf3D.WorldData
 
 type WallData = M.Map Wall SpriteSheet
 type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)

@@ -2,7 +2,8 @@ module Wolf3D.HeroSpec (heroSpec) where
 
 import Test.Hspec
 import Data.Vector
-import Wolf3D.Sim
+import Wolf3D.WorldData
+import Wolf3D.Hero
 import Wolf3D.SpecHelp
 
 

@@ -7,7 +7,7 @@ module Wolf3D.Display.Ray (
 ) where
 
 import Data.Vector
-import Wolf3D.Sim
+import Wolf3D.WorldData
 import Wolf3D.Geom
 import Data.Bits
 import Data.Array
@@ -297,9 +297,6 @@ horRayCheck wm d@VerticalRayData {focal=f
 
     hInterceptY = hIYTile * tileGlobalSize
     hIntercept = (hIX, if dYTile == -1 then hInterceptY + tileGlobalSize else hInterceptY)
-
-minDist :: Int
-minDist = 0x5800
 
 --heightNumerator :: Int
 --heightNumerator = (tileGlobalSize * scale) `shiftR` 6

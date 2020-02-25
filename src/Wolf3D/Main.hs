@@ -4,8 +4,8 @@ module Wolf3D.Main (
 
 import Wolf3D.Runner
 import Wolf3D.UI
-import Wolf3D.Sim
-import Wolf3D.Display (screenWidth, screenHeight)
+import Wolf3D.WorldData
+import Wolf3D.Display.Data
 import qualified SDL
 import Data.StateVar (($=))
 

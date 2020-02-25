@@ -3,7 +3,7 @@ module Wolf3D.Display.RaySpec (raySpec) where
 import Test.Hspec
 import Wolf3D.Display.Data
 import Wolf3D.Display.Ray
-import Wolf3D.Sim
+import Wolf3D.WorldData
 import Wolf3D.DataHelpers
 import Data.Vector
 

@@ -3,8 +3,8 @@ module Wolf3D.Loader (loadRenderData) where
 import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
-import Wolf3D.Display
-import Wolf3D.Sim
+import Wolf3D.Display.Data
+import Wolf3D.WorldData
 import Wolf3D.Animation
 import Wolf3D.SDLUtils
 import Data.Maybe
@@ -17,11 +17,11 @@ loadRenderData r = do
   w <- loadWallDatas r
   i <- loadEnvItemsData r
   weapons <- loadWeaponData r
-  hudBase <- loadHudBaseData r
-  bjFace <- loadBjFace r
-  numbers <- loadNumbers r
-  hudWeapons <- loadHudWeapons r
-  return (RenderData w i weapons hudBase bjFace numbers hudWeapons)
+  hBase <- loadHudBaseData r
+  face <- loadBjFace r
+  nums <- loadNumbers r
+  hWeapons <- loadHudWeapons r
+  return (RenderData w i weapons hBase face nums hWeapons)
 
 loadHudBaseData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
 loadHudBaseData r = loadTexture r "hud-base.png"

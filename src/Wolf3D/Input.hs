@@ -5,7 +5,8 @@ module Wolf3D.Input (
   inputHeroActionsState
 ) where
 
-import Wolf3D.Sim
+import Wolf3D.Hero
+import Wolf3D.WorldData
 import SDL
 
 

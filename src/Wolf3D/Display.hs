@@ -3,8 +3,6 @@ module Wolf3D.Display (
   render,
   renderWorld,
   renderHud,
-  RenderData (RenderData),
-  WallData,
   screenWidth,
   screenHeight,
   actionHeight,
@@ -15,6 +13,8 @@ import Wolf3D.Sim
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Geom
+import Wolf3D.WorldData
+import Wolf3D.Hero
 import Wolf3D.Display.Utils
 import Wolf3D.Display.Hud
 import Wolf3D.Display.Ray

@@ -1,10 +1,4 @@
 module Wolf3D.Sim (
-  World,
-  WorldTicks,
-  WallMap,
-  Wall (..),
-  TileCoord,
-  Ceiling (..),
   createWorld,
   incWorldTicks,
   emptyWallMap,
@@ -14,39 +8,10 @@ module Wolf3D.Sim (
   tickWorld,
   tickWorldNTimes,
 
-  tileCoordToGlobalPos,
-  tileCoordToCentreGlobalPos,
-  tileGlobalSize,
-  tileToGlobalShift,
-
-  HeroAction (..),
-  Hero (position, snappedRotation, actionsState, weapon),
-  SnappedRotation,
-  EnvItemType (..),
-  EnvItem (..),
-
   worldHero,
   worldHeroWeapon,
   worldEnvItemsTouching,
   updateWorldHeroActionsState,
-
-  Weapon (Pistol),
-  lastTimeWeaponUsed,
-
-  angles,
-  fineAngles,
-  Angle,
-  FineAngle,
-  normalToFineAngle,
-  fineToNormalAngle,
-  createHero,
-  createHeroFromTilePosition,
-  moveHero,
-  rotateHero,
-  HeroActionsState,
-  staticHeroActionsState,
-  modifyHeroActionState,
-  updateHeroActionsState,
 
   itemRectangle
 ) where

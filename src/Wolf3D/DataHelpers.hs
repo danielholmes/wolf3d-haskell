@@ -1,7 +1,7 @@
 module Wolf3D.DataHelpers (visualListToWallMap) where
 
 import Data.Array
-import Wolf3D.Sim
+import Wolf3D.WorldData
 
 visualListToWallMap :: [[Maybe Wall]] -> WallMap
 visualListToWallMap wm = array ((0, 0), (cols - 1, rows - 1)) items

@@ -6,6 +6,7 @@ module Wolf3D.Debug.Display (
 ) where
 
 import qualified Wolf3D.Display as D
+import qualified Wolf3D.Display.Data as DD
 import Wolf3D.Sim
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
@@ -20,7 +21,7 @@ import System.Clock
 import GHC.Word (Word8)
 
 
-data DebugRenderData = DebugRenderData D.RenderData SDL.Font.Font
+data DebugRenderData = DebugRenderData DD.RenderData SDL.Font.Font
 
 whiteColor :: SDL.V4 Word8
 whiteColor = SDL.V4 255 255 255 255
