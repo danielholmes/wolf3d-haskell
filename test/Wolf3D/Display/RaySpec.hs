@@ -94,22 +94,7 @@ raySpec =
         in
           result `shouldBe` WallRayHit {material=Grey1
                                         , tilePosition=32767
-                                        , distance=293640
-                                        , direction=Horizontal}
-
-      it "should return hit for NE / 0-89 expressed as minus" $
-        let
-          wm = transpose [[Nothing, Nothing, Just Grey1]
-                        , [Nothing, Nothing, Nothing]
-                        , [Nothing, Nothing, Nothing]]
-          pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
-          midAngle = normalToFineAngle 45
-          offset = normalToFineAngle (-90)
-          result = castRayToWalls wm pos midAngle offset
-        in
-          result `shouldBe` WallRayHit {material=Grey1
-                                        , tilePosition=32767
-                                        , distance=293640
+                                        , distance=207635
                                         , direction=Horizontal}
 
       it "should return hit for NWish / 90-179" $
@@ -123,7 +108,7 @@ raySpec =
         in
           result `shouldBe` WallRayHit {material=Grey1
                                         , tilePosition=8780
-                                        , distance=185484
+                                        , distance=135784
                                         , direction=Vertical}
 
       it "should return hit for SW / 180-269" $
@@ -137,10 +122,10 @@ raySpec =
         in
           result `shouldBe` WallRayHit {material=Grey1
                                         , tilePosition=32767
-                                        , distance=293640
+                                        , distance=207635
                                         , direction=Vertical}
 
-      it "should return hit for SEish / 270-359" $
+      it "should return hit for low SEish / 270-359" $
         let
           wm = transpose [[Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]
@@ -151,8 +136,21 @@ raySpec =
         in
           result `shouldBe` WallRayHit {material=Grey1
                                         , tilePosition=42907
-                                        , distance=237172
+                                        , distance=173622
                                         , direction=Horizontal}
+      
+      it "should return hit for high SEish / 270-359" $
+        let
+          wm = transpose [[Nothing, Nothing, Just Grey1]]
+          pos = Vector2 (0.5 * dTileGlobalSize) (0.5 * dTileGlobalSize)
+          angle = normalToFineAngle 5
+          viewOffset = normalToFineAngle (-8)
+          result = castRayToWalls wm pos angle viewOffset
+        in
+          result `shouldBe` WallRayHit {material=Grey1
+                                        , tilePosition=37920
+                                        , distance=119537
+                                        , direction=Vertical}
 
       it "should return hit for straight East / 0" $
         let
@@ -206,7 +204,7 @@ raySpec =
                                         , distance=focalLength + tileGlobalSize
                                         , direction=Horizontal}
 
-      it "should handle crash case correctly" $
+      it "should return hit for low NEish (was a crash case)" $
         let
           wm = transpose [[Just Blue1, Just Blue1, Just Blue1, Just Blue1, Just Blue1]
                         , [Just Blue1, Nothing,    Nothing,    Nothing,    Just Blue1]

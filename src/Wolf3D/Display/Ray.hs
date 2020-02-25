@@ -174,8 +174,8 @@ createRayData pos@(Vector2 x y) fMA fineVAO
                                                   , yTileStep=yTileStep1
                                                   , xStep=(round (fromIntegral tileGlobalSize * tanTheta))
                                                   , yStep=(round (fromIntegral tileGlobalSize * tanTable!(fine360 - fineViewAngle)))}
-  | fineViewAngle < 0         = createRayData pos fMA (fineViewAngle + fine360)
-  | fineViewAngle >= fine360  = createRayData pos fMA (fineViewAngle - fine360)
+  | fineViewAngle < 0         = createRayData pos (fMA + fine360) fineVAO
+  | fineViewAngle >= fine360  = createRayData pos (fMA - fine360) fineVAO
   | otherwise                 = error "Shouldn't be able to match this"
   where
     fineViewAngle = fMA + fineVAO
@@ -301,10 +301,13 @@ minDist = 0x5800
 -- NOTE: This is less efficient than it can be. There's a method involving sin and cos
 -- see pg 177
 hitDistance :: FineAngle -> (Int, Int) -> (Int, Int) -> Int
-hitDistance 0 (x, y) (iX, iY) = max minDist (dX + dY)
+hitDistance 0 (x, y) (iX, iY) = max minDist d
   where
-    dX = fromIntegral (abs (iX - x))
-    dY = fromIntegral (abs (iY - y))
+    dX = abs (iX - x)
+    dY = abs (iY - y)
+    dBase = (dX * dX + dY * dY) :: Int
+    dSquare = (sqrt (fromIntegral (dBase))) :: Double
+    d = round dSquare
 hitDistance a (x, y) (iX, iY) = max minDist proposedDist
   where
     boundAngle = if a > fine360 then a - fine360 else if a < 0 then a + fine360 else a
