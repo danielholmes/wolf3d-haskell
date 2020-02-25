@@ -64,7 +64,6 @@ stack test --pedantic --file-watch
 
 ## TODO
  
- - render initial room perspective correctly
  - use data.array for worldmap instead - better performance accessing by index
  
  - physics engine (2d top down). wolfs is simple
