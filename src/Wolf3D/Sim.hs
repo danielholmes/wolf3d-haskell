@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs #-}
 module Wolf3D.Sim (
   -- WorldData
-  SimEntity (simUpdate),
+  SimEntity,
   World,
   WorldTicks,
   WallMap,
@@ -9,8 +9,6 @@ module Wolf3D.Sim (
   TileCoord,
   Ceiling (..),
   createWorld,
-  worldEntities,
-  updateWorldEntities,
   ticWorldTicks,
   emptyWallMap,
   worldTics,
@@ -23,17 +21,15 @@ module Wolf3D.Sim (
   tileCoordToCentreGlobalPos,
   tileGlobalSize,
   tileToGlobalShift,
-    
+
   HeroAction (..),
   Hero (position, snappedRotation, actionsState, weapon),
   SnappedRotation,
-  EnvItemType (Drum, Light, Flag),
+  EnvItemType (..),
   EnvItem (EnvItem),
 
-  Wolf3DSimEntity (SEEnvItem, SEHero),
   worldHero,
   worldHeroWeapon,
-  worldEnvItems,
   worldEnvItemsTouching,
   updateWorldHeroActionsState,
 
@@ -60,14 +56,12 @@ module Wolf3D.Sim (
 
 import Wolf3D.Geom
 import Data.Vector
-import Data.Maybe (fromJust)
-import Data.List (find)
 import Data.Bits
 import Data.Array
 
 
-class SimEntity i where
-  simUpdate :: World a -> i -> i
+data SimEntity = SEHero Hero | SEEnvItem EnvItem
+  deriving (Show, Eq)
 
 -- TODO: See if way of moving wall materials outside of engine
 data Wall = Grey1 | Grey2 | Blue1 | Blue2
@@ -81,8 +75,7 @@ data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
 type WorldTicks = Int
 type WallMap = Array (Int, Int) (Maybe Wall)
 -- Tried record syntax for this and failed
-data World i where
-  World :: (SimEntity i) => Ceiling -> WallMap -> [i] -> WorldTicks -> World i
+data World = World Ceiling WallMap Hero [EnvItem] WorldTicks
 
 tileGlobalSize :: Int
 tileGlobalSize = 1 `shiftL` 16
@@ -105,47 +98,38 @@ tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegra
 emptyWallMap :: Int -> Int -> WallMap
 emptyWallMap w h = listArray ((0, 0), (w - 1, h - 1)) (replicate (w * h) Nothing)
 
-createWorld :: (SimEntity i) => Ceiling -> WallMap -> i -> [i] -> World i
-createWorld c wm h is = World c wm (h:is) 0 
+createWorld :: Ceiling -> WallMap -> Hero -> [EnvItem] -> World
+createWorld c wm h is = World c wm h is 0
 
-tickWorld :: World i -> World i
-tickWorld world@(World _ _ is _) = ticWorldTicks updatedWorld
+tickWorld :: World -> World
+tickWorld world@(World c wm h is t) = ticWorldTicks updatedWorld
   where
-    updatedItems = map (simUpdate world) is
-    updatedWorld = updateWorldEntities world updatedItems
+    newHero = simUpdateHero world h
+    updatedWorld = World c wm newHero is t
 
-tickWorldNTimes :: World i -> Int -> Maybe (World i)
+tickWorldNTimes :: World -> Int -> Maybe World
 tickWorldNTimes w n
   | n == 0    = Nothing
   | otherwise = Just (foldr foldStep w [1..n])
     where
-      foldStep :: Int -> World i -> World i
+      foldStep :: Int -> World -> World
       foldStep _ = tickWorld
 
-updateWorldEntities :: World i -> [i] -> World i
-updateWorldEntities (World c wm _ t) i = World c wm i t
+worldWallMap :: World -> WallMap
+worldWallMap (World _ wm _ _ _) = wm
 
-worldWallMap :: World i -> WallMap
-worldWallMap (World _ wm _ _) = wm
+worldCeilingColor :: World -> Ceiling
+worldCeilingColor (World c _ _ _ _) = c
 
-worldEntities :: (SimEntity i) => World i -> [i]
-worldEntities (World _ _ is _) = is
+worldTics :: World -> Int
+worldTics (World _ _ _ _ t) = t
 
-worldCeilingColor :: World i -> Ceiling
-worldCeilingColor (World c _ _ _) = c
-
-worldTics :: World i -> Int
-worldTics (World _ _ _ t) = t
-
-ticWorldTicks :: World i -> World i
-ticWorldTicks (World c wm is ticks) = World c wm is (ticks + 1)
+ticWorldTicks :: World -> World
+ticWorldTicks (World c wm h is ticks) = World c wm h is (ticks + 1)
 
 {-----------------------------------------------------------------------------------------------------------------------
 WorldData
 -----}
-data Wolf3DSimEntity = SEEnvItem EnvItem | SEHero Hero
-  deriving (Show, Eq)
-
 type UsingWeapon = Bool
 data Weapon = Pistol (Maybe WorldTicks) UsingWeapon
   deriving (Eq, Show)
@@ -210,31 +194,22 @@ minDist = 0x5800
 {-----------------------------------------------------------------------------------------------------------------------
  General
 -----------------------------------------------------------------------------------------------------------------------}
-instance SimEntity Wolf3DSimEntity where
-  simUpdate w (SEEnvItem i) = SEEnvItem (simUpdate w i)
-  simUpdate w (SEHero i) = SEHero (simUpdate w i)
+worldHero :: World -> Hero
+worldHero (World _ _ h _ _) = h
 
-worldHero :: World Wolf3DSimEntity -> Hero
-worldHero w = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
-
-worldHeroWeapon :: World Wolf3DSimEntity -> Weapon
+worldHeroWeapon :: World -> Weapon
 worldHeroWeapon = weapon . worldHero
 
-worldEnvItems :: World Wolf3DSimEntity -> [EnvItem]
-worldEnvItems w = map (\(SEEnvItem e) -> e) (filter (\i -> case i of (SEEnvItem _) -> True; _ -> False) (worldEntities w))
+worldEnvItems :: World -> [EnvItem]
+worldEnvItems (World _ _ _ is _) = is
 
-updateWorldHeroActionsState :: World Wolf3DSimEntity -> HeroActionsState -> World Wolf3DSimEntity
+updateWorldHeroActionsState :: World -> HeroActionsState -> World
 updateWorldHeroActionsState w a = updateWorldHero w (updateHeroActionsState a)
 
-updateWorldHero :: World Wolf3DSimEntity -> (Hero -> Hero) -> World Wolf3DSimEntity
-updateWorldHero w op = updateWorldEntities w newItems
-  where
-    newItems = foldr foldStep [] (worldEntities w)
-    foldStep :: Wolf3DSimEntity -> [Wolf3DSimEntity] -> [Wolf3DSimEntity]
-    foldStep (SEHero h) accu = SEHero (op h) : accu
-    foldStep i accu = i : accu
+updateWorldHero :: World -> (Hero -> Hero) -> World
+updateWorldHero (World c wm h is t) op = World c wm (op h) is t
 
-worldEnvItemsTouching :: Rectangle -> World Wolf3DSimEntity -> [EnvItem]
+worldEnvItemsTouching :: Rectangle -> World -> [EnvItem]
 worldEnvItemsTouching r w = filter (itemIsTouching r) (worldEnvItems w)
 
 itemIsTouching :: Rectangle -> EnvItem -> Bool
@@ -243,15 +218,15 @@ itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
 {-----------------------------------------------------------------------------------------------------------------------
  Weapon
 -----------------------------------------------------------------------------------------------------------------------}
-instance SimEntity Weapon where
-  simUpdate w wn
+simUpdateWeapon :: World -> Weapon -> Weapon
+simUpdateWeapon w wn
     | isUsingWeapon wn && canUseWeapon (worldTics w) wn = useWeapon w wn
     | otherwise                                         = wn
 
 canUseWeapon :: WorldTicks -> Weapon -> Bool
 canUseWeapon t w = all (< t - timeBetweenUses w) (lastTimeWeaponUsed w)
 
-useWeapon :: World a -> Weapon -> Weapon
+useWeapon :: World -> Weapon -> Weapon
 useWeapon w (Pistol _ s) = Pistol (Just (worldTics w + 1)) s
 
 lastTimeWeaponUsed :: Weapon -> Maybe WorldTicks
@@ -282,28 +257,28 @@ modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState
 modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
 modifyHeroActionState (HeroActionsState u d l r _) UseWeapon a = HeroActionsState u d l r a
 
-instance SimEntity Hero where
-  simUpdate w h@(Hero {actionsState=has}) = h3
-    where
-      rotationDelta = heroRotationDelta has
-      h1 = rotateHero h rotationDelta
+simUpdateHero :: World -> Hero -> Hero
+simUpdateHero w h@(Hero {actionsState=has}) = h3
+  where
+    rotationDelta = heroRotationDelta has
+    h1 = rotateHero h rotationDelta
 
-      movementDelta = heroMoveDelta has
-      movementScale = if movementDelta < 0 then moveScale else backMoveScale
-      -- TODO: set a thrustspeed for AI to use later
-      -- thrustspeed += speed;
-      velocity = movementScale * movementDelta
-      -- TODO
-      -- ClipMove(player,xmove,ymove);
-      -- player->tilex = player->x >> TILESHIFT;    // scale to tile values
-      -- player->tiley = player->y >> TILESHIFT;
-      -- offset = farmapylookup[player->tiley]+player->tilex;
-      -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;
-      h2 = moveHero h1 velocity
-      h3 = updateWeapon w h2
+    movementDelta = heroMoveDelta has
+    movementScale = if movementDelta < 0 then moveScale else backMoveScale
+    -- TODO: set a thrustspeed for AI to use later
+    -- thrustspeed += speed;
+    velocity = movementScale * movementDelta
+    -- TODO
+    -- ClipMove(player,xmove,ymove);
+    -- player->tilex = player->x >> TILESHIFT;    // scale to tile values
+    -- player->tiley = player->y >> TILESHIFT;
+    -- offset = farmapylookup[player->tiley]+player->tilex;
+    -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;
+    h2 = moveHero h1 velocity
+    h3 = updateWeapon w h2
 
-updateWeapon :: World a -> Hero -> Hero
-updateWeapon w h@(Hero {actionsState=has, weapon=wn}) = h { weapon = simUpdate w (updateWeaponUsed has wn) }
+updateWeapon :: World -> Hero -> Hero
+updateWeapon w h@(Hero {actionsState=has, weapon=wn}) = h { weapon = simUpdateWeapon w (updateWeaponUsed has wn) }
 
 updateWeaponUsed :: HeroActionsState -> Weapon -> Weapon
 updateWeaponUsed has w
@@ -362,15 +337,12 @@ bindAngle a
 {-----------------------------------------------------------------------------------------------------------------------
  Environment
 -----------------------------------------------------------------------------------------------------------------------}
-instance SimEntity EnvItem where
- simUpdate _ = id
-
 itemRectangle :: EnvItem -> Rectangle
 itemRectangle i@(EnvItem _ o) = Rectangle (o - halfItemSize i) (itemSize i)
   where
     -- 0.005 a hack until change rendering
     itemSize :: EnvItem -> Vector2
     itemSize _ = Vector2 ((fromIntegral tileGlobalSize) * 0.05) ((fromIntegral tileGlobalSize) * 0.05)
-    
+
     halfItemSize :: EnvItem -> Vector2
     halfItemSize iS = itemSize iS *| 0.5

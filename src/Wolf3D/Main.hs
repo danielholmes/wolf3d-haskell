@@ -11,7 +11,7 @@ import Data.StateVar (($=))
 
 type Scale = Int
 
-createMain :: Scale -> World Wolf3DSimEntity -> (SDL.Renderer -> IO (SimRun -> IO ())) -> IO ()
+createMain :: Scale -> World -> (SDL.Renderer -> IO (SimRun -> IO ())) -> IO ()
 createMain s initWorld createRender = do
   -- Original native size
   let width = (fromIntegral s) * screenWidth

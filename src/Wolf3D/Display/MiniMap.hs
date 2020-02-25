@@ -9,8 +9,6 @@ import Wolf3D.Sim
 import Wolf3D.SDLUtils
 import Data.Foldable (forM_)
 import Data.StateVar (($=))
-import Data.Maybe (fromJust)
-import Data.List (find)
 import Data.Array
 import GHC.Word (Word8)
 
@@ -32,7 +30,7 @@ itemColor = SDL.V4 0 0 255 255
 panelColor :: SDL.V4 Word8
 panelColor = SDL.V4 0 0 0 100
 
-renderMiniMap :: SDL.Renderer -> Double -> (CInt, CInt) -> World Wolf3DSimEntity -> IO ()
+renderMiniMap :: SDL.Renderer -> Double -> (CInt, CInt) -> World -> IO ()
 renderMiniMap r dScale size@(width, height) w = do
   SDL.rendererDrawColor r $= panelColor
   SDL.fillRect r (Just (mkSDLRect 0 0 width height))
@@ -41,13 +39,13 @@ renderMiniMap r dScale size@(width, height) w = do
   renderHero r mMData hero
   renderOrigin r mMData
   where
-    hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
+    hero = worldHero w
     mMData = createMiniMapData dScale size w
 
-createMiniMapData :: Double -> (CInt, CInt) -> World Wolf3DSimEntity -> MiniMapData
+createMiniMapData :: Double -> (CInt, CInt) -> World -> MiniMapData
 createMiniMapData scale size@(width, height) w = MiniMapData scale size halfSize worldRect hPosition
   where
-    hero = fromJust (fmap (\(SEHero h) -> h) (find (\i -> case i of (SEHero _) -> True; _ -> False) (worldEntities w)))
+    hero = worldHero w
     hPosition = position hero
     halfSize = Vector2 (fromIntegral (width `div` 2)) (fromIntegral (height `div` 2))
     worldSize = Vector2 (fromIntegral width) (fromIntegral height) *| (1 / scale)
@@ -67,7 +65,7 @@ renderHero r d@(MiniMapData scale _ halfSize _ heroPos) h = do
     alignedRot1 = rotationRads - pi / 2
     alignedRot2 = rotationRads + pi / 2
 
-renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
+renderWalls :: SDL.Renderer -> MiniMapData -> World -> IO ()
 renderWalls r d w = do
   SDL.rendererDrawColor r $= wallColor
   let wm = worldWallMap w
@@ -121,7 +119,7 @@ drawEqTriangle r s pos rotRads = do
 drawRectangle :: SDL.Renderer -> MiniMapData -> Rectangle -> IO ()
 drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)
 
-renderItems :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
+renderItems :: SDL.Renderer -> MiniMapData -> World -> IO ()
 renderItems r d@(MiniMapData _ _ _ worldRect _) w = do
   SDL.rendererDrawColor r $= itemColor
   forM_ (worldEnvItemsTouching worldRect w) (renderItem r d)

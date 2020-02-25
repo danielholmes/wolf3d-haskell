@@ -3,7 +3,7 @@ module Wolf3D.Debug.Dummy (dummyWorld) where
 import Wolf3D.Sim
 import Wolf3D.DataHelpers
 
-dummyWorld :: World Wolf3DSimEntity
+dummyWorld :: World
 dummyWorld = createWorld GreyCeiling wm hero []
   where
     wm = visualListToWallMap [[Just Blue1, Just Blue1, Just Grey1, Just Blue1, Just Blue1],
@@ -12,4 +12,4 @@ dummyWorld = createWorld GreyCeiling wm hero []
                              [Just Blue2,  Nothing,    Nothing,    Nothing,    Just Blue2],
                              [Just Blue2,  Nothing,    Nothing,    Nothing,    Just Blue2],
                              [Just Blue2,  Just Blue2, Just Blue2, Just Blue2, Just Blue2]]
-    hero = SEHero (rotateHero (createHeroFromTilePosition (2, 3)) ((-90) * 20))
+    hero = rotateHero (createHeroFromTilePosition (2, 3)) ((-90) * 20)

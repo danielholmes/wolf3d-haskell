@@ -21,16 +21,16 @@ import Data.Foldable
 type FixedStepMillis = Int
 type MaxStepsPerTick = Int
 
-data SimRun = SimRun (World Wolf3DSimEntity) FixedStepMillis MaxStepsPerTick UTCTime Bool
+data SimRun = SimRun World FixedStepMillis MaxStepsPerTick UTCTime Bool
 
 -- Note that wolf was Indeterministic (except for when demos were running)
 -- But have set this up as deterministic, for now
-runLoop :: World Wolf3DSimEntity -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
+runLoop :: World -> FixedStepMillis -> MaxStepsPerTick -> (SimRun -> IO ()) -> IO SimRun
 runLoop w f m r = do
   simRun <- startSimRun w f m
   iterateUntilM simRunIsFinished (timerTick r) simRun
 
-startSimRun :: World Wolf3DSimEntity -> FixedStepMillis -> MaxStepsPerTick -> IO SimRun
+startSimRun :: World -> FixedStepMillis -> MaxStepsPerTick -> IO SimRun
 startSimRun w f m = do
   startTime <- getCurrentTime
   return (SimRun w f m startTime False)
@@ -38,7 +38,7 @@ startSimRun w f m = do
 simRunIsFinished :: SimRun -> Bool
 simRunIsFinished (SimRun _ _ _ _ f) = f
 
-simRunWorld :: SimRun -> World Wolf3DSimEntity
+simRunWorld :: SimRun -> World
 simRunWorld (SimRun w _ _ _ _) = w
 
 finishRun :: SimRun -> SimRun
@@ -84,7 +84,7 @@ applyInput run input
   | inputQuit input = finishRun run
   | otherwise       = updateSimRunPlayerActionsState run (inputHeroActionsState input)
 
-updateSimRunWorld :: SimRun -> World Wolf3DSimEntity -> SimRun
+updateSimRunWorld :: SimRun -> World -> SimRun
 updateSimRunWorld (SimRun _ s m p f) newWorld = SimRun newWorld s m p f
 
 updateSimRunTimes :: SimRun -> UTCTime -> SimRun

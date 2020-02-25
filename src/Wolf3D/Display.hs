@@ -49,13 +49,13 @@ render r d s = do
   renderWorld r d (simRunWorld s)
   SDL.present r
 
-renderWorld :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
+renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()
 renderWorld r d w = do
   renderCeilingAndFloor r d w
   renderWalls r d w
   renderWeapon r d (worldTics w) (worldHeroWeapon w)
 
-renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
+renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World -> IO ()
 renderCeilingAndFloor r _ w = do
   SDL.rendererDrawColor r $= ceilingColor
   SDL.fillRect r (Just (mkSDLRect actionAreaX actionAreaY actionWidth halfActionHeight))
@@ -64,7 +64,7 @@ renderCeilingAndFloor r _ w = do
   where
     ceilingColor = fromJust (M.lookup (worldCeilingColor w) ceilingColors)
 
-renderWalls :: SDL.Renderer -> RenderData -> World Wolf3DSimEntity -> IO ()
+renderWalls :: SDL.Renderer -> RenderData -> World -> IO ()
 renderWalls r d w = forM_ (zip [0..] hits) (renderWallLine r d)
   where
     hero = worldHero w
