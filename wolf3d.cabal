@@ -27,6 +27,7 @@ library
                      , Wolf3D.Display.Utils
                      , Wolf3D.Display.MiniMap
                      , Wolf3D.UI
+                     , Wolf3D.DataHelpers
                      , Wolf3D.SDLUtils
                      , Wolf3D.Debug.Dummy
                      , Wolf3D.Debug.Display
@@ -78,6 +79,7 @@ test-suite wolf3d-test
                      , hspec >= 2.4.4 && < 3
                      , time >= 1.6.0.1 && < 2
                      , AC-Vector >= 1.2.2 && < 2
+                     , array >= 0.5.4.0 && < 1
   other-modules:       Wolf3D.SpecHelp
                      , Wolf3D.GeomSpec
                      , Wolf3D.SimSpec

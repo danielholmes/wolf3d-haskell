@@ -12,6 +12,7 @@ import Data.Foldable (forM_)
 import Data.StateVar (($=))
 import Data.Maybe (fromJust)
 import Data.List (find)
+import Data.Array
 import GHC.Word (Word8)
 
 
@@ -71,15 +72,12 @@ renderWalls :: SDL.Renderer -> MiniMapData -> World Wolf3DSimEntity -> IO ()
 renderWalls r d w = do
   SDL.rendererDrawColor r $= wallColor
   let wm = worldWallMap w
-  forM_ (zip [0..] wm) (renderWallCol r d)
-
-renderWallCol :: SDL.Renderer -> MiniMapData -> (Int, [Maybe WallMaterial]) -> IO ()
-renderWallCol r d (x, col) = forM_ (zip [0..] col) (renderWall r d x)
+  forM_ (assocs wm) (renderWall r d)
 
 -- TODO: Don't render if not touching worldRect
-renderWall :: SDL.Renderer -> MiniMapData -> Int -> (Int, Maybe WallMaterial) -> IO ()
-renderWall _ _ _ (_, Nothing) = return ()
-renderWall r d x (y, Just _) = drawMiniMapTile r d (x, y)
+renderWall :: SDL.Renderer -> MiniMapData -> ((Int, Int), Maybe WallMaterial) -> IO ()
+renderWall _ _ (_, Nothing) = return ()
+renderWall r d ((x, y), Just _) = drawMiniMapTile r d (x, y)
 
 drawMiniMapTile :: SDL.Renderer -> MiniMapData -> TileCoord -> IO ()
 drawMiniMapTile r d c = do

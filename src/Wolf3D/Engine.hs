@@ -26,6 +26,7 @@ module Wolf3D.Engine (
 
 import Data.Vector
 import Data.Bits
+import Data.Array
 
 
 class SimEntity i where
@@ -41,7 +42,7 @@ data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
   deriving (Show, Eq, Ord)
 
 type WorldTicks = Int
-type WallMap = [[Maybe WallMaterial]]
+type WallMap = Array (Int, Int) (Maybe WallMaterial)
 -- Tried record syntax for this and failed
 data World i where
   World :: (SimEntity i) => Ceiling -> WallMap -> [i] -> WorldTicks -> World i
@@ -84,7 +85,7 @@ tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegra
 --globalPosToTileCoord (Vector2 x y) = (globalSizeToTileCoord x, globalSizeToTileCoord y)
 
 emptyWallMap :: Int -> Int -> WallMap
-emptyWallMap w h = replicate h $ replicate w Nothing
+emptyWallMap w h = listArray ((0, 0), (w - 1, h - 1)) (replicate (w * h) Nothing)
 
 -- TODO: Test throws error if non equal map dims
 createWorld :: (SimEntity i) => Ceiling -> WallMap -> [i] -> World i

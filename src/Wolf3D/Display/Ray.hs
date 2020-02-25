@@ -235,7 +235,7 @@ verRayCheck wm d@DiagonalRayData {focal=f
   where
     vIYTile = (y - 1) `shiftR` tileToGlobalShift
     -- intXTile = if xTileS == -1 then vIXTile + 1 else vIXTile
-    hitting = wm!!vIXTile!!vIYTile
+    hitting = wm!(vIXTile, vIYTile)
     -- vIntercept = (intXTile * tileGlobalSize, vIY)
 
     vInterceptNext = (x + xTileS * tileGlobalSize, y + dy)
@@ -251,7 +251,7 @@ verRayCheck wm d@HorizontalRayData {focal=f
     Just m  -> createWallRayHit m Vertical (hitDistance vAO f vIntercept) (vIY `mod` tileGlobalSize)
   where
     vIYTile = (vIY - 1) `shiftR` tileToGlobalShift
-    hitting = wm!!vIXTile!!vIYTile
+    hitting = wm!(vIXTile, vIYTile)
 
     vInterceptX = vIXTile * tileGlobalSize
     vIntercept = (if xTileS == -1 then vInterceptX + tileGlobalSize else vInterceptX, vIY)
@@ -268,7 +268,7 @@ horRayCheck wm d@DiagonalRayData {focal=f
     Just m  -> createWallRayHit m Horizontal (hitDistance vAO f currentIntercept) (x `mod` tileGlobalSize)
   where
     hIXTile = (x - 1) `shiftR` tileToGlobalShift
-    hitting = wm!!hIXTile!!hIYTile
+    hitting = wm!(hIXTile, hIYTile)
 
     hInterceptNext = (x + dX, y + dYTile * tileGlobalSize)
     nextD = d{horInterceptYTile=(hIYTile + dYTile)
@@ -282,7 +282,7 @@ horRayCheck wm d@VerticalRayData {focal=f
     Just m  -> createWallRayHit m Horizontal (hitDistance vAO f hIntercept) (hIX `mod` tileGlobalSize)
   where
     hIXTile = (hIX - 1) `shiftR` tileToGlobalShift
-    hitting = wm!!hIXTile!!hIYTile
+    hitting = wm!(hIXTile, hIYTile)
 
     hInterceptY = hIYTile * tileGlobalSize
     hIntercept = (hIX, if dYTile == -1 then hInterceptY + tileGlobalSize else hInterceptY)

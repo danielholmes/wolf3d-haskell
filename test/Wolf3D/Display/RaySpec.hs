@@ -5,8 +5,8 @@ import Wolf3D.Display.Data
 import Wolf3D.Display.Ray
 import Wolf3D.Sim
 import Wolf3D.Engine
+import Wolf3D.DataHelpers
 import Data.Vector
-import Data.List
 
 halfTileGlobalSizeI :: Int
 halfTileGlobalSizeI = tileGlobalSize `div` 2
@@ -72,7 +72,7 @@ raySpec =
 --    describe "castRaysToWalls" $ do
 --      it "should return same, correct distance for straight wall" $
 --        let
---          wm = transpose [replicate 20 (Just Grey1)
+--          wm = visualListToWallMap [replicate 20 (Just Grey1)
 --                          , [Just Grey1] ++ (replicate 18 Nothing) ++ [Just Grey1]
 --                          , [Just Grey1] ++ (replicate 18 Nothing) ++ [Just Grey1]
 --                          , [Just Grey1] ++ (replicate 18 Nothing) ++ [Just Grey1]
@@ -88,7 +88,7 @@ raySpec =
     describe "castRayToWalls" $ do
       it "should return hit for NE / 0-89" $
         let
-          wm = transpose [[Nothing, Nothing, Just Grey1]
+          wm = visualListToWallMap [[Nothing, Nothing, Just Grey1]
                         , [Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 halfTileGlobalSize (3.0 * fromIntegral tileGlobalSize)
@@ -102,7 +102,7 @@ raySpec =
 
       it "should return hit for NWish / 90-179" $
         let
-          wm = transpose [[Nothing, Nothing, Nothing]
+          wm = visualListToWallMap [[Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]
                         , [Just Grey1, Nothing, Nothing]]
           pos = Vector2 (2.5 * fromIntegral tileGlobalSize) (3.0 * fromIntegral tileGlobalSize)
@@ -116,7 +116,7 @@ raySpec =
 
       it "should return hit for SW / 180-269" $
         let
-          wm = transpose [[Nothing, Nothing, Nothing]
+          wm = visualListToWallMap [[Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]
                         , [Just Grey1, Nothing, Nothing]]
           pos = Vector2 (3.0 * fromIntegral tileGlobalSize) halfTileGlobalSize
@@ -130,7 +130,7 @@ raySpec =
 
       it "should return hit for low SEish / 270-359" $
         let
-          wm = transpose [[Nothing, Nothing, Nothing]
+          wm = visualListToWallMap [[Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]
                         , [Nothing, Nothing, Just Grey1]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
@@ -144,7 +144,7 @@ raySpec =
 
       it "should return hit for high SEish / 270-359" $
         let
-          wm = transpose [[Nothing, Nothing, Just Grey1]]
+          wm = visualListToWallMap [[Nothing, Nothing, Just Grey1]]
           pos = Vector2 (0.5 * dTileGlobalSize) (0.5 * dTileGlobalSize)
           angle = normalToFineAngle 5
           viewOffset = normalToFineAngle (-8)
@@ -157,7 +157,7 @@ raySpec =
 
       it "should return hit for straight East / 0" $
         let
-          wm = transpose [[Nothing, Nothing, Just Grey1]
+          wm = visualListToWallMap [[Nothing, Nothing, Just Grey1]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 0 halfTileGlobalSize
           angle = normalToFineAngle 0
@@ -170,7 +170,7 @@ raySpec =
 
       it "should return hit for straight West / 180" $
         let
-          wm = transpose [[Just Grey1, Nothing, Nothing]
+          wm = visualListToWallMap [[Just Grey1, Nothing, Nothing]
                         , [Nothing, Nothing, Nothing]]
           pos = Vector2 (2 * fromIntegral tileGlobalSize) halfTileGlobalSize
           angle = normalToFineAngle 180
@@ -183,7 +183,7 @@ raySpec =
 
       it "should return hit for straight North / 90" $
         let
-          wm = transpose [[Nothing, Just Grey1]
+          wm = visualListToWallMap [[Nothing, Just Grey1]
                         , [Nothing, Nothing]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) (2 * fromIntegral tileGlobalSize)
           angle = normalToFineAngle 90
@@ -196,7 +196,7 @@ raySpec =
 
       it "should return hit for straight South / 270" $
         let
-          wm = transpose [[Nothing, Nothing]
+          wm = visualListToWallMap [[Nothing, Nothing]
                         , [Nothing, Just Grey1]]
           pos = Vector2 (1.5 * fromIntegral tileGlobalSize) 0
           angle = normalToFineAngle 270
@@ -209,7 +209,7 @@ raySpec =
 
       it "should return hit for low NEish (was a crash case)" $
         let
-          wm = transpose [[Just Blue1, Just Blue1, Just Blue1, Just Blue1, Just Blue1]
+          wm = visualListToWallMap [[Just Blue1, Just Blue1, Just Blue1, Just Blue1, Just Blue1]
                         , [Just Blue1, Nothing,    Nothing,    Nothing,    Just Blue1]
                         , [Just Blue1, Nothing,    Nothing,    Nothing,    Just Blue1]
                         , [Just Blue1, Nothing,    Nothing,    Nothing,    Just Grey1]
