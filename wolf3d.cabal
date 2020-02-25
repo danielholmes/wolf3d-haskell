@@ -34,6 +34,8 @@ library
                      , Wolf3D.Loader
                      , Wolf3D.Utils
                      , Wolf3D.Animation
+                     , Wolf3D.Hero
+                     , Wolf3D.WorldData
   other-modules:       Wolf3D.Input
   build-depends:       base >= 4.7 && < 5
                      , sdl2 >= 2.3.0 && < 3
@@ -81,7 +83,7 @@ test-suite wolf3d-test
                      , array >= 0.5.4.0 && < 1
   other-modules:       Wolf3D.SpecHelp
                      , Wolf3D.GeomSpec
-                     , Wolf3D.SimSpec
+                     , Wolf3D.HeroSpec
                      , Wolf3D.RunnerSpec
                      , Wolf3D.Display.RaySpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N

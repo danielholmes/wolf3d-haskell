@@ -53,7 +53,7 @@ renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()
 renderWorld r d w = do
   renderCeilingAndFloor r d w
   renderWalls r d w
-  renderWeapon r d (worldTics w) (worldHeroWeapon w)
+  renderWeapon r d (worldTicks w) (worldHeroWeapon w)
 
 renderCeilingAndFloor :: SDL.Renderer -> RenderData -> World -> IO ()
 renderCeilingAndFloor r _ w = do

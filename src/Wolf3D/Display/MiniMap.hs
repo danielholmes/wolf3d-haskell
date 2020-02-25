@@ -79,11 +79,11 @@ renderWall r d ((x, y), Just _) = drawMiniMapTile r d (x, y)
 drawMiniMapTile :: SDL.Renderer -> MiniMapData -> TileCoord -> IO ()
 drawMiniMapTile r d c = do
   let globalPos = tileCoordToGlobalPos c
-  let iTileGlobalSize = fromIntegral tileGlobalSize
-  drawMiniMapLine r d (globalPos, Vector2 iTileGlobalSize 0)
-  drawMiniMapLine r d (globalPos, Vector2 0 iTileGlobalSize)
-  drawMiniMapLine r d (globalPos + (Vector2 iTileGlobalSize 0), Vector2 0 iTileGlobalSize)
-  drawMiniMapLine r d (globalPos + (Vector2 0 iTileGlobalSize), Vector2 iTileGlobalSize 0)
+  let dTileGlobalSize = fromIntegral tileGlobalSize
+  drawMiniMapLine r d (globalPos, Vector2 dTileGlobalSize 0)
+  drawMiniMapLine r d (globalPos, Vector2 0 dTileGlobalSize)
+  drawMiniMapLine r d (globalPos + (Vector2 dTileGlobalSize 0), Vector2 0 dTileGlobalSize)
+  drawMiniMapLine r d (globalPos + (Vector2 0 dTileGlobalSize), Vector2 dTileGlobalSize 0)
 
 renderOrigin :: SDL.Renderer -> MiniMapData -> IO ()
 renderOrigin r d = do
@@ -116,13 +116,14 @@ drawEqTriangle r s pos rotRads = do
     right = roundToSDLP (pos + rotateVector2 (Vector2 rightX bottomY) rotRads)
     left = roundToSDLP (pos + rotateVector2 (Vector2 leftX bottomY) rotRads)
 
-drawRectangle :: SDL.Renderer -> MiniMapData -> Rectangle -> IO ()
-drawRectangle r d rect = forM_ (rectangleSides rect) (drawMiniMapLine r d)
-
 renderItems :: SDL.Renderer -> MiniMapData -> World -> IO ()
 renderItems r d@(MiniMapData _ _ _ worldRect _) w = do
   SDL.rendererDrawColor r $= itemColor
   forM_ (worldEnvItemsTouching worldRect w) (renderItem r d)
 
 renderItem :: SDL.Renderer -> MiniMapData -> EnvItem -> IO ()
-renderItem r d i = drawRectangle r d (itemRectangle i)
+renderItem r d (EnvItem _ (Vector2 x y)) = do
+  let dTileGlobalSize = (fromIntegral tileGlobalSize) :: Double
+  let tileX = floor (x / dTileGlobalSize)
+  let tileY = floor (y / dTileGlobalSize)
+  drawMiniMapTile r d (tileX, tileY)

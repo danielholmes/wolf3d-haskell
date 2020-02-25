@@ -8,17 +8,6 @@ import Wolf3D.Geom
 geomSpec :: SpecWith ()
 geomSpec =
   describe "Wolf3D.Geom" $ do
-    describe "rectangleSides" $
-      it "should return correct" $
-        let
-          rect = Rectangle (Vector2 0 0) (Vector2 10 10)
-          top = (Vector2 0 0, Vector2 10 0)
-          bottom = (Vector2 0 10, Vector2 10 0)
-          left = (Vector2 0 0, Vector2 0 10)
-          right = (Vector2 10 0, Vector2 0 10)
-        in
-          rectangleSides rect `shouldBe` [top, right, bottom, left]
-
     describe "rectangleOverlapsRectangle" $ do
       it "should return false if outside" $
         let

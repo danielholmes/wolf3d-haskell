@@ -55,7 +55,7 @@ createDebugText :: SimRun -> Integer -> String
 createDebugText sr tookTime = unwords (map (\(l, v) -> l ++ ": " ++ v) items)
   where
     world = simRunWorld sr
-    items = [("WT", show (worldTics world `div` 70) ++ "s"), ("Render", show tookTime ++ "ms")]
+    items = [("WT", show (worldTicks world `div` 70) ++ "s"), ("Render", show tookTime ++ "ms")]
 
 drawDebugText :: SDL.Renderer -> DebugRenderData -> String -> IO ()
 drawDebugText r (DebugRenderData _ font) text =

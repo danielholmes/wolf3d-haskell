@@ -1,4 +1,4 @@
-module Wolf3D.SimSpec (simSpec) where
+module Wolf3D.HeroSpec (heroSpec) where
 
 import Test.Hspec
 import Data.Vector
@@ -6,9 +6,9 @@ import Wolf3D.Sim
 import Wolf3D.SpecHelp
 
 
-simSpec :: SpecWith ()
-simSpec =
-  describe "Wolf3D.Sim" $ do
+heroSpec :: SpecWith ()
+heroSpec =
+  describe "Wolf3D.Hero" $ do
     describe "moveHero" $ do
       it "should move forward correctly if facing north" $
         let
