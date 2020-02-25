@@ -6,7 +6,7 @@ module Wolf3D.Debug.Display (
 ) where
 
 import qualified Wolf3D.Display as D
-import Wolf3D.Engine
+import Wolf3D.Sim
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Display.MiniMap

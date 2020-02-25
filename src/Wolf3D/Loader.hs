@@ -3,7 +3,6 @@ module Wolf3D.Loader (loadRenderData) where
 import qualified SDL
 import qualified SDL.Image
 import qualified SDL.Video.Renderer
-import Wolf3D.Engine
 import Wolf3D.Display
 import Wolf3D.Sim
 import Wolf3D.Animation
@@ -36,7 +35,7 @@ loadNumbers r = loadSpriteSheet r "hud-numbers.png" (8, 16)
 loadHudWeapons :: SDL.Renderer -> IO (SpriteSheet)
 loadHudWeapons r = loadSpriteSheet r "hud-weapons.png" (48, 24)
 
-loadWallDatas :: SDL.Renderer -> IO (WallMaterialData)
+loadWallDatas :: SDL.Renderer -> IO (WallData)
 loadWallDatas r = do
   blue <- loadWallSheet r "blue1.png"
   blue2 <- loadWallSheet r "blue2.png"

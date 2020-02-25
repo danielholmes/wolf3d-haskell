@@ -7,7 +7,6 @@ module Wolf3D.Display.Ray (
 ) where
 
 import Data.Vector
-import Wolf3D.Engine
 import Wolf3D.Sim
 import Wolf3D.Geom
 import Data.Bits
@@ -231,7 +230,10 @@ verRayCheck wm d@DiagonalRayData {focal=f
                                   , yStep=dy
                                   , verNextIntercept=currentIntercept@(x, y)} = case hitting of
     Nothing -> nextRayCheck wm currentIntercept nextD
-    Just m  -> createWallRayHit m Vertical (hitDistance vAO f currentIntercept) (y `mod` tileGlobalSize)
+    Just m  -> WallRayHit {material=m
+                           , direction=Vertical
+                          , distance=hitDistance vAO f currentIntercept
+                          , tilePosition=y `mod` tileGlobalSize}
   where
     vIYTile = (y - 1) `shiftR` tileToGlobalShift
     -- intXTile = if xTileS == -1 then vIXTile + 1 else vIXTile
@@ -248,7 +250,10 @@ verRayCheck wm d@HorizontalRayData {focal=f
                                    , interceptXTile=vIXTile
                                    , tileStep=xTileS} = case hitting of
     Nothing -> verRayCheck wm d{interceptXTile=(vIXTile + xTileS)}
-    Just m  -> createWallRayHit m Vertical (hitDistance vAO f vIntercept) (vIY `mod` tileGlobalSize)
+    Just m  -> WallRayHit {material=m
+                          , direction=Vertical
+                          , distance=hitDistance vAO f vIntercept
+                          , tilePosition=vIY `mod` tileGlobalSize}
   where
     vIYTile = (vIY - 1) `shiftR` tileToGlobalShift
     hitting = wm!(vIXTile, vIYTile)
@@ -265,7 +270,10 @@ horRayCheck wm d@DiagonalRayData {focal=f
                                  , xStep=dX
                                  , horNextIntercept=currentIntercept@(x, y)} = case hitting of
     Nothing -> nextRayCheck wm currentIntercept nextD
-    Just m  -> createWallRayHit m Horizontal (hitDistance vAO f currentIntercept) (x `mod` tileGlobalSize)
+    Just m  -> WallRayHit {material=m
+                          , direction=Horizontal
+                          , distance=hitDistance vAO f currentIntercept
+                          , tilePosition=x `mod` tileGlobalSize}
   where
     hIXTile = (x - 1) `shiftR` tileToGlobalShift
     hitting = wm!(hIXTile, hIYTile)
@@ -279,7 +287,10 @@ horRayCheck wm d@VerticalRayData {focal=f
                                  , interceptYTile=hIYTile
                                  , tileStep=dYTile} = case hitting of
     Nothing -> horRayCheck wm d{interceptYTile=(hIYTile + dYTile)}
-    Just m  -> createWallRayHit m Horizontal (hitDistance vAO f hIntercept) (hIX `mod` tileGlobalSize)
+    Just m  -> WallRayHit {material=m
+                           , direction=Horizontal
+                           , distance=hitDistance vAO f hIntercept
+                           , tilePosition=hIX `mod` tileGlobalSize}
   where
     hIXTile = (hIX - 1) `shiftR` tileToGlobalShift
     hitting = wm!(hIXTile, hIYTile)

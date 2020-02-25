@@ -12,7 +12,6 @@ module Wolf3D.Runner (
 import Control.Monad.Loops (iterateUntilM)
 import Data.Time.Clock
 import Data.Maybe
-import Wolf3D.Engine
 import Wolf3D.Utils
 import Wolf3D.Input
 import Wolf3D.Sim

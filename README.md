@@ -64,8 +64,7 @@ stack test --pedantic --file-watch
 
 ## TODO
  
- - use data.array for worldmap instead - better performance accessing by index
- 
+ - sort out entity typing in world issue
  - physics engine (2d top down). wolfs is simple
    - general
          1. Move x and y, if okay then return

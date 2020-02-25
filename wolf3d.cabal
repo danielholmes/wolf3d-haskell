@@ -17,7 +17,6 @@ library
   hs-source-dirs:      src
   exposed-modules:     Wolf3D.Geom
                      , Wolf3D.Main
-                     , Wolf3D.Engine
                      , Wolf3D.Sim
                      , Wolf3D.Runner
                      , Wolf3D.Display

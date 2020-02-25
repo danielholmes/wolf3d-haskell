@@ -4,13 +4,12 @@ import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import qualified SDL
 import Wolf3D.Animation
-import Wolf3D.Engine
 import Wolf3D.Sim
 
-type WallMaterialData = M.Map WallMaterial SpriteSheet
+type WallData = M.Map Wall SpriteSheet
 type EnvItemData = M.Map EnvItemType (SDL.Texture, SDL.Rectangle CInt)
 type WeaponData = M.Map String Animation
-data RenderData = RenderData {wallTextures :: WallMaterialData
+data RenderData = RenderData {wallTextures :: WallData
                              , itemTextures :: EnvItemData
                              , weaponTextures :: WeaponData
                              , hudBase :: (SDL.Texture, SDL.Rectangle CInt)
@@ -23,17 +22,11 @@ data CIntRectangle = CIntRectangle (CInt, CInt) (CInt, CInt)
 data HitDirection = Horizontal | Vertical
   deriving (Show, Eq, Ord)
 
-data WallRayHit = WallRayHit {material :: WallMaterial
+data WallRayHit = WallRayHit {material :: Wall
                               , direction :: HitDirection
                               , distance :: Int
                               , tilePosition :: Int}
   deriving (Eq, Show)
-
-createWallRayHit :: WallMaterial -> HitDirection -> Int -> Int -> WallRayHit
-createWallRayHit m dir dist tp
-  | dist < 0                       = error ("Dist < 0: " ++ (show dist))
-  | tp < 0 || tp >= tileGlobalSize = error ("Tile Post outside bounds [0-" ++ (show tileGlobalSize) ++ "]: " ++ (show tp))
-  | otherwise                      = WallRayHit {material=m, direction=dir, distance=dist, tilePosition=tp}
 
 fieldOfView :: Angle
 fieldOfView = 75

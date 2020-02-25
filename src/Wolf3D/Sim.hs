@@ -1,12 +1,30 @@
+{-# LANGUAGE GADTs #-}
 module Wolf3D.Sim (
   -- WorldData
-  HeroAction (
-      MoveForward,
-      MoveBackward,
-      TurnLeft,
-      TurnRight,
-      UseWeapon
-  ),
+  SimEntity (simUpdate),
+  World,
+  WorldTicks,
+  WallMap,
+  Wall (..),
+  TileCoord,
+  Ceiling (..),
+  createWorld,
+  worldEntities,
+  updateWorldEntities,
+  ticWorldTicks,
+  emptyWallMap,
+  worldTics,
+  worldCeilingColor,
+  worldWallMap,
+  tickWorld,
+  tickWorldNTimes,
+
+  tileCoordToGlobalPos,
+  tileCoordToCentreGlobalPos,
+  tileGlobalSize,
+  tileToGlobalShift,
+    
+  HeroAction (..),
   Hero (position, snappedRotation, actionsState, weapon),
   SnappedRotation,
   EnvItemType (Drum, Light, Flag),
@@ -37,17 +55,90 @@ module Wolf3D.Sim (
   modifyHeroActionState,
   updateHeroActionsState,
 
-  itemRectangle,
-  itemHeight,
-  itemSize
+  itemRectangle
 ) where
 
 import Wolf3D.Geom
-import Wolf3D.Engine
 import Data.Vector
 import Data.Maybe (fromJust)
 import Data.List (find)
+import Data.Bits
+import Data.Array
 
+
+class SimEntity i where
+  simUpdate :: World a -> i -> i
+
+-- TODO: See if way of moving wall materials outside of engine
+data Wall = Grey1 | Grey2 | Blue1 | Blue2
+  deriving (Show, Eq, Ord)
+
+type TileCoord = (Int, Int)
+
+data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
+  deriving (Show, Eq, Ord)
+
+type WorldTicks = Int
+type WallMap = Array (Int, Int) (Maybe Wall)
+-- Tried record syntax for this and failed
+data World i where
+  World :: (SimEntity i) => Ceiling -> WallMap -> [i] -> WorldTicks -> World i
+
+tileGlobalSize :: Int
+tileGlobalSize = 1 `shiftL` 16
+
+tileToGlobalShift :: Int
+tileToGlobalShift =  16
+
+tileCentreGlobalOffset :: Vector2
+tileCentreGlobalOffset = Vector2 (fromIntegral (tileGlobalSize `div` 2)) (fromIntegral (tileGlobalSize `div` 2))
+
+tileCoordToCentreGlobalPos :: TileCoord -> Vector2
+tileCoordToCentreGlobalPos p = (tileCoordToGlobalPos p) + tileCentreGlobalOffset
+
+tileCoordToGlobalPos :: TileCoord -> Vector2
+tileCoordToGlobalPos (tileX, tileY) = Vector2 (fromIntegral worldX) (fromIntegral worldY)
+  where
+    worldX = tileX `shiftL` tileToGlobalShift
+    worldY = tileY `shiftL` tileToGlobalShift
+
+emptyWallMap :: Int -> Int -> WallMap
+emptyWallMap w h = listArray ((0, 0), (w - 1, h - 1)) (replicate (w * h) Nothing)
+
+createWorld :: (SimEntity i) => Ceiling -> WallMap -> i -> [i] -> World i
+createWorld c wm h is = World c wm (h:is) 0 
+
+tickWorld :: World i -> World i
+tickWorld world@(World _ _ is _) = ticWorldTicks updatedWorld
+  where
+    updatedItems = map (simUpdate world) is
+    updatedWorld = updateWorldEntities world updatedItems
+
+tickWorldNTimes :: World i -> Int -> Maybe (World i)
+tickWorldNTimes w n
+  | n == 0    = Nothing
+  | otherwise = Just (foldr foldStep w [1..n])
+    where
+      foldStep :: Int -> World i -> World i
+      foldStep _ = tickWorld
+
+updateWorldEntities :: World i -> [i] -> World i
+updateWorldEntities (World c wm _ t) i = World c wm i t
+
+worldWallMap :: World i -> WallMap
+worldWallMap (World _ wm _ _) = wm
+
+worldEntities :: (SimEntity i) => World i -> [i]
+worldEntities (World _ _ is _) = is
+
+worldCeilingColor :: World i -> Ceiling
+worldCeilingColor (World c _ _ _) = c
+
+worldTics :: World i -> Int
+worldTics (World _ _ _ t) = t
+
+ticWorldTicks :: World i -> World i
+ticWorldTicks (World c wm is ticks) = World c wm is (ticks + 1)
 
 {-----------------------------------------------------------------------------------------------------------------------
 WorldData
@@ -274,15 +365,12 @@ bindAngle a
 instance SimEntity EnvItem where
  simUpdate _ = id
 
--- 0.005 a hack until change rendering
-itemSize :: EnvItem -> Vector2
-itemSize _ = Vector2 ((fromIntegral tileGlobalSize) * 0.05) ((fromIntegral tileGlobalSize) * 0.05)
-
-itemHeight :: Double
-itemHeight = 3000
-
-halfItemSize :: EnvItem -> Vector2
-halfItemSize i = itemSize i *| 0.5
-
 itemRectangle :: EnvItem -> Rectangle
 itemRectangle i@(EnvItem _ o) = Rectangle (o - halfItemSize i) (itemSize i)
+  where
+    -- 0.005 a hack until change rendering
+    itemSize :: EnvItem -> Vector2
+    itemSize _ = Vector2 ((fromIntegral tileGlobalSize) * 0.05) ((fromIntegral tileGlobalSize) * 0.05)
+    
+    halfItemSize :: EnvItem -> Vector2
+    halfItemSize iS = itemSize iS *| 0.5

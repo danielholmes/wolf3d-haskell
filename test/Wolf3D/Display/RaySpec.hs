@@ -4,7 +4,6 @@ import Test.Hspec
 import Wolf3D.Display.Data
 import Wolf3D.Display.Ray
 import Wolf3D.Sim
-import Wolf3D.Engine
 import Wolf3D.DataHelpers
 import Data.Vector
 

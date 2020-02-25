@@ -4,7 +4,6 @@ import qualified SDL
 import qualified SDL.Vect
 import Foreign.C.Types (CInt)
 import Data.Vector
-import Wolf3D.Engine
 import Wolf3D.Geom
 import Wolf3D.Sim
 import Wolf3D.SDLUtils
@@ -75,7 +74,7 @@ renderWalls r d w = do
   forM_ (assocs wm) (renderWall r d)
 
 -- TODO: Don't render if not touching worldRect
-renderWall :: SDL.Renderer -> MiniMapData -> ((Int, Int), Maybe WallMaterial) -> IO ()
+renderWall :: SDL.Renderer -> MiniMapData -> ((Int, Int), Maybe Wall) -> IO ()
 renderWall _ _ (_, Nothing) = return ()
 renderWall r d ((x, y), Just _) = drawMiniMapTile r d (x, y)
 
