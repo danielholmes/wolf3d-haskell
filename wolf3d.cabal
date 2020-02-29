@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Wolf3D.Geom
                      , Wolf3D.Main
-                     , Wolf3D.Sim
+                     , Wolf3D.World
                      , Wolf3D.Runner
                      , Wolf3D.Display
                      , Wolf3D.Display.Data
@@ -84,6 +84,7 @@ test-suite wolf3d-test
   other-modules:       Wolf3D.SpecHelp
                      , Wolf3D.GeomSpec
                      , Wolf3D.HeroSpec
+                     , Wolf3D.WorldSpec
                      , Wolf3D.RunnerSpec
                      , Wolf3D.Display.RaySpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N

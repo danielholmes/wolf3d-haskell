@@ -64,21 +64,6 @@ stack test --pedantic --file-watch
 
 ## TODO
  
- - sort out entity typing in world issue
- - physics engine (2d top down). wolfs is simple
-   - general
-         1. Move x and y, if okay then return
-         2. move x only, if okay return
-         3. move y only, if oka return
-         4. return
-   - functional structure
-         - input a bunch of force events (vector2 + character)
-         - normalise to one force event per char
-         - create move to events which result from forces
-             - which apply the force and take in to account any bumping up against
-             - items should be static (cant be moved), dynamic (can be moved), virtual (move right through them)
-         - collision events between 2
- 
  - have press m to toggle map for debug
  - move sprites forward a bit. This was fudged in original:
    - https://github.com/id-Software/wolf3d/blob/05167784ef009d0d0daefe8d012b027f39dc8541/WOLFSRC/WL_DRAW.C#L227
@@ -106,9 +91,6 @@ stack test --pedantic --file-watch
  - difference for pistol and uzi - auto vs semi auto
  - Structure cabal project in such a way that modules not exposed to main can still be exposed to test
    - Do general deeper research into cabal project and possibilities - multiple libraries?
- - Split Wolf3D.Sim into separate files, resolving circular dependencies
-   - https://stackoverflow.com/questions/8650297/haskell-recursive-circular-module-definitions
-   - https://downloads.haskell.org/~ghc/7.0.3/docs/html/users_guide/separate-compilation.html#mutual-recursion 
  - Dont render hidden sprites
    - only render within field of view bounds
    - only render in front of walls

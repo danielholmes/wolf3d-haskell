@@ -5,15 +5,19 @@ module Wolf3D.Hero (
   createHeroFromTilePosition,
   modifyHeroActionState,
   updateHeroActionsState,
-  
+
+  heroSize,
   createHero,
-  moveHero,
-  rotateHero
+  rotateHero,
+  
+  moveHero -- for specs only
 ) where
 
 import Wolf3D.WorldData
 import Wolf3D.Geom
 import Data.Vector
+import Data.Maybe
+import Data.List
 
 
 simUpdateWeapon :: World -> Weapon -> Weapon
@@ -72,7 +76,7 @@ simUpdateHero w h@(Hero {actionsState=has}) = h3
     -- player->tiley = player->y >> TILESHIFT;
     -- offset = farmapylookup[player->tiley]+player->tilex;
     -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;
-    h2 = moveHero h1 velocity
+    h2 = moveHero w h1 velocity
     h3 = updateWeapon w h2
 
 angleScale :: Int
@@ -80,6 +84,9 @@ angleScale = 20
 
 moveScale :: Int
 moveScale = 150
+
+heroSize :: Int
+heroSize = minDist
 
 backMoveScale :: Int
 backMoveScale = 100
@@ -103,16 +110,20 @@ createHero pos = Hero pos 0 0 staticHeroActionsState (Pistol Nothing False)
 createHeroFromTilePosition :: TileCoord -> Hero
 createHeroFromTilePosition p = createHero (tileCoordToCentreGlobalPos p)
 
-moveHero :: Hero -> Int -> Hero
-moveHero h 0 = h
-moveHero h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=newPos}
+moveHero :: World -> Hero -> Int -> Hero
+moveHero _ h 0 = h
+moveHero w h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=fromJust firstOkay}
   where
     speed = abs velocity
     moveAngle = if velocity < 0 then sr else bindAngle (sr + (angles `div` 2))
     boundSpeed = if speed >= minDist * 2 then minDist * 2 - 1 else speed
     rotRad = (fromIntegral moveAngle) * degToRad
     dSpeed = fromIntegral boundSpeed
-    newPos = p + Vector2 (dSpeed * (cos rotRad)) (-(dSpeed * (sin rotRad)))
+    xOffset = dSpeed * (cos rotRad)
+    yOffset = -(dSpeed * (sin rotRad))
+    potentialOffsets = [Vector2 xOffset yOffset, Vector2 xOffset 0, Vector2 0 yOffset, Vector2 0 0]
+    potentialPositions = map (p +) potentialOffsets
+    firstOkay = find (\pos -> not (isHittingWall w pos heroSize)) potentialPositions
 
 updateHeroActionsState :: HeroActionsState -> Hero -> Hero
 updateHeroActionsState a (Hero p sr rr _ w) = Hero p sr rr a w

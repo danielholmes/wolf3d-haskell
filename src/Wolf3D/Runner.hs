@@ -14,7 +14,7 @@ import Data.Time.Clock
 import Data.Maybe
 import Wolf3D.Utils
 import Wolf3D.Input
-import Wolf3D.Sim
+import Wolf3D.World
 import Wolf3D.WorldData
 import Data.Foldable
 

@@ -7,9 +7,9 @@ module Wolf3D.Debug.Display (
 
 import qualified Wolf3D.Display as D
 import qualified Wolf3D.Display.Data as DD
-import Wolf3D.Sim
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
+import Wolf3D.WorldData
 import Wolf3D.Display.MiniMap
 import Wolf3D.Display.Utils
 import qualified SDL

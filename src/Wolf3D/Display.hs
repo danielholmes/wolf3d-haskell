@@ -9,7 +9,7 @@ module Wolf3D.Display (
   actionWidth
 ) where
 
-import Wolf3D.Sim
+import Wolf3D.World
 import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Geom
@@ -62,7 +62,7 @@ renderCeilingAndFloor r _ w = do
   SDL.rendererDrawColor r $= floorColor
   SDL.fillRect r (Just (mkSDLRect actionAreaX (actionAreaY + halfActionHeight) actionWidth halfActionHeight))
   where
-    ceilingColor = fromJust (M.lookup (worldCeilingColor w) ceilingColors)
+    ceilingColor = fromJust (M.lookup (worldCeiling w) ceilingColors)
 
 renderWalls :: SDL.Renderer -> RenderData -> World -> IO ()
 renderWalls r d w = forM_ (zip [0..] hits) (renderWallLine r d)

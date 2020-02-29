@@ -1,10 +1,7 @@
-module Wolf3D.Sim (
+module Wolf3D.World (
   createWorld,
   incWorldTicks,
   emptyWallMap,
-  worldTicks,
-  worldCeilingColor,
-  worldWallMap,
   tickWorld,
   tickWorldNTimes,
 
@@ -46,9 +43,6 @@ tickWorldNTimes w n
 incWorldTicks :: World -> World
 incWorldTicks (World c wm h is ticks) = World c wm h is (ticks + 1)
 
-{-----------------------------------------------------------------------------------------------------------------------
- General
------------------------------------------------------------------------------------------------------------------------}
 updateWorldHeroActionsState :: World -> HeroActionsState -> World
 updateWorldHeroActionsState w a = updateWorldHero w (updateHeroActionsState a)
 
@@ -61,9 +55,6 @@ worldEnvItemsTouching r w = filter (itemIsTouching r) (worldEnvItems w)
 itemIsTouching :: Rectangle -> EnvItem -> Bool
 itemIsTouching r i = rectangleOverlapsRectangle r (itemRectangle i)
 
-{-----------------------------------------------------------------------------------------------------------------------
- Environment
------------------------------------------------------------------------------------------------------------------------}
 itemRectangle :: EnvItem -> Rectangle
 itemRectangle i@(EnvItem _ o) = Rectangle (o - halfItemSize i) (itemSize i)
   where

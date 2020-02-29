@@ -1,7 +1,7 @@
 module Wolf3D.Debug.Dummy (dummyWorld) where
 
 import Wolf3D.WorldData
-import Wolf3D.Sim
+import Wolf3D.World
 import Wolf3D.Hero
 import Wolf3D.DataHelpers
 

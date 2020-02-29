@@ -7,29 +7,25 @@ module Wolf3D.WorldData (
   Ceiling (..),
   EnvItemType (..),
   EnvItem (..),
-  
+
   HeroActionsState (..),
   Hero (..),
   SnappedRotation,
   HeroAction (..),
   Weapon (..),
   
-  worldWallMap,
-  worldCeilingColor,
-  worldTicks,
-  worldHero,
-  worldHeroWeapon,
-  worldEnvItems,
-  
+  isHittingWall,
+
   Angle,
   FineAngle,
+  worldHeroWeapon,
   minDist,
   angles,
   fineAngles,
-  bindAngle,  
+  bindAngle,
   fineToNormalAngle,
   normalToFineAngle,
-  
+
   tileGlobalSize,
   tileToGlobalShift,
   tileCoordToGlobalPos,
@@ -40,6 +36,8 @@ module Wolf3D.WorldData (
 import Data.Vector
 import Data.Array
 import Data.Bits
+import Data.Maybe
+
 
 type UsingWeapon = Bool
 data Weapon = Pistol (Maybe WorldTicks) UsingWeapon
@@ -86,25 +84,26 @@ data Ceiling = GreyCeiling | PurpleCeiling | GreenCeiling | YellowCeiling
 type WorldTicks = Int
 type WallMap = Array (Int, Int) (Maybe Wall)
 -- Tried record syntax for this and failed
-data World = World Ceiling WallMap Hero [EnvItem] WorldTicks
-
-worldWallMap :: World -> WallMap
-worldWallMap (World _ wm _ _ _) = wm
-
-worldCeilingColor :: World -> Ceiling
-worldCeilingColor (World c _ _ _ _) = c
-
-worldTicks :: World -> Int
-worldTicks (World _ _ _ _ t) = t
-
-worldHero :: World -> Hero
-worldHero (World _ _ h _ _) = h
+data World = World {worldCeiling :: Ceiling
+                    , worldWallMap :: WallMap
+                    , worldHero :: Hero
+                    , worldEnvItems :: [EnvItem]
+                    , worldTicks :: WorldTicks}
 
 worldHeroWeapon :: World -> Weapon
-worldHeroWeapon = weapon . worldHero
+worldHeroWeapon w = weapon (worldHero w)
 
-worldEnvItems :: World -> [EnvItem]
-worldEnvItems (World _ _ _ is _) = is
+-- Would be better in world, but results in cyclic dependency
+type ActorSize = Int
+
+isHittingWall :: World -> Vector2 -> ActorSize -> Bool
+isHittingWall (World {worldWallMap=wm}) (Vector2 x y) s = any isJust (map (wm!) tiles)
+  where
+    xTileLow = ((round x) - s) `shiftR` tileToGlobalShift
+    yTileLow = ((round y) - s) `shiftR` tileToGlobalShift
+    xTileHigh = ((round x) + s) `shiftR` tileToGlobalShift
+    yTileHigh = ((round y) + s) `shiftR` tileToGlobalShift
+    tiles = [(xTileLow, yTileLow), (xTileLow, yTileHigh), (xTileHigh, yTileLow), (xTileHigh, yTileHigh)]
 
 tileGlobalSize :: Int
 tileGlobalSize = 1 `shiftL` 16
