@@ -4,7 +4,6 @@ module Wolf3D.Hero (
   staticHeroActionsState,
   createHeroFromTilePosition,
   modifyHeroActionState,
-  updateHeroActionsState,
 
   heroSize,
   createHero,
@@ -18,6 +17,7 @@ import Wolf3D.Geom
 import Data.Vector
 import Data.Maybe
 import Data.List
+import Data.Bits
 
 
 simUpdateWeapon :: World -> Weapon -> Weapon
@@ -50,34 +50,69 @@ notBeingUsed (Pistol t _) = Pistol t False
  Hero
 -----------------------------------------------------------------------------------------------------------------------}
 staticHeroActionsState :: HeroActionsState
-staticHeroActionsState = HeroActionsState False False False False False
+staticHeroActionsState = HeroActionsState False False False False False False
 
 modifyHeroActionState :: HeroActionsState -> HeroAction -> Bool -> HeroActionsState
-modifyHeroActionState (HeroActionsState _ d l r s) MoveForward a = HeroActionsState a d l r s
-modifyHeroActionState (HeroActionsState u _ l r s) MoveBackward a = HeroActionsState u a l r s
-modifyHeroActionState (HeroActionsState u d _ r s) TurnLeft a = HeroActionsState u d a r s
-modifyHeroActionState (HeroActionsState u d l _ s) TurnRight a = HeroActionsState u d l a s
-modifyHeroActionState (HeroActionsState u d l r _) UseWeapon a = HeroActionsState u d l r a
+modifyHeroActionState s MoveForward a = s{heroActionsStateMoveForward=a}
+modifyHeroActionState s MoveBackward a = s{heroActionsStateMoveBackward=a}
+modifyHeroActionState s TurnLeft a = s{heroActionsStateTurnLeft=a}
+modifyHeroActionState s TurnRight a = s{heroActionsStateTurnRight=a}
+modifyHeroActionState s UseWeapon a = s{heroActionsStateUseWeapon=a}
+modifyHeroActionState s Strafe a = s{heroActionsStateStrafe=a}
 
 simUpdateHero :: World -> Hero -> Hero
-simUpdateHero w h@(Hero {actionsState=has}) = h3
+simUpdateHero _ (Hero {heroState=HeroAttack}) = error "Not implemented"
+simUpdateHero w h@(Hero {heroState=HeroDefault}) = pipeline h
   where
-    rotationDelta = heroRotationDelta has
-    h1 = rotateHero h rotationDelta
+    pipeline = (updateWeapon w)
+      . (moveHeroByActionsState w)
+      . rotateHeroByActionsState
+      . (updateFace w)
 
+--    	CheckWeaponChange ();
+--    
+--    	if ( buttonstate[bt_use] )
+--    		Cmd_Use ();
+--    
+--    	if ( buttonstate[bt_attack] && !buttonheld[bt_attack])
+--    		Cmd_Fire ();
+--    
+--    	ControlMovement (ob);
+--    	if (gamestate.victoryflag)		// watching the BJ actor
+--    		return;
+--    
+--    
+--    	plux = player->x >> UNSIGNEDSHIFT;			// scale to fit in unsigned
+--    	pluy = player->y >> UNSIGNEDSHIFT;
+--    	player->tilex = player->x >> TILESHIFT;		// scale to tile values
+--    	player->tiley = player->y >> TILESHIFT;
+
+updateFace :: World -> Hero -> Hero
+updateFace w h@(Hero{heroFace=HeroFace count frames})
+  | newCount > randomNum = h{heroFace=HeroFace 0 newFrame}
+  | otherwise            = h{heroFace=HeroFace newCount frames}
+  where
+    newCount = count + 1
+    randomNum = worldTickRandomNum w
+    nextRandomNum = worldTickNextRandomNum w
+    proposedFrame = nextRandomNum `shiftR` 6
+    newFrame = if proposedFrame == 3 then 1 else proposedFrame
+-- TODO: If shooting gatling gun, don't change face (assume it is switched to some 
+--  strained face elsewehere
+
+
+moveHeroByActionsState :: World -> Hero -> Hero
+moveHeroByActionsState w h@(Hero{actionsState=has}) = moveHero w velocity h
+  where
     movementDelta = heroMoveDelta has
     movementScale = if movementDelta < 0 then moveScale else backMoveScale
     -- TODO: set a thrustspeed for AI to use later
     -- thrustspeed += speed;
     velocity = movementScale * movementDelta
-    -- TODO
-    -- ClipMove(player,xmove,ymove);
-    -- player->tilex = player->x >> TILESHIFT;    // scale to tile values
-    -- player->tiley = player->y >> TILESHIFT;
-    -- offset = farmapylookup[player->tiley]+player->tilex;
-    -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;
-    h2 = moveHero w h1 velocity
-    h3 = updateWeapon w h2
+
+rotateHeroByActionsState :: Hero -> Hero
+rotateHeroByActionsState h@(Hero{actionsState=has}) = rotateHero h rotationDelta
+  where rotationDelta = heroRotationDelta has
 
 angleScale :: Int
 angleScale = 20
@@ -105,14 +140,21 @@ updateWeaponUsed has w
   where current = isUsingWeapon w
 
 createHero :: Vector2 -> Hero
-createHero pos = Hero pos 0 0 staticHeroActionsState (Pistol Nothing False)
+createHero pos = Hero
+  { heroFace=HeroFace 0 0
+   , heroState=HeroDefault
+   , position=pos
+   , snappedRotation=0
+   , rotationRemainder=0
+   , actionsState=staticHeroActionsState
+   , weapon=(Pistol Nothing False) }
 
 createHeroFromTilePosition :: TileCoord -> Hero
 createHeroFromTilePosition p = createHero (tileCoordToCentreGlobalPos p)
 
-moveHero :: World -> Hero -> Int -> Hero
-moveHero _ h 0 = h
-moveHero w h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=fromJust firstOkay}
+moveHero :: World -> Int -> Hero -> Hero
+moveHero _ 0 h = h
+moveHero w velocity h@(Hero {position=p, snappedRotation=sr}) = h {position=fromJust firstOkay}
   where
     speed = abs velocity
     moveAngle = if velocity < 0 then sr else bindAngle (sr + (angles `div` 2))
@@ -124,9 +166,11 @@ moveHero w h@(Hero {position=p, snappedRotation=sr}) velocity = h {position=from
     potentialOffsets = [Vector2 xOffset yOffset, Vector2 xOffset 0, Vector2 0 yOffset, Vector2 0 0]
     potentialPositions = map (p +) potentialOffsets
     firstOkay = find (\pos -> not (isHittingWall w pos heroSize)) potentialPositions
-
-updateHeroActionsState :: HeroActionsState -> Hero -> Hero
-updateHeroActionsState a (Hero p sr rr _ w) = Hero p sr rr a w
+    -- TODO
+    -- player->tilex = player->x >> TILESHIFT;    // scale to tile values
+    -- player->tiley = player->y >> TILESHIFT;
+    -- offset = farmapylookup[player->tiley]+player->tilex;
+    -- player->areanumber = *(mapsegs[0] + offset) -AREATILE;  
 
 heroMoveDelta :: HeroActionsState -> Int
 heroMoveDelta s = forwardMovement + backwardMovement

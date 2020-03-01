@@ -23,53 +23,53 @@ heroSpec =
           hero = rotateHero (createHero heroPosUnit) (90 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize - 1))
+          position (moveHero world 1 hero) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize - 1))
 
       it "should move forward correctly if facing south" $
         let
           hero = rotateHero (createHero heroPosUnit) (270 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize + 1))
+          position (moveHero world 1 hero) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize + 1))
 
       it "should move backward correctly if facing north" $
         let
           hero = rotateHero (createHero heroPosUnit) (90 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize + 1))
+          position (moveHero world (-1) hero) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize + 1))
 
       it "should move backward correctly if facing south" $
         let
           hero = rotateHero (createHero heroPosUnit) (270 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize - 1))
+          position (moveHero world (-1) hero) `shouldSatisfy` veryCloseToVector2 (Vector2 dTileSize (dTileSize - 1))
 
       it "should move forward correctly if facing east" $
         let
           hero = rotateHero (createHero heroPosUnit) (0 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize + 1) dTileSize)
+          position (moveHero world (-1) hero) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize + 1) dTileSize)
 
       it "should move backward correctly if facing east" $
         let
           hero = rotateHero (createHero heroPosUnit) (0 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize - 1) dTileSize)
+          position (moveHero world 1 hero) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize - 1) dTileSize)
 
       it "should move forward correctly if facing west" $
         let
           hero = rotateHero (createHero heroPosUnit) (180 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero (-1)) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize - 1) dTileSize)
+          position (moveHero world (-1) hero) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize - 1) dTileSize)
 
       it "should move backward correctly if facing west" $
         let
           hero = rotateHero (createHero heroPosUnit) (180 * 20) -- angleScale
           world = createWorld GreyCeiling (emptyWallMap 2 2) hero []
         in
-          position (moveHero world hero 1) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize + 1) dTileSize)
+          position (moveHero world 1 hero) `shouldSatisfy` veryCloseToVector2 (Vector2 (dTileSize + 1) dTileSize)

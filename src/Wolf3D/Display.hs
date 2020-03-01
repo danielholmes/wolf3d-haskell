@@ -14,7 +14,6 @@ import Wolf3D.Runner
 import Wolf3D.SDLUtils
 import Wolf3D.Geom
 import Wolf3D.WorldData
-import Wolf3D.Hero
 import Wolf3D.Display.Utils
 import Wolf3D.Display.Hud
 import Wolf3D.Display.Ray
@@ -24,7 +23,6 @@ import Data.StateVar (($=))
 import Data.Foldable
 import Data.Maybe
 import Data.Bits
-import Control.Monad (mfilter)
 import qualified Data.Map as M
 import Foreign.C.Types (CInt)
 import GHC.Word (Word8)
@@ -45,8 +43,9 @@ setupRenderer r = SDL.rendererDrawBlendMode r $= SDL.BlendAlphaBlend
 
 render :: SDL.Renderer -> RenderData -> SimRun -> IO ()
 render r d s = do
-  renderHud r d
-  renderWorld r d (simRunWorld s)
+  let w@(World{worldHero=h}) = simRunWorld s
+  renderHud r d h
+  renderWorld r d w
   SDL.present r
 
 renderWorld :: SDL.Renderer -> RenderData -> World -> IO ()
@@ -82,7 +81,9 @@ renderWallLine r (RenderData {wallTextures=wt}) (pixel, WallRayHit {material=m, 
     shadingIndex = if d == Horizontal then 1 else 0
     (SDL.Rectangle (SDL.P (SDL.V2 tX tY)) (SDL.V2 tW tH)) = getSpriteSheetLocation wallSheet shadingIndex
     texture = spriteSheetTexture wallSheet
-    hitWallTextureRatio = (fromIntegral tilePos / fromIntegral tileGlobalSize) :: Double
+    -- tileGlobalSize - because textures on walls displaying flipped.
+    -- Not sure where the difference is with original
+    hitWallTextureRatio = (fromIntegral (tileGlobalSize - tilePos) / fromIntegral tileGlobalSize) :: Double
 
     distRatio = (fromIntegral viewDist / fromIntegral dist) :: Double
     globalDist = (round (distRatio * fromIntegral tileGlobalSize)) :: CInt
@@ -118,16 +119,16 @@ renderWallLine r (RenderData {wallTextures=wt}) (pixel, WallRayHit {material=m, 
 --    destRect = mkSDLRect x projectedTop (round projectedWidth) projectedHeight
 
 renderWeapon :: SDL.Renderer -> RenderData -> WorldTicks -> Weapon -> IO ()
-renderWeapon r RenderData {weaponTextures=wt} t w =
+renderWeapon r RenderData {weaponTextures=wt} _ _ =
   copyWithActionOffset r (intRectPos actionArea) texture sourceRect destRect
   where
-    totalAnimationTime = 400
-    sinceUsed = fmap (t -) (lastTimeWeaponUsed w)
-    animationTime = mfilter (< totalAnimationTime) sinceUsed
-    progress = maybe 0 ((/ fromIntegral totalAnimationTime) . fromIntegral) animationTime
+--    totalAnimationTime = 400
+--    sinceUsed = fmap (t -) (lastTimeWeaponUsed w)
+--    animationTime = mfilter (< totalAnimationTime) sinceUsed
+--    progress = maybe 0 ((/ fromIntegral totalAnimationTime) . fromIntegral) animationTime
     animation = fromJust (M.lookup "Pistol" wt)
     texture = animationTexture animation
-    sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getAnimationFrame animation progress
+    sourceRect@(SDL.Rectangle _ (SDL.V2 tW tH)) = getAnimationFrame animation 0
     destX = actionAreaX + ((actionWidth - tW) `div` 2)
     destY = actionAreaY + (actionHeight - tH)
     destRect = mkSDLRect destX destY tW tH

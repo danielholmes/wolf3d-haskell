@@ -58,9 +58,5 @@ createAnimation = Animation
 animationTexture :: Animation -> SDL.Texture
 animationTexture (Animation s) = spriteSheetTexture s
 
-getAnimationFrame :: Animation -> Double -> AnimationFrame
-getAnimationFrame (Animation s@(SpriteSheet _ _ ls)) progress
-  | progress >= 0 && progress <= 1 = getSpriteSheetLocation s locationIndex
-  | otherwise                      = error ("Invalid progress " ++ show progress)
-  where
-    locationIndex = round (progress * fromIntegral (length ls - 1))
+getAnimationFrame :: Animation -> Int -> AnimationFrame
+getAnimationFrame (Animation s) i = getSpriteSheetLocation s i

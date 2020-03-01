@@ -24,16 +24,16 @@ loadRenderData r = do
   return (RenderData w i weapons hBase face nums hWeapons)
 
 loadHudBaseData :: SDL.Renderer -> IO (SDL.Texture, SDL.Rectangle CInt)
-loadHudBaseData r = loadTexture r "hud-base.png"
+loadHudBaseData r = loadTexture r "hud/base.png"
 
 loadBjFace :: SDL.Renderer -> IO (Animation)
-loadBjFace r = loadAnimation r "bj.png" (30, 30)
+loadBjFace r = loadAnimation r "hud/bj.png" (24, 32)
 
 loadNumbers :: SDL.Renderer -> IO (SpriteSheet)
-loadNumbers r = loadSpriteSheet r "hud-numbers.png" (8, 16)
+loadNumbers r = loadSpriteSheet r "hud/numbers.png" (8, 16)
 
 loadHudWeapons :: SDL.Renderer -> IO (SpriteSheet)
-loadHudWeapons r = loadSpriteSheet r "hud-weapons.png" (48, 24)
+loadHudWeapons r = loadSpriteSheet r "hud/weapons.png" (48, 24)
 
 loadWallDatas :: SDL.Renderer -> IO (WallData)
 loadWallDatas r = do
@@ -49,14 +49,14 @@ loadWallDatas r = do
 
 loadEnvItemsData :: SDL.Renderer -> IO (Map EnvItemType (SDL.Texture, SDL.Rectangle CInt))
 loadEnvItemsData r = do
-  drum <- loadTexture r "drum.png"
-  flag <- loadTexture r "flag.png"
-  light <- loadTexture r "light.png"
+  drum <- loadTexture r "items/drum.png"
+  flag <- loadTexture r "items/flag.png"
+  light <- loadTexture r "items/light.png"
   return (fromList [ (Drum, drum), (Flag, flag), (Light, light)])
 
 loadWeaponData :: SDL.Renderer -> IO (Map String Animation)
 loadWeaponData r = do
-  pistol <- loadAnimation r "pistol.png" (128, 60)
+  pistol <- loadAnimation r "weapons/pistol.png" (128, 60)
   return (fromList [("Pistol", pistol)])
 
 loadTexture :: SDL.Renderer -> FilePath -> IO (SDL.Texture, SDL.Rectangle CInt)
@@ -69,7 +69,7 @@ loadTexture r p = do
 
 loadWallSheet :: SDL.Renderer -> FilePath -> IO SpriteSheet
 loadWallSheet r p = do
-  (t, SDL.Rectangle _ tSize@(SDL.V2 tW _)) <- loadTexture r p
+  (t, SDL.Rectangle _ tSize@(SDL.V2 tW _)) <- loadTexture r ("walls/" ++ p)
   let sSize = (tW, tW)
   return (fromJust (createSpriteSheet t tSize sSize))
 

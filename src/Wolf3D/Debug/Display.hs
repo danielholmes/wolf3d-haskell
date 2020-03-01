@@ -49,7 +49,7 @@ render r drd@(DebugRenderData rd _) sr = do
   where
     w = simRunWorld sr
     runRender = do
-      D.renderHud r rd
+      D.renderHud r rd (worldHero w)
       D.renderWorld r rd w
 
 createDebugText :: SimRun -> Integer -> String

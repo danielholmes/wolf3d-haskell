@@ -39,26 +39,29 @@ focalCosTable = listArray (0, fineAngles - 1) (map (* fromIntegral focalLength) 
 tanTable :: Array FineAngle Double
 tanTable = array (0, fineAngles - 1) [(i, tan (fineToNormalAngle i * degToRad)) | i <- allFineAngles]
 
-data RayData = DiagonalRayData {focal :: (Int, Int)
-                                , fineViewAngleOffset :: FineAngle
-                                , horInterceptYTile :: Int
-                                , verInterceptXTile :: Int
-                                , xTileStep :: Int
-                                , yTileStep :: Int
-                                , xStep :: Int
-                                , yStep :: Int
-                                , horNextIntercept :: (Int, Int)
-                                , verNextIntercept :: (Int, Int)} |
-                HorizontalRayData {focal :: (Int, Int)
-                                  , fineViewAngleOffset :: FineAngle
-                                  , interceptY :: Int
-                                  , interceptXTile :: Int
-                                  , tileStep :: Int} |
-                VerticalRayData {focal :: (Int, Int)
-                                , fineViewAngleOffset :: FineAngle
-                                , interceptX :: Int
-                                , interceptYTile :: Int
-                                , tileStep :: Int}
+data RayData = DiagonalRayData
+    { focal :: (Int, Int)
+    , fineViewAngleOffset :: FineAngle
+    , horInterceptYTile :: Int
+    , verInterceptXTile :: Int
+    , xTileStep :: Int
+    , yTileStep :: Int
+    , xStep :: Int
+    , yStep :: Int
+    , horNextIntercept :: (Int, Int)
+    , verNextIntercept :: (Int, Int)} |
+  HorizontalRayData
+    { focal :: (Int, Int)
+    , fineViewAngleOffset :: FineAngle
+    , interceptY :: Int
+    , interceptXTile :: Int
+    , tileStep :: Int} |
+  VerticalRayData
+    { focal :: (Int, Int)
+    , fineViewAngleOffset :: FineAngle
+    , interceptX :: Int
+    , interceptYTile :: Int
+    , tileStep :: Int}
   deriving (Show)
 
 fineViewAngleOffsets :: [FineAngle]
@@ -230,7 +233,7 @@ verRayCheck wm d@DiagonalRayData {focal=f
                                   , yStep=dy
                                   , verNextIntercept=currentIntercept@(x, y)} = case hitting of
     Nothing -> nextRayCheck wm currentIntercept nextD
-    Just m  -> WallRayHit {material=m
+    Just m  -> WallRayHit { material=m
                            , direction=Vertical
                           , distance=hitDistance vAO f currentIntercept
                           , tilePosition=y `mod` tileGlobalSize}

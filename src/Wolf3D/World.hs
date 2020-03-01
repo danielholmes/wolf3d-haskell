@@ -44,7 +44,7 @@ incWorldTicks :: World -> World
 incWorldTicks (World c wm h is ticks) = World c wm h is (ticks + 1)
 
 updateWorldHeroActionsState :: World -> HeroActionsState -> World
-updateWorldHeroActionsState w a = updateWorldHero w (updateHeroActionsState a)
+updateWorldHeroActionsState w a = updateWorldHero w (\h -> h {actionsState=a})
 
 updateWorldHero :: World -> (Hero -> Hero) -> World
 updateWorldHero (World c wm h is t) op = World c wm (op h) is t
